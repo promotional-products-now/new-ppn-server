@@ -1,0 +1,3 @@
+setup:
+  project: promo_api
+  config: dev
