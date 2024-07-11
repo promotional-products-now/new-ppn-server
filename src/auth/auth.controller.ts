@@ -17,6 +17,7 @@ import {
   ValidateUserDto,
   EmailDTO,
   ChangePasswordDto,
+  creatAdminDto,
 } from './dto/auth.dto';
 import { loginResponse } from './interface/auth.interface';
 import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
@@ -91,24 +92,53 @@ export class AuthController {
       otpSecret,
     });
 
-    // add record to algolia
-    // await this.algoliaService.addRecord(
-    //   omit(user, [
-    //     'password',
-    //     'otpSecret',
-    //     'userDevice',
-    //     'bookmarks',
-    //     'rooms',
-    //     'blockedUsers',
-    //     'accessToken',
-    //   ]),
-    // );
+    const { template } = this.configService.getOrThrow<sendGrid>('sendGrid');
+
+    const otp = this.authService.decodeOTP(user.otpSecret);
+
+    //send welcome email
+    await this.emailService.sendEmailWithTemplate({
+      recipientEmail: email.address,
+      templateId: template.welcome,
+      dynamicTemplateData: {
+        name: `${user.lastName} ${user.firstName}`,
+      },
+    });
+
+    // send otp
+    await this.emailService.sendEmailWithTemplate({
+      recipientEmail: email.address,
+      templateId: template.otp,
+      dynamicTemplateData: {
+        otp: otp,
+        name: `${user.lastName} ${user.firstName}`,
+      },
+    });
+
+    return {
+      message: 'User created',
+      payload: email,
+      ...{ ...(appEnv === environments.dev && { otp: otp }) },
+    };
+  }
+
+  async createAdmin(@Body() body: creatAdminDto) {
+    const otpSecret = this.authService.generateOtp();
+    const adminId = this.generateAdminId(body.role, body.lastName);
+
+    const email = { address: body.email, isVerified: false };
+    const user = await this.authService.create({
+      ...body,
+      email,
+      otpSecret,
+      adminId,
+    });
 
     // const { template } = this.configService.getOrThrow<sendGrid>('sendGrid');
 
     const otp = this.authService.decodeOTP(user.otpSecret);
 
-    // send otp
+    // send magic link
     // await this.emailService.sendEmailWithTemplate({
     //   recipientEmail: email.address,
     //   templateId: template.otp,
@@ -118,7 +148,6 @@ export class AuthController {
     return {
       message: 'User created',
       payload: email,
-      ...{ ...(appEnv === environments.dev && { otp: otp }) },
     };
   }
 
@@ -170,5 +199,36 @@ export class AuthController {
   async logout(@Request() req, @Res({ passthrough: true }) response) {
     response.clearCookie('token');
     return { message: 'Logout successful' };
+  }
+
+  generateAdminId(adminType: string, lastName: string): string {
+    const randomStringLength = 4;
+
+    const characters =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let randomString = '';
+    for (let i = 0; i < randomStringLength; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      randomString += characters[randomIndex];
+    }
+
+    let adminTypeInitial = '';
+    switch (adminType) {
+      case 'super-admin':
+        adminTypeInitial = 'S';
+        break;
+      case 'editor-admin':
+        adminTypeInitial = 'E';
+        break;
+      case 'customer-care-admin':
+        adminTypeInitial = 'C';
+        break;
+      default:
+        adminTypeInitial = 'U'; // Unknown or unspecified admin type
+    }
+
+    const adminId = `${adminTypeInitial}${lastName.charAt(0).toUpperCase()}${randomString}`;
+
+    return adminId.slice(0, 10);
   }
 }

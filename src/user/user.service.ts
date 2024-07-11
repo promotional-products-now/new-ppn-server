@@ -9,6 +9,7 @@ import { User as UserSchema, UserDocument } from './schemas/user.schema';
 import { DeleteResult } from 'mongodb';
 import { UserDevice, UserDeviceDocument } from './schemas/userDevice.schema';
 import { CreateUserDevice } from './dto/create-user.dto';
+import { UserRole } from './enums/role.enum';
 
 @Injectable()
 export class UserService {
@@ -50,6 +51,14 @@ export class UserService {
   async find(): Promise<UserDocument[]> {
     try {
       return await this.userModel.find();
+    } catch (error) {
+      throw new InternalServerErrorException('Error retrieving users', error);
+    }
+  }
+
+  async findAllAdmin(): Promise<UserDocument[]> {
+    try {
+      return await this.userModel.find({ role: { $ne: UserRole.USER } });
     } catch (error) {
       throw new InternalServerErrorException('Error retrieving users', error);
     }

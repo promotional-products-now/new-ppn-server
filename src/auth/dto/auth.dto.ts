@@ -102,3 +102,32 @@ export class SignupAuthDto extends LoginAuthDto {
   @IsOptional()
   location: Location;
 }
+
+export class creatAdminDto extends EmailDTO {
+  @ApiProperty({
+    description: 'first name',
+    required: true,
+    example: 'immanuel',
+  })
+  @IsNotEmpty()
+  @IsString()
+  firstName: string;
+
+  @ApiProperty({
+    description: 'last name',
+    required: true,
+    example: 'doe',
+  })
+  @IsNotEmpty()
+  @IsString()
+  lastName: string;
+
+  @ApiProperty({ example: '+23490191234567', required: false })
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @ApiProperty({ example: UserRole.SUPER_Admin, required: true })
+  @IsEnum(UserRole)
+  role: UserRole;
+}

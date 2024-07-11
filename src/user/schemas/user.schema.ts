@@ -22,22 +22,20 @@ export class User {
   })
   email: Email;
 
-
   phone: string;
 
   @ApiProperty({
     description: 'First Name',
     example: 'john',
   })
-  @Prop({ required: true, })
+  @Prop({ required: true })
   firstName: string;
-
 
   @ApiProperty({
     description: 'Last name',
     example: 'doe',
   })
-  @Prop({ required: true,  })
+  @Prop({ required: true })
   lastName: string;
 
   @ApiProperty({
@@ -75,7 +73,12 @@ export class User {
   @Prop({ type: String, enum: UserRole, default: UserRole.USER })
   role: UserRole;
 
-
+  @ApiPropertyOptional({
+    description: 'admin id',
+    example: 'jnfafj88u03',
+  })
+  @Prop({ required: false })
+  adminId: string;
 
   @ApiPropertyOptional({
     description: 'Location details of the user',
@@ -109,7 +112,6 @@ export class User {
   })
   @Prop({ type: Types.ObjectId, ref: 'UserDevice', required: false })
   userDevice: Types.ObjectId;
-
 
   @ApiPropertyOptional({ description: 'Last active date', type: Date })
   @Prop()

@@ -73,6 +73,7 @@ export type sendGrid = {
   template: {
     otp: string;
     passwordChange: string;
+    welcome: string;
   };
 };
 
@@ -148,6 +149,7 @@ const env = (): AppConfig => {
       template: {
         otp: secrets.SENDGRID_OTP_TEMPLATE_ID,
         passwordChange: secrets.SENDGRID_PASSWORD_CHANGE_TEMPLATE_ID,
+        welcome: secrets.SENDGRID_OTP_WELCOME_TEMPLATE_ID,
       },
     },
     algolia: {

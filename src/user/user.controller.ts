@@ -73,13 +73,14 @@ export class UserController {
     return await this.userService.findOneById(new Types.ObjectId(id));
   }
 
-  @Get('/username/:username')
-  @ApiOperation({ summary: 'Retrieve a user by username' })
-  @ApiParam({ name: 'username', description: 'Username' })
-  async findOneByUsername(
-    @Param('username') username: string,
-  ): Promise<UserDocument | null> {
-    return await this.userService.findOne(username);
+  @Get('/admins')
+  @ApiOperation({ summary: 'Retrieve all admins' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved all admins.',
+  })
+  async findAllAdmin(): Promise<UserDocument[] | null> {
+    return await this.userService.findAllAdmin();
   }
 
   @Patch('/')
