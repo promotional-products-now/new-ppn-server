@@ -1,17 +1,7 @@
-import {
-  IsDate,
-  IsDateString,
-  IsEnum,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 import { SignupAuthDto } from '../../auth/dto/auth.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole } from '../enums/role.enum';
-import { Nationality } from '../enums/nationality.enum';
-import { RelationshipType } from '../enums/relationshipType.enum';
 import { Location } from '../user.interface';
 
 export class CreateUserDto extends SignupAuthDto {
@@ -43,74 +33,6 @@ export class CreateUserDto extends SignupAuthDto {
   @IsEnum(UserRole)
   @IsOptional()
   role: UserRole;
-
-  @ApiProperty({
-    description: 'Church affiliation',
-    required: false,
-    example: 'First Baptist Church',
-  })
-  @IsOptional()
-  @IsString()
-  church: string;
-
-  @ApiProperty({
-    description: 'About the user',
-    required: false,
-    example: 'I am a software developer who loves coding and helping others.',
-  })
-  @IsOptional()
-  @IsString()
-  about: string;
-
-  @ApiProperty({
-    description: 'Nationality',
-    enum: Nationality,
-    example: Nationality.NIGERIA,
-    required: false,
-  })
-  @IsEnum(Nationality)
-  @IsOptional()
-  nationality: Nationality;
-
-  @ApiProperty({
-    description: 'Ethnicity',
-    required: false,
-    example: 'African',
-  })
-  @IsOptional()
-  @IsString()
-  ethnicity: string;
-
-  @ApiProperty({
-    description: 'Height',
-    required: false,
-    example: '6 ft',
-  })
-  @IsOptional()
-  @IsString()
-  height: string;
-
-  @ApiProperty({
-    description: 'Relationship type',
-    enum: RelationshipType,
-    default: RelationshipType.Marriage,
-    example: RelationshipType.Marriage,
-    required: false,
-  })
-  @IsEnum(RelationshipType)
-  @IsOptional()
-  relationshipType: RelationshipType;
-
-  @ApiProperty({
-    description: 'Date of Birth',
-    type: String,
-    format: 'date-time',
-    example: '1999-01-01',
-    required: false,
-  })
-  @IsNotEmpty()
-  @IsDateString()
-  dob: Date;
 
   @ApiProperty({
     description: 'Location',

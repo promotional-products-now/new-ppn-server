@@ -10,6 +10,7 @@ import { DeleteResult } from 'mongodb';
 import { UserDevice, UserDeviceDocument } from './schemas/userDevice.schema';
 import { CreateUserDevice } from './dto/create-user.dto';
 import { UserRole } from './enums/role.enum';
+import { UserStatus } from './enums/status.enum';
 
 @Injectable()
 export class UserService {
@@ -50,7 +51,10 @@ export class UserService {
 
   async find(): Promise<UserDocument[]> {
     try {
-      return await this.userModel.find();
+      return await this.userModel.find(
+        { status: { $ne: UserStatus.DELETED } },
+        { password: 0 },
+      );
     } catch (error) {
       throw new InternalServerErrorException('Error retrieving users', error);
     }
@@ -108,7 +112,7 @@ export class UserService {
     if (result.modifiedCount === 0) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
-    return { message: 'update successfull' };
+    return { message: 'update successful' };
   }
 
   async updateOneByEmail(
@@ -123,7 +127,7 @@ export class UserService {
     if (result.modifiedCount === 0) {
       throw new NotFoundException(`User with email ${email} not found`);
     }
-    return { message: 'update successfull' };
+    return { message: 'update successful' };
   }
 
   async updateUserDevice(
@@ -141,18 +145,21 @@ export class UserService {
         ...newDevice,
       });
       this.updateOne(user._id, { userDevice: device._id });
-      return { message: 'update successfull' };
+      return { message: 'update successful' };
     }
 
     await this.userDeviceModel.updateOne({ _id: user.userDevice }, newDevice);
 
-    return { message: 'update successfull' };
+    return { message: 'update successful' };
   }
 
   async deleteOne(id: Types.ObjectId): Promise<UserDocument> {
     try {
       const user = await this.findOneById(id);
-      await this.userModel.deleteOne({ _id: id });
+      await this.userModel.updateOne(
+        { _id: id },
+        { $set: { status: UserStatus.DELETED } },
+      );
       return user;
     } catch (error) {
       throw new InternalServerErrorException('Error deleting user');
@@ -161,7 +168,10 @@ export class UserService {
 
   async deleteMany(ids: Types.ObjectId[]): Promise<DeleteResult> {
     try {
-      const result = await this.userModel.deleteMany({ _id: { $in: ids } });
+      const result = await this.userModel.deleteMany(
+        { _id: { $in: ids } },
+        { $set: { status: UserStatus.DELETED } },
+      );
       return result;
     } catch (error) {
       throw new InternalServerErrorException('Error deleting multiple users');
@@ -173,5 +183,22 @@ export class UserService {
     refreshToken: string,
   ): Promise<void> {
     await this.userModel.updateOne({ _id: userId }, { refreshToken });
+  }
+
+  async countUsers() {
+    const date = new Date();
+
+    const startDateTime = date.setHours(0, 0, 0);
+    const endDateTime = date.setHours(23, 59, 59, 999);
+
+    const totalUsers = await this.userModel.countDocuments({
+      status: { $ne: UserStatus.DELETED },
+    });
+    const newUsers = await this.userModel.countDocuments({
+      createdAt: { $gte: startDateTime, $lte: endDateTime },
+      status: { $ne: UserStatus.DELETED },
+    });
+
+    return { totalUsers, newUsers };
   }
 }
