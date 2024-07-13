@@ -6,13 +6,9 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  IsDate,
   IsStrongPassword,
-  IsNumber,
 } from 'class-validator';
 import { UserRole } from '../../user/enums/role.enum';
-import { Nationality } from '../../user/enums/nationality.enum';
-import { RelationshipType } from '../../user/enums/relationshipType.enum';
 import { Location } from '../../user/user.interface';
 
 export class EmailDTO {

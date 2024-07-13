@@ -89,6 +89,12 @@ export type AlgoliaConfig = {
   indexName: string;
 };
 
+export type CloudinaryConfig = {
+  apiKey: string;
+  apiSecret: string;
+  cloudName: string;
+};
+
 export type AppConfig = {
   appEnv: Environments;
   port: number;
@@ -102,6 +108,7 @@ export type AppConfig = {
   sendGrid: sendGrid;
   storage: AzureBlobStorage;
   algolia: AlgoliaConfig;
+  cloudinary: CloudinaryConfig;
 };
 
 const env = (): AppConfig => {
@@ -157,6 +164,11 @@ const env = (): AppConfig => {
       adminKey: secrets.ALGOLIA_ADMIN_KEY,
       searchKey: secrets.ALGOLIA_SEARCH_KEY,
       indexName: secrets.ALGOLIA_INDEX_NAME,
+    },
+    cloudinary: {
+      apiKey: secrets.CLOUDINARY_API_KEY,
+      apiSecret: secrets.CLOUDINARY_API_SECRET,
+      cloudName: secrets.CLOUDINARY_CLOUD_NAME,
     },
   };
 };
