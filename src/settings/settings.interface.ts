@@ -13,4 +13,3 @@ export enum FreightType {
 export enum DestinationType {
   METROPOLITAN = 'metropolitan',
 }
-
