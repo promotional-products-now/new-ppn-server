@@ -40,9 +40,9 @@ import { AzureBlobService } from '../commons/services/FileUploadService/azure-bl
 import { CountUserResDto } from './dto/count-user.dto';
 
 @ApiTags('users')
-@UseGuards(AuthorizationGuard)
-@ApiSecurity('uid')
-@ApiBearerAuth()
+// @UseGuards(AuthorizationGuard)
+// @ApiSecurity('uid')
+// @ApiBearerAuth()
 @Controller('users')
 export class UserController {
   constructor(

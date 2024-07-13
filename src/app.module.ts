@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { SuspendModule } from './suspend/suspend.module';
 import { ReportModule } from './report/report.module';
 import { ProductModule } from './product/product.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ProductModule } from './product/product.module';
     SuspendModule,
     ReportModule,
     ProductModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [

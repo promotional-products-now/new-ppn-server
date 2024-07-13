@@ -118,6 +118,12 @@ export class User {
   lastActive: Date;
   // @Prop({ default: null })
   // refreshToken: string | null;
+
+  @Prop()
+  createdAt: Date;
+
+  @Prop()
+  updatedAt: Date;
 }
 
 export type UserDocument = HydratedDocument<User>;
