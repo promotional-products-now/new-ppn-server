@@ -10,6 +10,7 @@ import { SuspendModule } from './suspend/suspend.module';
 import { ReportModule } from './report/report.module';
 import { ProductModule } from './product/product.module';
 import { DataExportModule } from './data_export/data_export.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { DataExportModule } from './data_export/data_export.module';
     ReportModule,
     ProductModule,
     DataExportModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [

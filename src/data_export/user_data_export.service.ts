@@ -66,7 +66,7 @@ export class UserDataExportService {
       );
       response.setHeader(
         'Content-Disposition',
-        'attachment; filename=' + 'user.xlsx',
+        'attachment; filename=' + 'users.xlsx',
       );
 
       const buffer = await workbook.xlsx.write(response);
