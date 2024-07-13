@@ -37,6 +37,7 @@ import { AuthorizationGuard } from '../commons/guards/authorization.guard';
 // import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { CreateUserDevice, singleImageUploadDTO } from './dto/create-user.dto';
 import { AzureBlobService } from '../commons/services/FileUploadService/azure-blob.service';
+import { CountUserResDto } from './dto/count-user.dto';
 
 @ApiTags('users')
 @UseGuards(AuthorizationGuard)
@@ -48,30 +49,6 @@ export class UserController {
     private readonly userService: UserService,
     // private readonly azureBlobService: AzureBlobService,
   ) {}
-
-  @Get()
-  @ApiOperation({ summary: 'Retrieve all users' })
-  @ApiResponse({
-    status: 200,
-    description: 'Successfully retrieved all users.',
-    type: [User],
-  })
-  async findAll(): Promise<UserDocument[]> {
-    return await this.userService.find();
-  }
-
-  @Get(':id')
-  @ApiOperation({ summary: 'Retrieve a user by ID' })
-  @ApiParam({ name: 'id', description: 'User ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Successfully retrieved user.',
-    type: User,
-  })
-  @ApiResponse({ status: 404, description: 'User not found.' })
-  async findOne(@Param('id') id: string): Promise<UserDocument | null> {
-    return await this.userService.findOneById(new Types.ObjectId(id));
-  }
 
   @Get('/admins')
   @ApiOperation({ summary: 'Retrieve all admins' })
@@ -119,11 +96,50 @@ export class UserController {
     return this.userService.updateUserDevice(userId, newDevice);
   }
 
+  @Get('/count-users')
+  @ApiOperation({
+    summary:
+      'Count the number of user and the number of new users on the platform',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Successfully retrieved the total number of users and the total number of new users.',
+    type: CountUserResDto,
+  })
+  async countUsers(): Promise<CountUserResDto> {
+    return await this.userService.countUsers();
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Retrieve a user by ID' })
+  @ApiParam({ name: 'id', description: 'User ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved user.',
+    type: User,
+  })
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  async findOne(@Param('id') id: string): Promise<UserDocument | null> {
+    return await this.userService.findOneById(new Types.ObjectId(id));
+  }
+
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a user by ID' })
   @ApiParam({ name: 'id', description: 'User ID' })
   async delete(@Param('id') id: string): Promise<UserDocument | null> {
     return await this.userService.deleteOne(new Types.ObjectId(id));
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Retrieve all users' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved all users.',
+    type: [User],
+  })
+  async findAll(): Promise<UserDocument[]> {
+    return await this.userService.find();
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
