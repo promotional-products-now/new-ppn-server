@@ -45,7 +45,7 @@ describe('SettingsService', () => {
     },
   };
 
-  const mockFreights = Array.of()
+  const mockFreights = Array.of();
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -112,7 +112,6 @@ describe('SettingsService', () => {
   describe('Freight Setting', () => {
     // it('should fetch freight setting', async () => {
     //   const query = { page: 1, limit: 15 };
-
     //   (
     //     freightModel
     //       .find({})
@@ -121,13 +120,10 @@ describe('SettingsService', () => {
     //       .populate(['vendor'])
     //       .sort().exec as jest.Mock
     //   ).mockResolvedValue(mockFreights);
-
     //   jest
     //     .spyOn(freightModel, 'countDocuments')
     //     .mockResolvedValue(mockFreights.length);
-
     //   const response = await service.fetchFreights(query);
-
     //   expect(response).toBeDefined();
     //   // expect(response.docs.length));
     //   expect(response.hasPrevPage).toBeFalsy();
