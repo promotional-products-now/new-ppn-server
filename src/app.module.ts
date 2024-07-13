@@ -11,6 +11,8 @@ import { ReportModule } from './report/report.module';
 import { ProductModule } from './product/product.module';
 import { SettingsModule } from './settings/settings.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { DataExportModule } from './data_export/data_export.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -35,6 +37,8 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     ProductModule,
     SettingsModule,
     CloudinaryModule,
+    DataExportModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [

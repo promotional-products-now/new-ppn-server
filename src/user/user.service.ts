@@ -10,6 +10,9 @@ import { DeleteResult } from 'mongodb';
 import { UserDevice, UserDeviceDocument } from './schemas/userDevice.schema';
 import { CreateUserDevice } from './dto/create-user.dto';
 import { UserRole } from './enums/role.enum';
+import { UserStatus } from './enums/status.enum';
+import { PaginationDto } from 'src/commons/dtos/pagination.dto';
+import { FindUsers } from './dto/fetch-user.dto';
 
 @Injectable()
 export class UserService {
@@ -48,10 +51,31 @@ export class UserService {
     return user;
   }
 
-  async find(): Promise<UserDocument[]> {
+  async find(paginationDto: PaginationDto): Promise<FindUsers> {
     try {
-      return await this.userModel.find();
+      const data = paginationDto;
+      const page = data.page ? data.page : 0;
+      const limit = data.limit ? data.limit : 10;
+      const skip = page === 0 ? 0 : (page - 1) * limit;
+
+      const users = await this.userModel.find(
+        { status: { $ne: UserStatus.DELETED } },
+        { password: 0, otpSecret: 0 },
+        { skip, limit: limit + 1 },
+      );
+
+      const hasPrevious = skip === 0 ? false : true;
+      const hasNext = users.length > limit ? true : false;
+      const nextPage = hasNext ? page + 1 : null;
+      const prevPage = hasPrevious ? page - 1 : null;
+
+      if (users.length > limit) {
+        console.log(users.length);
+        users.pop();
+      }
+      return { users, hasPrevious, hasNext, nextPage, prevPage };
     } catch (error) {
+      console.log(error);
       throw new InternalServerErrorException('Error retrieving users', error);
     }
   }
@@ -108,7 +132,7 @@ export class UserService {
     if (result.modifiedCount === 0) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
-    return { message: 'update successfull' };
+    return { message: 'update successful' };
   }
 
   async updateOneByEmail(
@@ -123,7 +147,7 @@ export class UserService {
     if (result.modifiedCount === 0) {
       throw new NotFoundException(`User with email ${email} not found`);
     }
-    return { message: 'update successfull' };
+    return { message: 'update successful' };
   }
 
   async updateUserDevice(
@@ -141,18 +165,21 @@ export class UserService {
         ...newDevice,
       });
       this.updateOne(user._id, { userDevice: device._id });
-      return { message: 'update successfull' };
+      return { message: 'update successful' };
     }
 
     await this.userDeviceModel.updateOne({ _id: user.userDevice }, newDevice);
 
-    return { message: 'update successfull' };
+    return { message: 'update successful' };
   }
 
   async deleteOne(id: Types.ObjectId): Promise<UserDocument> {
     try {
       const user = await this.findOneById(id);
-      await this.userModel.deleteOne({ _id: id });
+      await this.userModel.updateOne(
+        { _id: id },
+        { $set: { status: UserStatus.DELETED } },
+      );
       return user;
     } catch (error) {
       throw new InternalServerErrorException('Error deleting user');
@@ -161,7 +188,10 @@ export class UserService {
 
   async deleteMany(ids: Types.ObjectId[]): Promise<DeleteResult> {
     try {
-      const result = await this.userModel.deleteMany({ _id: { $in: ids } });
+      const result = await this.userModel.deleteMany(
+        { _id: { $in: ids } },
+        { $set: { status: UserStatus.DELETED } },
+      );
       return result;
     } catch (error) {
       throw new InternalServerErrorException('Error deleting multiple users');
@@ -173,5 +203,22 @@ export class UserService {
     refreshToken: string,
   ): Promise<void> {
     await this.userModel.updateOne({ _id: userId }, { refreshToken });
+  }
+
+  async countUsers() {
+    const date = new Date();
+
+    const startDateTime = date.setHours(0, 0, 0);
+    const endDateTime = date.setHours(23, 59, 59, 999);
+
+    const totalUsers = await this.userModel.countDocuments({
+      status: { $ne: UserStatus.DELETED },
+    });
+    const newUsers = await this.userModel.countDocuments({
+      createdAt: { $gte: startDateTime, $lte: endDateTime },
+      status: { $ne: UserStatus.DELETED },
+    });
+
+    return { totalUsers, newUsers };
   }
 }

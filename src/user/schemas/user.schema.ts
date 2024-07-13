@@ -116,6 +116,12 @@ export class User {
   @ApiPropertyOptional({ description: 'Last active date', type: Date })
   @Prop()
   lastActive: Date;
+
+  @Prop()
+  createdAt: Date;
+
+  @Prop()
+  updatedAt: Date;
   // @Prop({ default: null })
   // refreshToken: string | null;
 }

@@ -9,4 +9,5 @@ export interface Location {
   state?: string;
   country?: string;
   timeZone?: string;
+  postalCode?: string;
 }
