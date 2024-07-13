@@ -39,9 +39,9 @@ import { CreateUserDevice, singleImageUploadDTO } from './dto/create-user.dto';
 import { AzureBlobService } from '../commons/services/FileUploadService/azure-blob.service';
 
 @ApiTags('users')
-@UseGuards(AuthorizationGuard)
-@ApiSecurity('uid')
-@ApiBearerAuth()
+// @UseGuards(AuthorizationGuard)
+// @ApiSecurity('uid')
+// @ApiBearerAuth()
 @Controller('users')
 export class UserController {
   constructor(
