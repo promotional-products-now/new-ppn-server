@@ -14,6 +14,7 @@ import {
   Req,
   UploadedFiles,
   NotFoundException,
+  Query,
 } from '@nestjs/common';
 
 import { UserService } from './user.service';
@@ -38,6 +39,8 @@ import { AuthorizationGuard } from '../commons/guards/authorization.guard';
 import { CreateUserDevice, singleImageUploadDTO } from './dto/create-user.dto';
 import { AzureBlobService } from '../commons/services/FileUploadService/azure-blob.service';
 import { CountUserResDto } from './dto/count-user.dto';
+import { FindUsers } from './dto/fetch-user.dto';
+import { PaginationDto } from 'src/commons/dtos/pagination.dto';
 
 @ApiTags('users')
 // @UseGuards(AuthorizationGuard)
@@ -135,11 +138,11 @@ export class UserController {
   @ApiOperation({ summary: 'Retrieve all users' })
   @ApiResponse({
     status: 200,
-    description: 'Successfully retrieved all users.',
-    type: [User],
+    description: 'Successfully retrieved all users with pagination.',
+    type: FindUsers,
   })
-  async findAll(): Promise<UserDocument[]> {
-    return await this.userService.find();
+  async findAll(@Query() paginationDto: PaginationDto): Promise<FindUsers> {
+    return await this.userService.find(paginationDto);
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)

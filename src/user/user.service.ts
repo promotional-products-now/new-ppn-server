@@ -11,6 +11,8 @@ import { UserDevice, UserDeviceDocument } from './schemas/userDevice.schema';
 import { CreateUserDevice } from './dto/create-user.dto';
 import { UserRole } from './enums/role.enum';
 import { UserStatus } from './enums/status.enum';
+import { PaginationDto } from 'src/commons/dtos/pagination.dto';
+import { FindUsers } from './dto/fetch-user.dto';
 
 @Injectable()
 export class UserService {
@@ -49,13 +51,31 @@ export class UserService {
     return user;
   }
 
-  async find(): Promise<UserDocument[]> {
+  async find(paginationDto: PaginationDto): Promise<FindUsers> {
     try {
-      return await this.userModel.find(
+      const data = paginationDto;
+      const page = data.page ? data.page : 0;
+      const limit = data.limit ? data.limit : 10;
+      const skip = page === 0 ? 0 : (page - 1) * limit;
+
+      const users = await this.userModel.find(
         { status: { $ne: UserStatus.DELETED } },
-        { password: 0 },
+        { password: 0, otpSecret: 0 },
+        { skip, limit: limit + 1 },
       );
+
+      const hasPrevious = skip === 0 ? false : true;
+      const hasNext = users.length > limit ? true : false;
+      const nextPage = hasNext ? page + 1 : null;
+      const prevPage = hasPrevious ? page - 1 : null;
+
+      if (users.length > limit) {
+        console.log(users.length);
+        users.pop();
+      }
+      return { users, hasPrevious, hasNext, nextPage, prevPage };
     } catch (error) {
+      console.log(error);
       throw new InternalServerErrorException('Error retrieving users', error);
     }
   }
