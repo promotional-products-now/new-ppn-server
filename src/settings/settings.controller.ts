@@ -7,6 +7,7 @@ import {
   UploadedFile,
   UseInterceptors,
   Query,
+  Post,
 } from '@nestjs/common';
 import { SettingsService } from './settings.service';
 import {
@@ -15,6 +16,7 @@ import {
   ApiConsumes,
   ApiBody,
   ApiOperation,
+  ApiCreatedResponse,
 } from '@nestjs/swagger';
 import { UpdateProfitSettingDto } from './dto/update-profit-setting.dto';
 import { UpdateBannerSettingDto } from './dto/update-banner-setting.dto';
@@ -24,6 +26,10 @@ import { ProfitSetting } from './schemas/profit-setting.schema';
 import { BannerSetting } from './schemas/banner-setting.schema';
 import { FetchFreightQueryDto } from './dto/fetch-freight-query.dto';
 import { PaginatedFreightSettingsResponse } from './dto/paginated-freight-response';
+import { CreateFreightDto } from './dto/create-freight.dto';
+import { UpdateFreightDto } from './dto/update-freight.dto';
+import { Freight } from './schemas/freight.schema';
+import { FetchSupplierstQueryDto } from './dto/fetch-suppliers.dto';
 
 @Controller('settings')
 @ApiTags('settings')
@@ -111,5 +117,26 @@ export class SettingsController {
   })
   async fetchFreightSetting(@Query() query: FetchFreightQueryDto) {
     return this.settingsService.fetchFreights(query);
+  }
+
+  @Post('/freight')
+  @ApiOperation({ summary: 'Create Vendor Freight Setting' })
+  @ApiCreatedResponse({ description: 'Created freight docs', type: Freight })
+  async createFreight(@Body() body: CreateFreightDto) {
+    return this.settingsService.createFreight(body);
+  }
+
+  @Patch('/freight')
+  @ApiOperation({ summary: 'Update Vemdpr Freight Setting' })
+  @ApiOkResponse({ description: 'Updated freight docs ', type: [Freight] })
+  async updateFreight(@Body() body: UpdateFreightDto) {
+    return this.settingsService.updateFreights(body);
+  }
+
+  @Get('/suppliers')
+  @ApiOperation({ summary: 'Fetch Suppliers' })
+  @ApiOkResponse({ description: 'Suppliers fetched successfully' })
+  async getSuppliers(@Query() query: FetchSupplierstQueryDto) {
+    return this.settingsService.getSuppliers(query);
   }
 }

@@ -9,6 +9,10 @@ import { ProfitSetting } from './schemas/profit-setting.schema';
 import { UpdateProfitSettingDto } from './dto/update-profit-setting.dto';
 import { Freight } from './schemas/freight.schema';
 import { FetchFreightQueryDto } from './dto/fetch-freight-query.dto';
+import { CreateFreightDto } from './dto/create-freight.dto';
+import { UpdateFreightDto } from './dto/update-freight.dto';
+import { FetchSupplierstQueryDto } from './dto/fetch-suppliers.dto';
+import { Supplier } from 'src/product/schemas/supplier.schema';
 
 @Injectable()
 export class SettingsService {
@@ -19,6 +23,8 @@ export class SettingsService {
     private readonly profitSettingModel: Model<ProfitSetting>,
     @InjectModel(Freight.name)
     private readonly freightModel: Model<Freight>,
+    @InjectModel(Supplier.name)
+    private readonly supplierModel: Model<Supplier>,
   ) {
     void this.initSetting();
   }
@@ -54,7 +60,7 @@ export class SettingsService {
           image: '',
           message: '',
           urlLink: '',
-          position: '',
+          position: 'top-center',
         },
       });
     }
@@ -101,6 +107,49 @@ export class SettingsService {
       .sort({ createdAt: -1 });
 
     const count = await this.freightModel.countDocuments(payload);
+    const totalPages = Math.ceil(count / limit);
+
+    return {
+      docs: freights,
+      page,
+      limit,
+      totalItems: count,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+    };
+  }
+
+  async createFreight(paylod: CreateFreightDto) {
+    return await this.freightModel.create(paylod);
+  }
+
+  async updateFreights(payload: UpdateFreightDto) {
+    const { ids, ...rest } = payload;
+
+    return await this.freightModel.updateMany(
+      { _id: { $in: ids } },
+      { $set: rest },
+    );
+  }
+
+  async getSuppliers(query: FetchSupplierstQueryDto) {
+    const { page, limit, query: search } = query;
+
+    let payload: Record<string, any> = {};
+
+    if (search) {
+      const regex = new RegExp(search, 'i');
+      payload.name = { $regex: regex };
+    }
+
+    const freights = await this.supplierModel
+      .find(payload)
+      .skip(limit * (page - 1))
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const count = await this.supplierModel.countDocuments(payload);
     const totalPages = Math.ceil(count / limit);
 
     return {

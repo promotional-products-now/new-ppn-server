@@ -12,6 +12,7 @@ import {
 } from './schemas/profit-setting.schema';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { Freight, FreightSchema } from './schemas/freight.schema';
+import { Supplier, SupplierSchema } from '../product/schemas/supplier.schema';
 
 @Module({
   imports: [
@@ -27,6 +28,10 @@ import { Freight, FreightSchema } from './schemas/freight.schema';
       {
         name: Freight.name,
         schema: FreightSchema,
+      },
+      {
+        name: Supplier.name,
+        schema: SupplierSchema,
       },
     ]),
   ],

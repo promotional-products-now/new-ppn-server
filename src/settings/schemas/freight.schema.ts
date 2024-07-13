@@ -2,7 +2,7 @@ import { Document, HydratedDocument, Types } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { DestinationType, FreightType } from '../settings.interface';
 import { ApiProperty } from '@nestjs/swagger';
-import { User } from 'src/commons/decorators/user.decorator';
+import { User } from '../../user/schemas/user.schema';
 
 @Schema({
   timestamps: true,
