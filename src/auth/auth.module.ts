@@ -9,6 +9,8 @@ import { AccessToken } from '../configs';
 import { LocalStrategy } from '../commons/strategy/local.strategy';
 import { NotificationModule } from '../commons/services/Notification/notification.module';
 import { JWTModule } from '../commons/services/JWTService/JWTService.module';
+// import { MagicLoginStrategy } from './magiclogin.strategy';
+
 // import { AlgoliaService } from 'src/commons/services/Algolia/algolia.service';
 
 @Module({

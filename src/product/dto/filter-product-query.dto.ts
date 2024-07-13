@@ -37,3 +37,20 @@ export class FilterProductQueryDto {
   @IsOptional()
   limit: number;
 }
+
+export class FilterProductByCategoryQueryDto {
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  sort: string;
+
+  @ApiPropertyOptional()
+  @IsNumber()
+  @IsOptional()
+  page: number;
+
+  @ApiPropertyOptional()
+  @IsNumber()
+  @IsOptional()
+  limit: number;
+}
