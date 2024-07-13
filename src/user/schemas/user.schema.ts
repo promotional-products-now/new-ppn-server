@@ -116,14 +116,14 @@ export class User {
   @ApiPropertyOptional({ description: 'Last active date', type: Date })
   @Prop()
   lastActive: Date;
-  // @Prop({ default: null })
-  // refreshToken: string | null;
 
   @Prop()
   createdAt: Date;
 
   @Prop()
   updatedAt: Date;
+  // @Prop({ default: null })
+  // refreshToken: string | null;
 }
 
 export type UserDocument = HydratedDocument<User>;
