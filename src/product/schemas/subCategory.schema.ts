@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, HydratedDocument, Types } from 'mongoose';
 import { ProductCategory } from './category.schema';
 import { ApiProperty } from '@nestjs/swagger';
+import { STATUS_ENUM } from '../product.interface';
 
 @Schema({
   timestamps: false,
@@ -23,6 +24,14 @@ export class ProductSubCategory extends Document {
   @Prop({ type: Boolean, default: true })
   @ApiProperty({ type: 'boolean', example: true })
   isActive: boolean;
+
+  @Prop({ type: String, enum: STATUS_ENUM, default: STATUS_ENUM.BUY_NOW })
+  @ApiProperty({
+    type: 'string',
+    enum: STATUS_ENUM,
+    example: STATUS_ENUM.BUY_NOW,
+  })
+  status: string;
 }
 
 export type ProductSubCategoryDocument = HydratedDocument<ProductSubCategory>;

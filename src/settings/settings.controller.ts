@@ -30,6 +30,8 @@ import { CreateFreightDto } from './dto/create-freight.dto';
 import { UpdateFreightDto } from './dto/update-freight.dto';
 import { Freight } from './schemas/freight.schema';
 import { FetchSupplierstQueryDto } from './dto/fetch-suppliers.dto';
+import { PurchaseSetting } from './schemas/purchase-setting.schema';
+import { UpdatePurchaseSettingDto } from './dto/update-purchase-setting.dto';
 
 @Controller('settings')
 @ApiTags('settings')
@@ -123,14 +125,14 @@ export class SettingsController {
   @ApiOperation({ summary: 'Create Vendor Freight Setting' })
   @ApiCreatedResponse({ description: 'Created freight docs', type: Freight })
   async createFreight(@Body() body: CreateFreightDto) {
-    return this.settingsService.createFreight(body);
+    return await this.settingsService.createFreight(body);
   }
 
   @Patch('/freight')
   @ApiOperation({ summary: 'Update Vendpr Freight Setting' })
   @ApiOkResponse({ description: 'Updated freight docs ', type: [Freight] })
   async updateFreight(@Body() body: UpdateFreightDto) {
-    return this.settingsService.updateFreights(body);
+    return await this.settingsService.updateFreights(body);
   }
 
   @Get('/suppliers')
@@ -138,5 +140,25 @@ export class SettingsController {
   @ApiOkResponse({ description: 'Suppliers fetched successfully' })
   async getSuppliers(@Query() query: FetchSupplierstQueryDto) {
     return this.settingsService.getSuppliers(query);
+  }
+
+  @Get('/purchase')
+  @ApiOperation({ summary: 'Fetch purchase setting' })
+  @ApiOkResponse({
+    description: 'Purchase setting fetched successfully.',
+    type: PurchaseSetting,
+  })
+  async getPurchaseSetting() {
+    return await this.settingsService.getPurchaseSetting();
+  }
+
+  @Patch('/purchase')
+  @ApiOperation({ summary: 'Update purchase setting' })
+  @ApiOkResponse({
+    description: 'Purchase setting updated successfully.',
+    type: PurchaseSetting,
+  })
+  async updatePurchaseSetting(@Body() body: UpdatePurchaseSettingDto) {
+    return await this.settingsService.updatePurchaseSetting(body);
   }
 }

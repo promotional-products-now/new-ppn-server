@@ -6,6 +6,7 @@ import { Supplier } from './supplier.schema';
 import { ApiProperty } from '@nestjs/swagger';
 import { ProductCategory } from './category.schema';
 import { ProductSubCategory } from './subCategory.schema';
+import { STATUS_ENUM } from '../product.interface';
 
 @Schema({
   timestamps: true,
@@ -218,6 +219,14 @@ export class Product extends Document {
   })
   @ApiProperty({ type: 'boolean', example: true })
   isActive: boolean;
+
+  @Prop({ type: String, enum: STATUS_ENUM, default: STATUS_ENUM.BUY_NOW })
+  @ApiProperty({
+    type: 'string',
+    enum: STATUS_ENUM,
+    example: STATUS_ENUM.BUY_NOW,
+  })
+  status: string;
 }
 
 export type ProductDocument = HydratedDocument<Product>;
