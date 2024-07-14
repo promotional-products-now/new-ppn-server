@@ -298,7 +298,7 @@ export class ProductService {
         { 'subCategory.isActive': true },
       ],
     };
-    
+
     let sort = {};
 
     if (query.colours && query.colours.length > 0) {

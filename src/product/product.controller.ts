@@ -17,7 +17,12 @@ import {
   PaginatedSubCategoryResponse,
   PaginatedSupplierResponse,
 } from './dto/paginated-response.dto';
-import { UdpateSupplierDto, UpdateCategoryDto, UpdateProductDto, UpdateSubCategoryDto } from './dto/update-product.dto';
+import {
+  UdpateSupplierDto,
+  UpdateCategoryDto,
+  UpdateProductDto,
+  UpdateSubCategoryDto,
+} from './dto/update-product.dto';
 import { Product } from './schemas/product.schema';
 import { Supplier } from './schemas/supplier.schema';
 import { ProductSubCategory } from './schemas/subCategory.schema';
@@ -113,7 +118,10 @@ export class ProductController {
   @Patch('/category/:id')
   @ApiParam({ name: 'id', type: 'string', required: true })
   @ApiOperation({ summary: 'Update Category' })
-  @ApiOkResponse({ description: 'Updated category data', type: ProductCategory })
+  @ApiOkResponse({
+    description: 'Updated category data',
+    type: ProductCategory,
+  })
   async updateCategory(
     @Param('id') id: string,
     @Body() body: UpdateCategoryDto,
@@ -124,7 +132,10 @@ export class ProductController {
   @Patch('/subcategory/:id')
   @ApiParam({ name: 'id', type: 'string', required: true })
   @ApiOperation({ summary: 'Update SubCategory' })
-  @ApiOkResponse({ description: 'Updated subcategory data', type: ProductSubCategory })
+  @ApiOkResponse({
+    description: 'Updated subcategory data',
+    type: ProductSubCategory,
+  })
   async updateSubCategory(
     @Param('id') id: string,
     @Body() body: UpdateSubCategoryDto,
