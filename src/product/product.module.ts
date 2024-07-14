@@ -11,6 +11,7 @@ import {
   ProductCategory,
   ProductCategorySchema,
 } from './schemas/category.schema';
+import { ProductSubCategory, ProductSubCategorySchema } from './schemas/subCategory.schema';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import {
       { name: Supplier.name, schema: SupplierSchema },
       { name: Addition.name, schema: AdditionSchema },
       { name: ProductCategory.name, schema: ProductCategorySchema },
+      { name: ProductSubCategory.name, schema: ProductSubCategorySchema },
     ]),
   ],
   controllers: [ProductController],

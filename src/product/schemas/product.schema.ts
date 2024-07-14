@@ -3,6 +3,9 @@ import { Schema, SchemaFactory, Prop } from '@nestjs/mongoose';
 import { BasePrice } from './baseprice.schema';
 import { Addition } from './addition.schema';
 import { Supplier } from './supplier.schema';
+import { ApiProperty } from '@nestjs/swagger';
+import { ProductCategory } from './category.schema';
+import { ProductSubCategory } from './subCategory.schema';
 
 @Schema({
   timestamps: true,
@@ -201,11 +204,20 @@ export class Product extends Document {
     };
   };
 
-  @Prop({ type: { type: Types.ObjectId, ref: 'productCategories' } })
+  @ApiProperty({ type: 'string', example: '666d98ab565f924157e31c54' })
+  @Prop({ type: { type: Types.ObjectId, ref: ProductCategory.name } })
   category: Types.ObjectId;
 
-  @Prop({ type: { type: Types.ObjectId, ref: 'productsubcategories' } })
+  @ApiProperty({ type: 'string', example: '666d98ab565f924157e31c54' })
+  @Prop({ type: { type: Types.ObjectId, ref: ProductSubCategory.name } })
   subCategory: Types.ObjectId;
+
+  @Prop({
+    type: Boolean,
+    default: true,
+  })
+  @ApiProperty({ type: 'boolean', example: true })
+  isActive: boolean;
 }
 
 export type ProductDocument = HydratedDocument<Product>;
