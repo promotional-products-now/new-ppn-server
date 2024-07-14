@@ -39,7 +39,7 @@ import { AuthorizationGuard } from '../commons/guards/authorization.guard';
 import { CreateUserDevice, singleImageUploadDTO } from './dto/create-user.dto';
 import { AzureBlobService } from '../commons/services/FileUploadService/azure-blob.service';
 import { CountUserResDto } from './dto/count-user.dto';
-import { FindUsers } from './dto/fetch-user.dto';
+import { FilterWithCreatedAt, FindUsers } from './dto/fetch-user.dto';
 import { PaginationDto } from 'src/commons/dtos/pagination.dto';
 
 @ApiTags('users')
@@ -112,6 +112,17 @@ export class UserController {
   })
   async countUsers(): Promise<CountUserResDto> {
     return await this.userService.countUsers();
+  }
+
+  @Get('/filter')
+  @ApiOperation({ summary: 'Filtered all users' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully filtered all users.',
+    type: FindUsers,
+  })
+  async filterUsersWithCreatedAt(@Query() filterQuery: FilterWithCreatedAt) {
+    return await this.userService.findWithCreatedAt(filterQuery);
   }
 
   @Get(':id')

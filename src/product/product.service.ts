@@ -1,4 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Product, ProductDocument } from './schemas/product.schema';
@@ -12,7 +17,14 @@ import { Addition, AdditionDocument } from './schemas/addition.schema';
 import { BasePrice, BasePriceDocument } from './schemas/baseprice.schema';
 import { ConfigService } from '@nestjs/config';
 import { PRODUCT_FILTER } from './constants';
-import { FilterProductQueryDto } from './dto/filter-product-query.dto';
+import {
+  FilterProductByCategoryQueryDto,
+  FilterProductQueryDto,
+} from './dto/filter-product-query.dto';
+import {
+  ProductCategory,
+  ProductCategoryDocument,
+} from '../product-category/schemas/category.schema';
 
 @Injectable()
 export class ProductService {
@@ -27,6 +39,8 @@ export class ProductService {
     private readonly additionModel: Model<AdditionDocument>,
     @InjectModel(BasePrice.name)
     private readonly basePriceModel: Model<BasePriceDocument>,
+    @InjectModel(ProductCategory.name)
+    private readonly productCategoryModel: Model<ProductCategoryDocument>,
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {}
@@ -207,7 +221,7 @@ export class ProductService {
     return newProduct;
   }
 
-  @Cron('0 0 * * 0')
+  // @Cron('0 0 * * 0')
   // @Cron('* * * * * *')
   async fetchThirdPartyProducts() {
     try {
@@ -313,7 +327,6 @@ export class ProductService {
       .limit(query.limit)
       .populate(['supplier'])
       .sort(sort);
-    console.log({ filterQuery, products });
     const count = await this.productModel.countDocuments({ ...filterQuery });
     const totalPages = Math.ceil(count / query.limit);
 
@@ -346,6 +359,81 @@ export class ProductService {
     return {
       suppliers, //suppliers.map((supplier) => supplier.toJSON() as SupplierDocument),
     };
+  }
+
+  async findAllProductCategory(): Promise<any[]> {
+    const category = await this.productCategoryModel.find({});
+
+    const res = await Promise.all(
+      category.map(async (obj, i) => {
+        let totalProducts = obj.totalProducts;
+
+        if (totalProducts === null) {
+          const count = await this.productModel.countDocuments({
+            category: obj._id,
+          });
+          await this.productCategoryModel.updateOne(
+            { _id: obj._id },
+            { totalProducts: count },
+          );
+          totalProducts = count;
+        }
+
+        // Convert the Mongoose document to a plain JavaScript object
+        const plainObj = obj.toObject();
+        delete plainObj.subCategory;
+
+        return {
+          name: plainObj.name,
+          id: plainObj.id,
+          _id: plainObj._id,
+          totalProducts,
+        };
+      }),
+    );
+
+    // console.log(res);
+    return res;
+  }
+
+  async findProductByCategory(
+    query: FilterProductByCategoryQueryDto,
+    categoryName: string,
+  ): Promise<any[]> {
+    try {
+      // Find the category
+      const category = await this.productCategoryModel
+        .findOne({ name: this.removeSnakeCase(categoryName) })
+        .select(['name', 'id'])
+        .lean();
+
+      if (!category) {
+        throw new NotFoundException('Category not found');
+      }
+
+      // Determine the sort order
+      const sortOptions: { [key: string]: any } = {
+        'A-Z': { 'product.name': 1 },
+        'Z-A': { 'product.name': -1 },
+        'Recently added': { 'meta.firstListedAt': -1 },
+        default: { createdAt: -1 },
+      };
+
+      const sort = sortOptions[query.sort] || sortOptions.default;
+
+      const products = await this.productModel
+        .find({ category: category._id })
+        .skip(query.limit * (query.page - 1))
+        .limit(query.limit)
+        .sort(sort)
+        .lean();
+
+      return products;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'An error occured while fetching product',
+      );
+    }
   }
 
   async populateDatabase() {
@@ -647,5 +735,11 @@ export class ProductService {
     );
 
     return { docs };
+  }
+  removeSnakeCase(str: string): string {
+    return str
+      .split('_')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   }
 }

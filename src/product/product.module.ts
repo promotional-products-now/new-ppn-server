@@ -7,6 +7,10 @@ import { Product, ProductSchema } from './schemas/product.schema';
 import { BasePrice, BasePriceSchema } from './schemas/baseprice.schema';
 import { Supplier, SupplierSchema } from './schemas/supplier.schema';
 import { Addition, AdditionSchema } from './schemas/addition.schema';
+import {
+  ProductCategory,
+  ProductCategorySchema,
+} from '../product-category/schemas/category.schema';
 
 @Module({
   imports: [
@@ -18,6 +22,7 @@ import { Addition, AdditionSchema } from './schemas/addition.schema';
       { name: BasePrice.name, schema: BasePriceSchema },
       { name: Supplier.name, schema: SupplierSchema },
       { name: Addition.name, schema: AdditionSchema },
+      { name: ProductCategory.name, schema: ProductCategorySchema },
     ]),
   ],
   controllers: [ProductController],

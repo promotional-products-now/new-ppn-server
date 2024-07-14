@@ -200,6 +200,12 @@ export class Product extends Document {
       supplierSubCategory?: string;
     };
   };
+
+  @Prop({ type: { type: Types.ObjectId, ref: 'productCategories' } })
+  category: Types.ObjectId;
+
+  @Prop({ type: { type: Types.ObjectId, ref: 'productsubcategories' } })
+  subCategory: Types.ObjectId;
 }
 
 export type ProductDocument = HydratedDocument<Product>;
