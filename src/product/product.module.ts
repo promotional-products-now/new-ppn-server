@@ -11,7 +11,10 @@ import {
   ProductCategory,
   ProductCategorySchema,
 } from './schemas/category.schema';
-import { ProductSubCategory, ProductSubCategorySchema } from './schemas/subCategory.schema';
+import {
+  ProductSubCategory,
+  ProductSubCategorySchema,
+} from './schemas/subCategory.schema';
 
 @Module({
   imports: [
