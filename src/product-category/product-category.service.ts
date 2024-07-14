@@ -8,6 +8,7 @@ import {
   ProductCategory,
   ProductCategoryDocument,
 } from './schemas/category.schema';
+import { ProductSubCategory } from './schemas/subCategory.schema';
 
 @Injectable()
 export class ProductCategoryService {
@@ -23,13 +24,11 @@ export class ProductCategoryService {
   }
 
   async findAllSubCategory(categoryName: string) {
-    // const category = await this.productCategoryModel
-    //   .findOne({ name: categoryName })
-    //   .populate('subCategory');
     const category = await this.productCategoryModel
-      .findOne({ name: categoryName })
-      .populate('subCategory')
-      .exec();
+      .find()
+      // .findOne({ name: categoryName })
+      .populate({ path: 'subCategory', model: ProductSubCategory.name });
+
     console.log({ category });
     if (!category) {
       throw new NotFoundException('Category not found');

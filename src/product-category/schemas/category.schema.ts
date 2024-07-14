@@ -1,17 +1,18 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, HydratedDocument, Types } from 'mongoose';
-import { ProductSubCategory } from './subCategory.schema';
 
 @Schema({ timestamps: false, collection: 'productcategories' })
 export class ProductCategory extends Document {
-  @Prop({ type: String })
+  @Prop({ type: String, required: true })
   name: string;
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: ProductSubCategory.name }] })
+  @Prop({
+    type: [{ type: Types.ObjectId, ref: 'productsubcategories' }],
+  })
   subCategory: Types.ObjectId[];
 
   @Prop({ type: String })
-  id: String;
+  id: string;
 
   @Prop({ type: Number, default: null })
   totalProducts: number;

@@ -7,12 +7,17 @@ import {
   ProductCategory,
   ProductCategorySchema,
 } from './schemas/category.schema';
+import {
+  ProductSubCategory,
+  ProductSubCategorySchema,
+} from './schemas/subCategory.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Product.name, schema: ProductSchema },
       { name: ProductCategory.name, schema: ProductCategorySchema },
+      { name: ProductSubCategory.name, schema: ProductSubCategorySchema },
     ]),
   ],
   controllers: [ProductCategoryController],
