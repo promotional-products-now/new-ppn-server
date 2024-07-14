@@ -24,7 +24,7 @@ import {
 import {
   ProductCategory,
   ProductCategoryDocument,
-} from './schemas/category.schema';
+} from '../product-category/schemas/category.schema';
 
 @Injectable()
 export class ProductService {
