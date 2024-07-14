@@ -3,14 +3,16 @@ import { Document, HydratedDocument, Types } from 'mongoose';
 
 @Schema({ timestamps: false, collection: 'productcategories' })
 export class ProductCategory extends Document {
-  @Prop({ type: String })
+  @Prop({ type: String, required: true })
   name: string;
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'productSubCategory' }] })
-  subCategory: string[];
+  @Prop({
+    type: [{ type: Types.ObjectId, ref: 'productsubcategories' }],
+  })
+  subCategory: Types.ObjectId[];
 
   @Prop({ type: String })
-  id: String;
+  id: string;
 
   @Prop({ type: Number, default: null })
   totalProducts: number;
