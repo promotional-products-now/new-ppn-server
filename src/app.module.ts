@@ -14,6 +14,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { DataExportModule } from './data_export/data_export.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { SearchModule } from './search/search.module';
+import { ProductCategoryModule } from './product-category/product-category.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { SearchModule } from './search/search.module';
     DataExportModule,
     AnalyticsModule,
     SearchModule,
+    ProductCategoryModule,
   ],
   controllers: [AppController],
   providers: [
