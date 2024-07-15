@@ -1,4 +1,3 @@
-const ip = require('ip');
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -10,6 +9,7 @@ import * as cookieParser from 'cookie-parser';
 import { sessionKey } from './configs';
 import * as compression from 'compression';
 import helmet from 'helmet';
+const ip = require('ip');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -18,7 +18,7 @@ async function bootstrap() {
   app.enableCors({
     origin: '*',
     methods: ['GET', 'POST', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Uid', 'x-uid', 'uid'],
   });
 
   app.useGlobalPipes(new TrimPipe());
