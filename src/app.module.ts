@@ -13,6 +13,7 @@ import { SettingsModule } from './settings/settings.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { DataExportModule } from './data_export/data_export.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
     CloudinaryModule,
     DataExportModule,
     AnalyticsModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [
