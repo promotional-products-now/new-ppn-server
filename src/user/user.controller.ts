@@ -8,12 +8,8 @@ import {
   Patch,
   UseGuards,
   Request,
-  UploadedFile,
-  UseInterceptors,
   Put,
   Req,
-  UploadedFiles,
-  NotFoundException,
   Query,
 } from '@nestjs/common';
 

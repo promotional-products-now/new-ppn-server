@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { Match } from '../../commons/decorators/matches';
 import {
   IsEmail,
@@ -34,13 +34,18 @@ export class LoginAuthDto extends EmailDTO {
   password: string;
 }
 
+export class AdminloginResponse extends LoginAuthDto {
+  @ApiProperty({ example: UserRole.SUPER_Admin, required: true })
+  @IsEnum(UserRole)
+  role: UserRole;
+}
 export class ValidateUserDto extends EmailDTO {
   @ApiProperty({ example: 123456 })
   @IsString()
   otp: string;
 }
 
-export class ChangePasswordDto extends EmailDTO {
+export class ChangePasswordDto extends PartialType(EmailDTO) {
   @ApiProperty({ example: '12345@Alafin' })
   @IsStrongPassword({
     minLength: 5,

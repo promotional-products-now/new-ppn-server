@@ -42,9 +42,12 @@ export class AuthorizationGuard implements CanActivate {
       throw new BadRequestException('Invalid authorization credentials');
     }
 
+    console.log({ payload1: payload });
+
     if (payload.action !== JwtAction.authorize) {
       throw new BadRequestException('Invalid authorization credentials');
     }
+    console.log({ payload2: payload });
 
     const userId = this.extractUserIdFromHeader(request);
 

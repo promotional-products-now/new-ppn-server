@@ -1,31 +1,70 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  UnauthorizedException,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-import Strategy from 'passport-magic-link';
-import { AuthService } from 'src/auth/auth.service';
+import Strategy from 'passport-magic-login';
+import { UserService } from '../../user/user.service';
+import { User } from '../../user/schemas/user.schema';
+import { AccessToken, AppConfig, sendGrid } from 'src/configs';
+import { EmailService } from '../services/Notification/Email/email.service';
 
 @Injectable()
 export class MagicLoginStrategy extends PassportStrategy(Strategy) {
   private readonly logger = new Logger(MagicLoginStrategy.name);
-
-  constructor(private authService: AuthService) {
+  constructor(
+    private emailService: EmailService,
+    public readonly userService: UserService,
+    public readonly configService: ConfigService,
+  ) {
     super({
-      secret: 'your-secret', // get this from env vars
+      secret:
+        configService.get<AccessToken>('accessToken').access_token_private_key,
       jwtOptions: {
-        expiresIn: '5m',
+        expiresIn:
+          configService.get<AccessToken>('accessToken').access_token_ttl,
       },
-      callbackUrl: 'http://localhost:3000/auth/login/callback',
+      callbackUrl: `https://app.${configService.get<string>('domain')}/change-password/`,
       sendMagicLink: async (destination, href) => {
-        // TODO: send email
-        this.logger.debug(`sending email to ${destination} wuth Link ${href}`);
+        //send email
+        const { template } =
+          this.configService.getOrThrow<sendGrid>('sendGrid');
+
+        await this.emailService.sendEmailWithTemplate({
+          recipientEmail: destination.recipientEmail,
+          templateId: template.newAdmin,
+          dynamicTemplateData: {
+            name: `${destination.recipientName}`,
+            link: `${href}&uid=${destination.userId}`,
+          },
+        });
+
+        console.log({ href });
+
+        this.logger.debug(
+          `send email to ${destination.recipientEmail} with link ${href}`,
+        );
       },
-      verify: async (payload, callback) =>
-        callback(null, this.validate(payload)),
+      verify: async (payload, callback) => {
+        callback(null, await this.validate(payload));
+      },
     });
   }
 
-  validate(payload: { destination: string }) {
-    // const user = this.authService.validateUser(payload.destination);
+  async validate(payload: any): Promise<User> {
+    if (Date.now() >= payload.exp * 1000) {
+      throw new BadRequestException();
+    }
 
-    return {}; //{user};
+    const user = await this.userService.findOneByEmail(payload.email);
+
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    return user;
   }
 }

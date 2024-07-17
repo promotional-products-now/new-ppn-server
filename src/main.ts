@@ -1,4 +1,3 @@
-const ip = require('ip');
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -7,9 +6,10 @@ import { AppModule } from './app.module';
 import { TrimPipe } from './commons/pipes/trimmer.pipe';
 // import { AllExceptionsFilter } from './commons/filters/all-exceptions.filter';
 import * as cookieParser from 'cookie-parser';
-import { sessionKey } from './configs';
+import { sendGrid, sessionKey } from './configs';
 import * as compression from 'compression';
 import helmet from 'helmet';
+const ip = require('ip');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -18,7 +18,7 @@ async function bootstrap() {
   app.enableCors({
     origin: '*',
     methods: ['GET', 'POST', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Uid', 'x-uid', 'uid'],
   });
 
   app.useGlobalPipes(new TrimPipe());
@@ -36,7 +36,8 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const port = configService.get<number>('port');
   const sessionKey = configService.get<sessionKey>('sessionKey');
-
+  const { template } = configService.getOrThrow<sendGrid>('sendGrid');
+  console.log({ template });
   /**
    * See [Versioning and Swagger](https://github.com/nestjs/swagger/issues/1495#issuecomment-898311614)
    */
