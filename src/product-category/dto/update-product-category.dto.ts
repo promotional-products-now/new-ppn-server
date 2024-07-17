@@ -1,4 +1,4 @@
-import { BaseUpdateDto } from "../../product/dto/update-product.dto";
+import { BaseUpdateDto } from '../../product/dto/update-product.dto';
 
 export class UpdateCategoryDto extends BaseUpdateDto {}
 
