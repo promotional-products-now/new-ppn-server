@@ -1,39 +1,21 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, HydratedDocument, Types } from 'mongoose';
-import { Supplier } from '../../product/schemas/supplier.schema';
-import { ApiProperty } from '@nestjs/swagger';
-import { STATUS_ENUM } from '../../product/product.interface';
 
-@Schema({
-  timestamps: false,
-  toJSON: {
-    transform: function (doc, ret) {
-      ret.id = ret._id;
-      delete ret._id;
-      delete ret.__v;
-    },
-  },
-})
+@Schema({ timestamps: false, collection: 'productcategories' })
 export class ProductCategory extends Document {
-  @Prop({ type: String })
-  @ApiProperty({ type: 'string', example: 'Electronics' })
+  @Prop({ type: String, required: true })
   name: string;
 
-  @Prop({ type: Types.ObjectId, ref: Supplier.name })
-  @ApiProperty({ type: 'string', example: '666d98ab565f924157e31c54' })
-  supplier: Types.ObjectId;
-
-  @Prop({ type: Boolean, default: true })
-  @ApiProperty({ type: 'boolean', example: true })
-  isActive: boolean;
-
-  @Prop({ type: String, enum: STATUS_ENUM, default: STATUS_ENUM.BUY_NOW })
-  @ApiProperty({
-    type: 'string',
-    enum: STATUS_ENUM,
-    example: STATUS_ENUM.BUY_NOW,
+  @Prop({
+    type: [{ type: Types.ObjectId, ref: 'productsubcategories' }],
   })
-  status: string;
+  subCategory: Types.ObjectId[];
+
+  @Prop({ type: String })
+  id: string;
+
+  @Prop({ type: Number, default: null })
+  totalProducts: number;
 }
 
 export type ProductCategoryDocument = HydratedDocument<ProductCategory>;
