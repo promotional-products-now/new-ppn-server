@@ -13,6 +13,10 @@ import {
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { Freight, FreightSchema } from './schemas/freight.schema';
 import { Supplier, SupplierSchema } from '../product/schemas/supplier.schema';
+import {
+  PurchaseSetting,
+  PurchaseSettingSchema,
+} from './schemas/purchase-setting.schema';
 
 @Module({
   imports: [
@@ -32,6 +36,10 @@ import { Supplier, SupplierSchema } from '../product/schemas/supplier.schema';
       {
         name: Supplier.name,
         schema: SupplierSchema,
+      },
+      {
+        name: PurchaseSetting.name,
+        schema: PurchaseSettingSchema,
       },
     ]),
   ],
