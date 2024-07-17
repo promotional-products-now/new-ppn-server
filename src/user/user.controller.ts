@@ -121,6 +121,18 @@ export class UserController {
     return await this.userService.findWithCreatedAt(filterQuery);
   }
 
+  @ApiOperation({ summary: 'Banned a user by ID' })
+  @ApiParam({ name: 'id', description: 'User ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully banned user.',
+    type: User,
+  })
+  @Put('/user/:id')
+  async banUserAccount(@Param('id') id: string): Promise<UserDocument> {
+    return await this.userService.banUserAccount(id);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Retrieve a user by ID' })
   @ApiParam({ name: 'id', description: 'User ID' })
