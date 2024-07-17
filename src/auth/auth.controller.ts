@@ -3,12 +3,17 @@ import {
   UseGuards,
   Post,
   Body,
-  Request,
   Res,
   Get,
   HttpCode,
   NotFoundException,
+  ForbiddenException,
+  Patch,
+  Req,
+  ConflictException,
+  Logger,
 } from '@nestjs/common';
+import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import {
@@ -18,8 +23,9 @@ import {
   EmailDTO,
   ChangePasswordDto,
   creatAdminDto,
+  AdminloginResponse,
 } from './dto/auth.dto';
-import { loginResponse } from './interface/auth.interface';
+import { IResetPassword, loginResponse } from './interface/auth.interface';
 import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { EmailService } from '../commons/services/Notification/Email/email.service';
 import { ConfigService } from '@nestjs/config';
@@ -30,6 +36,10 @@ import {
   Environments,
   environments,
 } from '../commons/types/environments.types';
+import { UserRole } from '../user/enums/role.enum';
+import { UserService } from '../user/user.service';
+import { MagicLoginStrategy } from '../commons/strategy/magiclogin.strategy';
+import { JwtAction } from '../commons/dtos/jwt.dto';
 // import { AlgoliaService } from '../commons/services/Algolia/algolia.service';
 // import { omit } from 'lodash';
 
@@ -37,11 +47,15 @@ import {
 @Throttle({ default: { limit: 6, ttl: 60000 } })
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(
     private authService: AuthService,
+    private userService: UserService,
     private emailService: EmailService,
     // private algoliaService: AlgoliaService,
     private readonly configService: ConfigService,
+    private strategy: MagicLoginStrategy,
   ) {}
 
   @UseGuards(AuthGuard('local'))
@@ -49,7 +63,7 @@ export class AuthController {
   @Post('login')
   async login(
     @Body() loginDto: LoginAuthDto,
-    @Request() req,
+    @Req() req,
     @Res({ passthrough: true }) response,
   ): Promise<{ message: string; payload: loginResponse }> {
     const { template } = this.configService.getOrThrow<sendGrid>('sendGrid');
@@ -61,6 +75,42 @@ export class AuthController {
     const otp = this.authService.decodeOTP(result.otpSecret);
 
     // send otp
+    await this.emailService.sendEmailWithTemplate({
+      recipientEmail: loginDto.email,
+      templateId: template.otp,
+      dynamicTemplateData: { otp: otp },
+    });
+
+    response.cookie('token', accessToken, {
+      maxAge: 48 * 60 * 60 * 1000, // 2 days
+      httpOnly: true,
+      signed: true,
+    });
+
+    return {
+      message: 'Login successful',
+      payload: result,
+      ...{ ...(appEnv === environments.dev && { otp: otp }) },
+    };
+  }
+
+  @UseGuards(AuthGuard('local'))
+  @HttpCode(200)
+  @Post('app-login')
+  async adminLogin(
+    @Body() loginDto: LoginAuthDto,
+    @Req() req,
+    @Res({ passthrough: true }) response,
+  ): Promise<{ message: string; payload: loginResponse }> {
+    const { template } = this.configService.getOrThrow<sendGrid>('sendGrid');
+    const appEnv = this.configService.getOrThrow<Environments>('appEnv');
+    const otpSecret = this.authService.generateOtp();
+    const result = await this.authService.login({ ...req.user, otpSecret });
+    const accessToken = result.accessToken;
+
+    const otp = this.authService.decodeOTP(result.otpSecret);
+
+    // Send OTP
     await this.emailService.sendEmailWithTemplate({
       recipientEmail: loginDto.email,
       templateId: template.otp,
@@ -122,32 +172,55 @@ export class AuthController {
     };
   }
 
-  async createAdmin(@Body() body: creatAdminDto) {
-    const otpSecret = this.authService.generateOtp();
-    const adminId = this.generateAdminId(body.role, body.lastName);
+  @Post('create-admin')
+  async createAdmin(@Body() payload: creatAdminDto, @Req() req: Request) {
+    // find user
+    const admin = await this.userService.findOneByEmail(payload.email);
+    const adminId = this.generateAdminId(payload.role, payload.lastName);
 
-    const email = { address: body.email, isVerified: false };
-    const user = await this.authService.create({
-      ...body,
+    this.logger.debug('admin : ', { admin, payload });
+
+    if (admin)
+      throw new ConflictException('This admin with email already exist');
+
+    const email = { address: payload.email, isVerified: false };
+
+    const user = await this.userService.create({
+      ...payload,
       email,
-      otpSecret,
       adminId,
     });
 
-    // const { template } = this.configService.getOrThrow<sendGrid>('sendGrid');
+    req.body.destination = {
+      recipientEmail: payload.email,
+      recipientName: `${payload.lastName} ${payload.firstName}`,
+      role: user.role,
+      userId: user._id,
+    };
 
-    const otp = this.authService.decodeOTP(user.otpSecret);
+    // this.strategy.send(req, res);
+    const { template } = this.configService.getOrThrow<sendGrid>('sendGrid');
+    const accessToken = await this.authService.generateToken({
+      email: { address: user.email.address, isVerified: true },
+      uid: user._id.toHexString(),
+      r: UserRole.USER,
+      action: JwtAction.authorize,
+    });
+    const href = `https://app.${this.configService.get<string>('domain')}/change-password/?token=${accessToken}`;
+    console.log({ accessToken, href });
 
-    // send magic link
-    // await this.emailService.sendEmailWithTemplate({
-    //   recipientEmail: email.address,
-    //   templateId: template.otp,
-    //   dynamicTemplateData: { otp: otp },
-    // });
+    await this.emailService.sendEmailWithTemplate({
+      recipientEmail: user.email.address,
+      templateId: template.newAdmin,
+      dynamicTemplateData: {
+        name: `${user.lastName} ${user.firstName}`,
+        link: `${href}&uid=${user._id}`,
+      },
+    });
 
     return {
-      message: 'User created',
-      payload: email,
+      message: 'user account created successfully',
+      user: user,
     };
   }
 
@@ -155,8 +228,12 @@ export class AuthController {
   @ApiSecurity('uid')
   @ApiBearerAuth()
   @Post('change-password')
-  async changePassword(@Body() body: ChangePasswordDto) {
-    const user = await this.authService.changePassword(body);
+  async changePassword(@Body() body: ChangePasswordDto, @Req() req) {
+    const { email } = req.user;
+    const user = await this.authService.changePassword({
+      ...body,
+      email: email.address as string,
+    });
     if (!user) {
       throw new NotFoundException('user not found');
     }
@@ -196,7 +273,7 @@ export class AuthController {
   @ApiSecurity('uid')
   @ApiBearerAuth()
   @Get('logout')
-  async logout(@Request() req, @Res({ passthrough: true }) response) {
+  async logout(@Req() req, @Res({ passthrough: true }) response) {
     response.clearCookie('token');
     return { message: 'Logout successful' };
   }
