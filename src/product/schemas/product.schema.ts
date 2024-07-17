@@ -4,8 +4,8 @@ import { BasePrice } from './baseprice.schema';
 import { Addition } from './addition.schema';
 import { Supplier } from './supplier.schema';
 import { ApiProperty } from '@nestjs/swagger';
-import { ProductCategory } from './category.schema';
-import { ProductSubCategory } from './subCategory.schema';
+import { ProductCategory } from '../../product-category/schemas/category.schema';
+import { ProductSubCategory } from '../../product-category/schemas/subCategory.schema';
 import { STATUS_ENUM } from '../product.interface';
 
 @Schema({
