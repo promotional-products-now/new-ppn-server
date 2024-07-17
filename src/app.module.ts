@@ -14,6 +14,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { DataExportModule } from './data_export/data_export.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { ProductCategoryModule } from './product-category/product-category.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { ProductCategoryModule } from './product-category/product-category.modul
     DataExportModule,
     AnalyticsModule,
     ProductCategoryModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [
