@@ -13,6 +13,8 @@ import { CreateFreightDto } from './dto/create-freight.dto';
 import { UpdateFreightDto } from './dto/update-freight.dto';
 import { FetchSupplierstQueryDto } from './dto/fetch-suppliers.dto';
 import { Supplier } from 'src/product/schemas/supplier.schema';
+import { PurchaseSetting } from './schemas/purchase-setting.schema';
+import { UpdatePurchaseSettingDto } from './dto/update-purchase-setting.dto';
 
 @Injectable()
 export class SettingsService {
@@ -25,6 +27,8 @@ export class SettingsService {
     private readonly freightModel: Model<Freight>,
     @InjectModel(Supplier.name)
     private readonly supplierModel: Model<Supplier>,
+    @InjectModel(PurchaseSetting.name)
+    private readonly purchaseSettingModel: Model<PurchaseSetting>,
   ) {
     void this.initSetting();
   }
@@ -64,6 +68,16 @@ export class SettingsService {
         },
       });
     }
+
+    const purchaseSetting = await this.purchaseSettingModel.findOne({});
+
+    if (!purchaseSetting) {
+      await this.purchaseSettingModel.create({
+        defaultQuotationRequest: 30000,
+        largeOrderQuotationRequest:
+          'Your order substantial. Please request a quote for us to offer a more suitable price on your order',
+      });
+    }
   }
 
   async getProfitSetting() {
@@ -74,6 +88,10 @@ export class SettingsService {
     return await this.bannerSettingModel.findOne({});
   }
 
+  async getPurchaseSetting() {
+    return await this.purchaseSettingModel.findOne({});
+  }
+
   async updateBannerSetting(payload: UpdateQuery<BannerSettingDocument>) {
     return await this.bannerSettingModel.findOneAndUpdate({}, payload, {
       new: true,
@@ -82,6 +100,12 @@ export class SettingsService {
 
   async updateProfitSetting(payload: UpdateProfitSettingDto) {
     return await this.profitSettingModel.findOneAndUpdate({}, payload, {
+      new: true,
+    });
+  }
+
+  async updatePurchaseSetting(payload: UpdatePurchaseSettingDto) {
+    return await this.purchaseSettingModel.findOneAndUpdate({}, payload, {
       new: true,
     });
   }
