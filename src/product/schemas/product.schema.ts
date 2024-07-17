@@ -3,10 +3,6 @@ import { Schema, SchemaFactory, Prop } from '@nestjs/mongoose';
 import { BasePrice } from './baseprice.schema';
 import { Addition } from './addition.schema';
 import { Supplier } from './supplier.schema';
-import { ApiProperty } from '@nestjs/swagger';
-import { ProductCategory } from '../../product-category/schemas/category.schema';
-import { ProductSubCategory } from '../../product-category/schemas/subCategory.schema';
-import { STATUS_ENUM } from '../product.interface';
 
 @Schema({
   timestamps: true,
@@ -205,28 +201,11 @@ export class Product extends Document {
     };
   };
 
-  @ApiProperty({ type: 'string', example: '666d98ab565f924157e31c54' })
-  @Prop({ type: { type: Types.ObjectId, ref: ProductCategory.name } })
+  @Prop({ type: { type: Types.ObjectId, ref: 'productCategories' } })
   category: Types.ObjectId;
 
-  @ApiProperty({ type: 'string', example: '666d98ab565f924157e31c54' })
-  @Prop({ type: { type: Types.ObjectId, ref: ProductSubCategory.name } })
+  @Prop({ type: { type: Types.ObjectId, ref: 'productsubcategories' } })
   subCategory: Types.ObjectId;
-
-  @Prop({
-    type: Boolean,
-    default: true,
-  })
-  @ApiProperty({ type: 'boolean', example: true })
-  isActive: boolean;
-
-  @Prop({ type: String, enum: STATUS_ENUM, default: STATUS_ENUM.BUY_NOW })
-  @ApiProperty({
-    type: 'string',
-    enum: STATUS_ENUM,
-    example: STATUS_ENUM.BUY_NOW,
-  })
-  status: string;
 }
 
 export type ProductDocument = HydratedDocument<Product>;
