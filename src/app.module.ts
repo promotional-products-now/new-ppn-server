@@ -13,6 +13,7 @@ import { SettingsModule } from './settings/settings.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { DataExportModule } from './data_export/data_export.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { SearchModule } from './search/search.module';
 import { ProductCategoryModule } from './product-category/product-category.module';
 
 @Module({
@@ -40,6 +41,7 @@ import { ProductCategoryModule } from './product-category/product-category.modul
     CloudinaryModule,
     DataExportModule,
     AnalyticsModule,
+    SearchModule,
     ProductCategoryModule,
   ],
   controllers: [AppController],
