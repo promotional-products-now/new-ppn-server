@@ -74,6 +74,7 @@ export type sendGrid = {
     otp: string;
     passwordChange: string;
     welcome: string;
+    newAdmin: string;
   };
 };
 
@@ -115,8 +116,8 @@ const env = (): AppConfig => {
   return {
     appEnv: NODE_ENV,
     port: PORT,
-    appName: `fresh_${NODE_ENV}`,
-    domain: 'fresh.com',
+    appName: `promotionalproductsnow_${NODE_ENV}`,
+    domain: 'promotionalproductsnow.au',
 
     database: {
       uri: secrets.DATABASE_URI,
@@ -157,6 +158,9 @@ const env = (): AppConfig => {
         otp: secrets.SENDGRID_OTP_TEMPLATE_ID,
         passwordChange: secrets.SENDGRID_PASSWORD_CHANGE_TEMPLATE_ID,
         welcome: secrets.SENDGRID_OTP_WELCOME_TEMPLATE_ID,
+        newAdmin:
+          secrets.SENDGRID_NEW_ADMIN_TEMPLATE ||
+          'd-439b352f30184254aa038ffc382d9204',
       },
     },
     algolia: {

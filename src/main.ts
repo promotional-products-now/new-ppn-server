@@ -6,7 +6,7 @@ import { AppModule } from './app.module';
 import { TrimPipe } from './commons/pipes/trimmer.pipe';
 // import { AllExceptionsFilter } from './commons/filters/all-exceptions.filter';
 import * as cookieParser from 'cookie-parser';
-import { sessionKey } from './configs';
+import { sendGrid, sessionKey } from './configs';
 import * as compression from 'compression';
 import helmet from 'helmet';
 const ip = require('ip');
@@ -36,7 +36,8 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const port = configService.get<number>('port');
   const sessionKey = configService.get<sessionKey>('sessionKey');
-
+  const { template } = configService.getOrThrow<sendGrid>('sendGrid');
+  console.log({ template });
   /**
    * See [Versioning and Swagger](https://github.com/nestjs/swagger/issues/1495#issuecomment-898311614)
    */
