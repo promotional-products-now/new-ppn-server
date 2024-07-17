@@ -1,8 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, HydratedDocument, Types } from 'mongoose';
-import { Supplier } from './supplier.schema';
+import { Supplier } from '../../product/schemas/supplier.schema';
 import { ApiProperty } from '@nestjs/swagger';
-import { STATUS_ENUM } from '../product.interface';
+import { STATUS_ENUM } from '../../product/product.interface';
 
 @Schema({
   timestamps: false,

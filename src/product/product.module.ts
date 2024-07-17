@@ -10,11 +10,11 @@ import { Addition, AdditionSchema } from './schemas/addition.schema';
 import {
   ProductCategory,
   ProductCategorySchema,
-} from './schemas/category.schema';
+} from '../product-category/schemas/category.schema';
 import {
   ProductSubCategory,
   ProductSubCategorySchema,
-} from './schemas/subCategory.schema';
+} from '../product-category/schemas/subCategory.schema';
 
 @Module({
   imports: [

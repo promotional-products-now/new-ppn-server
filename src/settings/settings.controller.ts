@@ -129,7 +129,7 @@ export class SettingsController {
   }
 
   @Patch('/freight')
-  @ApiOperation({ summary: 'Update Vendpr Freight Setting' })
+  @ApiOperation({ summary: 'Update Vendor Freight Setting' })
   @ApiOkResponse({ description: 'Updated freight docs ', type: [Freight] })
   async updateFreight(@Body() body: UpdateFreightDto) {
     return await this.settingsService.updateFreights(body);

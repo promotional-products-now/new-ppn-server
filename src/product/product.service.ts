@@ -24,18 +24,13 @@ import {
 import {
   ProductCategory,
   ProductCategoryDocument,
-} from './schemas/category.schema';
+} from '../product-category/schemas/category.schema';
 import {
   ProductSubCategory,
   ProductSubCategoryDocument,
-} from './schemas/subCategory.schema';
+} from '../product-category/schemas/subCategory.schema';
+import { UdpateSupplierDto, UpdateProductDto } from './dto/update-product.dto';
 import { FetchtQueryDto } from './dto/fetch-query.dto';
-import {
-  UdpateSupplierDto,
-  UpdateCategoryDto,
-  UpdateProductDto,
-  UpdateSubCategoryDto,
-} from './dto/update-product.dto';
 
 @Injectable()
 export class ProductService {
@@ -264,7 +259,7 @@ export class ProductService {
   }
 
   // @Cron('0 0 * * 0')
-  // @Cron('* * * * * *')
+  @Cron('*/5 * * * *')
   async fetchThirdPartyProducts() {
     try {
       let page = 1;
@@ -413,25 +408,6 @@ export class ProductService {
     });
   }
 
-  async updateCategory(id: string, updateCategoryDto: UpdateCategoryDto) {
-    return await this.productCategoryModel.findByIdAndUpdate(
-      id,
-      updateCategoryDto,
-      { new: true },
-    );
-  }
-
-  async updateSubCategory(
-    id: string,
-    updateSubCategoryDto: UpdateSubCategoryDto,
-  ) {
-    return await this.productCategoryModel.findByIdAndUpdate(
-      id,
-      updateSubCategoryDto,
-      { new: true },
-    );
-  }
-
   async findSuppliers(query: FetchtQueryDto) {
     const { page, limit, query: search } = query;
 
@@ -453,66 +429,6 @@ export class ProductService {
 
     return {
       docs: suppliers,
-      page,
-      limit,
-      totalItems: count,
-      totalPages,
-      hasNextPage: page < totalPages,
-      hasPrevPage: page > 1,
-    };
-  }
-
-  async findSuppliersCategories(id: string, query: FetchtQueryDto) {
-    const { page, limit, query: search } = query;
-
-    let payload: Record<string, any> = { supplier: id };
-
-    if (search) {
-      const regex = new RegExp(search, 'i');
-      payload.name = { $regex: regex };
-    }
-
-    const categories = await this.productCategoryModel
-      .find(payload)
-      .skip(limit * (page - 1))
-      .limit(limit)
-      .sort({ createdAt: -1 });
-
-    const count = await this.productCategoryModel.countDocuments(payload);
-    const totalPages = Math.ceil(count / limit);
-
-    return {
-      docs: categories,
-      page,
-      limit,
-      totalItems: count,
-      totalPages,
-      hasNextPage: page < totalPages,
-      hasPrevPage: page > 1,
-    };
-  }
-
-  async findSubCategoriesByCategory(id: string, query: FetchtQueryDto) {
-    const { page, limit, query: search } = query;
-
-    let payload: Record<string, any> = { category: id };
-
-    if (search) {
-      const regex = new RegExp(search, 'i');
-      payload.name = { $regex: regex };
-    }
-
-    const subCategories = await this.productSubCategoryModel
-      .find(payload)
-      .skip(limit * (page - 1))
-      .limit(limit)
-      .sort({ createdAt: -1 });
-
-    const count = await this.productSubCategoryModel.countDocuments(payload);
-    const totalPages = Math.ceil(count / limit);
-
-    return {
-      docs: subCategories,
       page,
       limit,
       totalItems: count,
