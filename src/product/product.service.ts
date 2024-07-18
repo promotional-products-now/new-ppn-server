@@ -286,13 +286,7 @@ export class ProductService {
   }
 
   async findAll(query: FilterProductQueryDto): Promise<any> {
-    let filterQuery: Record<string, any> = {
-      $and: [
-        { 'supplier.isActive': true },
-        { 'category.isActive': true },
-        { 'subCategory.isActive': true },
-      ],
-    };
+    let filterQuery: Record<string, any> = {};
 
     let sort = {};
 
@@ -371,6 +365,7 @@ export class ProductService {
       .limit(query.limit)
       .populate(['supplier', 'subCategory', 'category'])
       .sort(sort);
+
     const count = await this.productModel.countDocuments({ ...filterQuery });
     const totalPages = Math.ceil(count / query.limit);
 

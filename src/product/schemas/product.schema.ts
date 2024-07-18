@@ -27,16 +27,16 @@ export class Product extends Document {
       discontinued: Boolean,
       discontinuedAt: { type: String, required: false },
       canCheckStock: Boolean,
-      firstListedAt: String,
-      lastChangedAt: String,
+      firstListedAt: Date,
+      lastChangedAt: Date,
       pricesCurrencies: [String],
       priceChangedAt: String,
       discontinuedReason: {
         type: String,
         required: false,
       },
-      sourceDateChangedAt: String,
-      pricesChangedAt: String,
+      sourceDateChangedAt: Date,
+      pricesChangedAt: Date,
     },
   })
   meta: {
@@ -46,12 +46,12 @@ export class Product extends Document {
     discontinued: boolean;
     discontinuedAt: string;
     canCheckStock: boolean;
-    firstListedAt: string;
-    lastChangedAt: string;
+    firstListedAt: Date;
+    lastChangedAt: Date;
     priceCurrencies: string[];
-    priceChangedAt: string;
+    priceChangedAt: Date;
     discontinuedReason: string;
-    sourceDateChangedAt: string;
+    sourceDateChangedAt: Date;
   };
 
   @Prop({
