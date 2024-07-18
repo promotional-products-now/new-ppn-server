@@ -30,21 +30,27 @@ export class ProductCategoryService {
   ) {}
 
   async findAll() {
-    return await this.productCategoryModel.find();
+    return await this.productCategoryModel.aggregate([
+      {
+        $group: {
+          _id: '$name',
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          name: '$_id',
+        },
+      },
+    ]);
   }
 
   async findAllSubCategory(categoryName: string) {
-    const category = await this.productCategoryModel
-      .find()
-      // .findOne({ name: categoryName })
-      .populate({ path: 'subCategory', model: ProductSubCategory.name });
-
-    console.log({ category });
-    if (!category) {
-      throw new NotFoundException('Category not found');
-    }
-
-    return category;
+    return await this.productSubCategoryModel
+      .find({ 'category.name': categoryName })
+      .populate({
+        path: 'category',
+      });
   }
 
   async updateCategory(id: string, updateCategoryDto: UpdateCategoryDto) {

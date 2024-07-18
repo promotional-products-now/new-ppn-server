@@ -11,6 +11,7 @@ import { ProductCategory } from './schemas/category.schema';
 import { UpdateSubCategoryDto } from './dto/update-product-category.dto';
 import { ProductSubCategory } from './schemas/subCategory.schema';
 import {
+  ClientCategoryResponse,
   PaginatedCategoryResponse,
   PaginatedSubCategoryResponse,
 } from './dto/paginated-response.dto';
@@ -24,8 +25,20 @@ export class ProductCategoryController {
   ) {}
 
   @Get()
-  findAll() {
-    return this.productCategoryService.findAll();
+  @ApiOperation({ summary: 'Fetch all categories' })
+  @ApiOkResponse({
+    type: [ClientCategoryResponse],
+    description: 'Fetched client categories',
+  })
+  async findAll() {
+    return await this.productCategoryService.findAll();
+  }
+
+  @Get('/:categoryName')
+  @ApiParam({ name: 'categoryName', type: 'string', required: true })
+  @ApiOkResponse({ example: [ProductSubCategory] })
+  async findSubCategories(@Param('categoryName') categoryName: string) {
+    return await this.productCategoryService.findAllSubCategory(categoryName);
   }
 
   @Get('/suppliers/:id/category')
@@ -57,13 +70,6 @@ export class ProductCategoryController {
       id,
       query,
     );
-  }
-
-  @ApiParam({ name: 'categoryName', type: 'string', required: true })
-  @Get('/:categoryName')
-  findSubCategories(@Param('categoryName') categoryName: string) {
-    console.log({ categoryName });
-    return this.productCategoryService.findAllSubCategory(categoryName);
   }
 
   @Patch('/:id')

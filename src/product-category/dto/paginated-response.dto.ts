@@ -12,3 +12,8 @@ export class PaginatedSubCategoryResponse extends PaginatedResponseDto<ProductSu
   @ApiProperty({ type: [ProductSubCategory] })
   docs: ProductSubCategory[];
 }
+
+export class ClientCategoryResponse {
+  @ApiProperty({ example: 'Gifts' })
+  name: string;
+}
