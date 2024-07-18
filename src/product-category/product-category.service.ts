@@ -16,6 +16,7 @@ import {
   ProductSubCategoryDocument,
 } from './schemas/subCategory.schema';
 import { FetchtQueryDto } from './dto/fetch-query.dto';
+import { ObjectId } from 'mongodb';
 
 @Injectable()
 export class ProductCategoryService {
@@ -68,7 +69,7 @@ export class ProductCategoryService {
   async findSuppliersCategories(id: string, query: FetchtQueryDto) {
     const { page, limit, query: search } = query;
 
-    let payload: Record<string, any> = { supplier: id };
+    let payload: Record<string, any> = { supplier: new ObjectId(id) };
 
     if (search) {
       const regex = new RegExp(search, 'i');
@@ -98,7 +99,7 @@ export class ProductCategoryService {
   async findSubCategoriesByCategory(id: string, query: FetchtQueryDto) {
     const { page, limit, query: search } = query;
 
-    let payload: Record<string, any> = { category: id };
+    let payload: Record<string, any> = { category: new ObjectId(id) };
 
     if (search) {
       const regex = new RegExp(search, 'i');
