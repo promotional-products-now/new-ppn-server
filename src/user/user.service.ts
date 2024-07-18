@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User as UserSchema, UserDocument } from './schemas/user.schema';
-import { DeleteResult } from 'mongodb';
+import { DeleteResult, ObjectId } from 'mongodb';
 import { UserDevice, UserDeviceDocument } from './schemas/userDevice.schema';
 import { CreateUserDevice } from './dto/create-user.dto';
 import { UserRole } from './enums/role.enum';
@@ -259,5 +259,21 @@ export class UserService {
     } catch (error) {
       throw new InternalServerErrorException('Error retrieving users', error);
     }
+  }
+
+  async banUserAccount(userId: string): Promise<UserDocument> {
+    const updatedUser = await this.userModel.findOneAndUpdate(
+      { _id: new ObjectId(userId) },
+      { $set: { status: UserStatus.BANNED } },
+      {
+        lean: true,
+        new: true,
+      },
+    );
+
+    if (!updatedUser) {
+      throw new NotFoundException(`User with id ${userId} not found`);
+    }
+    return updatedUser;
   }
 }
