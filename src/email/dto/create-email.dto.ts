@@ -20,5 +20,12 @@ export class BulkEmailRequestDto {
     description: 'The message to be sent out',
   })
   @IsString()
-  message: string;
+  content: string;
+
+  @ApiProperty({
+    example: 'Test',
+    description: 'This is the title for the email',
+  })
+  @IsString()
+  title: string;
 }

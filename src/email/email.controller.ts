@@ -18,7 +18,8 @@ export class EmailController {
     await this.emailService.sendEmailToUsers(
       mailData.recipients,
       mailData.subject,
-      mailData.message,
+      mailData.content,
+      mailData.title,
     );
 
     return 'Email sent successfully';
