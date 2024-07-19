@@ -259,7 +259,7 @@ export class ProductService {
   }
 
   // @Cron('0 0 * * 0')
-  @Cron('*/5 * * * *')
+  // @Cron('*/5 * * * *')
   async fetchThirdPartyProducts() {
     try {
       let page = 1;
