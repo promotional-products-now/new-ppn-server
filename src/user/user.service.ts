@@ -13,6 +13,8 @@ import { UserRole } from './enums/role.enum';
 import { UserStatus } from './enums/status.enum';
 import { PaginationDto } from 'src/commons/dtos/pagination.dto';
 import { FilterWithCreatedAt, FindUsers } from './dto/fetch-user.dto';
+import { DatabaseException } from 'src/commons/exceptions/database.exception';
+import { BanMultipleUsers } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -275,5 +277,27 @@ export class UserService {
       throw new NotFoundException(`User with id ${userId} not found`);
     }
     return updatedUser;
+  }
+
+  async banMultipleUserAccounts(userIds: string[]): Promise<BanMultipleUsers> {
+    const filter = {
+      _id: { $in: userIds.map((userId) => new ObjectId(userId)) },
+    };
+
+    const { modifiedCount } = await this.userModel.updateMany(
+      filter,
+      { $set: { status: UserStatus.BANNED } },
+      {
+        lean: true,
+        new: true,
+      },
+    );
+
+    if (modifiedCount < 1) {
+      throw new DatabaseException(`The operation could not be performed`);
+    }
+
+    const bannedUsers = modifiedCount === userIds.length;
+    return { bannedUsers };
   }
 }
