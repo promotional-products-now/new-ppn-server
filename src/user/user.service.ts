@@ -54,15 +54,17 @@ export class UserService {
   async find(paginationDto: PaginationDto): Promise<FindUsers> {
     try {
       const data = paginationDto;
-      const page = data.page ? data.page : 0;
+      const page = data.page ? data.page : 1;
       const limit = data.limit ? data.limit : 10;
-      const skip = page === 0 ? 0 : (page - 1) * limit;
+      const skip = (page - 1) * limit;
 
       const users = await this.userModel.find(
         { status: { $ne: UserStatus.DELETED } },
         { password: 0, otpSecret: 0 },
         { skip, limit: limit + 1 },
       );
+
+      const total = await this.userModel.countDocuments();
 
       const hasPrevious = skip === 0 ? false : true;
       const hasNext = users.length > limit ? true : false;
@@ -72,15 +74,50 @@ export class UserService {
       if (users.length > limit) {
         users.pop();
       }
-      return { users, hasPrevious, hasNext, nextPage, prevPage };
+      return {
+        users,
+        hasPrevious,
+        hasNext,
+        nextPage,
+        prevPage,
+        totalPages: Math.ceil(total / limit),
+      };
     } catch (error) {
       throw new InternalServerErrorException('Error retrieving users', error);
     }
   }
 
-  async findAllAdmin(): Promise<UserDocument[]> {
+  async findAllAdmin(paginationDto: PaginationDto): Promise<FindUsers> {
     try {
-      return await this.userModel.find({ role: { $ne: UserRole.USER } });
+      const data = paginationDto;
+      const page = data.page ? data.page : 1;
+      const limit = data.limit ? data.limit : 10;
+      const skip = (page - 1) * limit;
+
+      const users = await this.userModel.find(
+        { status: { $ne: UserStatus.DELETED }, role: { $ne: UserRole.USER } },
+        { password: 0, otpSecret: 0 },
+        { skip, limit: limit + 1 },
+      );
+
+      const total = await this.userModel.countDocuments();
+
+      const hasPrevious = skip === 0 ? false : true;
+      const hasNext = users.length > limit ? true : false;
+      const nextPage = hasNext ? page + 1 : null;
+      const prevPage = hasPrevious ? page - 1 : null;
+
+      if (users.length > limit) {
+        users.pop();
+      }
+      return {
+        users,
+        hasPrevious,
+        hasNext,
+        nextPage,
+        prevPage,
+        totalPages: Math.ceil(total / limit),
+      };
     } catch (error) {
       throw new InternalServerErrorException('Error retrieving users', error);
     }
@@ -233,9 +270,9 @@ export class UserService {
       const endDateTime = data.endDate ? new Date(data.endDate) : new Date();
       endDateTime.setHours(23, 59, 59, 999);
 
-      const page = data.page ? data.page : 0;
+      const page = data.page ? data.page : 1;
       const limit = data.limit ? data.limit : 10;
-      const skip = page === 0 ? 0 : (page - 1) * limit;
+      const skip = (page - 1) * limit;
 
       const users = await this.userModel.find(
         {
@@ -247,6 +284,8 @@ export class UserService {
         { skip, limit: limit + 1 },
       );
 
+      const total = await this.userModel.countDocuments();
+
       const hasPrevious = skip === 0 ? false : true;
       const hasNext = users.length > limit ? true : false;
       const nextPage = hasNext ? page + 1 : null;
@@ -255,7 +294,14 @@ export class UserService {
       if (users.length > limit) {
         users.pop();
       }
-      return { users, hasPrevious, hasNext, nextPage, prevPage };
+      return {
+        users,
+        hasPrevious,
+        hasNext,
+        nextPage,
+        prevPage,
+        totalPages: Math.ceil(total / limit),
+      };
     } catch (error) {
       throw new InternalServerErrorException('Error retrieving users', error);
     }

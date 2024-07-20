@@ -55,8 +55,10 @@ export class UserController {
     status: 200,
     description: 'Successfully retrieved all admins.',
   })
-  async findAllAdmin(): Promise<UserDocument[] | null> {
-    return await this.userService.findAllAdmin();
+  async findAllAdmin(
+    @Query() paginationDto: PaginationDto,
+  ): Promise<FindUsers | null> {
+    return await this.userService.findAllAdmin(paginationDto);
   }
 
   @Patch('/')
