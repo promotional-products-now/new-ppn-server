@@ -10,6 +10,7 @@ import { LocalStrategy } from '../commons/strategy/local.strategy';
 import { NotificationModule } from '../commons/services/Notification/notification.module';
 import { JWTModule } from '../commons/services/JWTService/JWTService.module';
 import { MagicLoginStrategy } from '../commons/strategy/magiclogin.strategy';
+import { UserActivityModule } from '../user_activity/user_activity.module';
 
 // import { AlgoliaService } from 'src/commons/services/Algolia/algolia.service';
 
@@ -17,6 +18,7 @@ import { MagicLoginStrategy } from '../commons/strategy/magiclogin.strategy';
   imports: [
     PassportModule,
     UserModule,
+    UserActivityModule,
     NotificationModule,
     JwtModule.registerAsync({
       useFactory: async (configService: ConfigService) => {

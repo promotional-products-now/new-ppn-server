@@ -15,12 +15,18 @@ import {
   UserDeviceSchema,
 } from '../../../user/schemas/userDevice.schema';
 import { AzureBlobService } from '../FileUploadService/azure-blob.service';
+import { UserActivityService } from '../../../user_activity/user_activity.service';
+import {
+  UserActivity,
+  UserActivitySchema,
+} from '../../../user_activity/schema/user_activity.schema';
 
 @Module({
   imports: [
     PassportModule,
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
+      { name: UserActivity.name, schema: UserActivitySchema },
       { name: UserDevice.name, schema: UserDeviceSchema },
     ]),
     JwtModule.registerAsync({
@@ -42,6 +48,7 @@ import { AzureBlobService } from '../FileUploadService/azure-blob.service';
     JWTService,
     AuthService,
     UserService,
+    UserActivityService,
     AzureBlobService,
   ],
   exports: [JWTService],

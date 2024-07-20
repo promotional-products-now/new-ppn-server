@@ -25,9 +25,9 @@ export class UserSearchService {
   async userSearch(searchData: UserSearchDto): Promise<FindUsers> {
     try {
       const data = searchData;
-      const page = data.page ? data.page : 0;
+      const page = data.page ? data.page : 1;
       const limit = data.limit ? data.limit : 10;
-      const skip = page === 0 ? 0 : (page - 1) * limit;
+      const skip = (page - 1) * limit;
 
       const formattedString = this.formatSearchTerm(
         searchData.searchTerm,
@@ -50,6 +50,8 @@ export class UserSearchService {
         { skip, limit: limit + 1 },
       );
 
+      const total = await this.userModel.countDocuments();
+
       const hasPrevious = skip === 0 ? false : true;
       const hasNext = users.length > limit ? true : false;
       const nextPage = hasNext ? page + 1 : null;
@@ -58,7 +60,14 @@ export class UserSearchService {
       if (users.length > limit) {
         users.pop();
       }
-      return { users, hasPrevious, hasNext, nextPage, prevPage };
+      return {
+        users,
+        hasPrevious,
+        hasNext,
+        nextPage,
+        prevPage,
+        totalPages: Math.ceil(total / limit),
+      };
     } catch (error) {
       throw new InternalServerErrorException('Error retrieving users', error);
     }

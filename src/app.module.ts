@@ -16,6 +16,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { SearchModule } from './search/search.module';
 import { ProductCategoryModule } from './product-category/product-category.module';
 import { EmailModule } from './email/email.module';
+import { UserActivityModule } from './user_activity/user_activity.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { EmailModule } from './email/email.module';
     SearchModule,
     ProductCategoryModule,
     EmailModule,
+    UserActivityModule,
   ],
   controllers: [AppController],
   providers: [
