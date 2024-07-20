@@ -10,7 +10,10 @@ import {
   Request,
 } from '@nestjs/common';
 import { UserActivityService } from './user_activity.service';
-import { CreateUserActivityDto } from './dto/create-user_activity.dto';
+import {
+  CreateUserActivityDto,
+  CreateUserActivityResDto,
+} from './dto/create-user_activity.dto';
 import { UpdateUserActivityDto } from './dto/update-user_activity.dto';
 import { AuthorizationGuard } from 'src/commons/guards/authorization.guard';
 import {
@@ -21,7 +24,6 @@ import {
   ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
-import { UserActivity } from './schema/user_activity.schema';
 
 @ApiTags('users-activity')
 @Controller('user-activity')
@@ -37,7 +39,7 @@ export class UserActivityController {
   @ApiResponse({
     status: 201,
     description: 'The user activity has been successfully created.',
-    type: UserActivity,
+    type: CreateUserActivityResDto,
   })
   create(@Body() createUserActivityDto: CreateUserActivityDto, @Request() req) {
     const { userId } = req.user;

@@ -20,3 +20,9 @@ export class CreateUserActivityDto {
   @IsOptional()
   additionalData?: Record<string, any>;
 }
+
+export class CreateUserActivityResDto {
+  @ApiProperty({ example: '123456789876' })
+  @IsString()
+  userActivityId: string;
+}

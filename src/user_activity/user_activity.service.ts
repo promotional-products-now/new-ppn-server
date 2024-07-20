@@ -1,5 +1,8 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { CreateUserActivityDto } from './dto/create-user_activity.dto';
+import {
+  CreateUserActivityDto,
+  CreateUserActivityResDto,
+} from './dto/create-user_activity.dto';
 import { UpdateUserActivityDto } from './dto/update-user_activity.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -7,6 +10,7 @@ import {
   UserActivity,
   UserActivityDocument,
 } from './schema/user_activity.schema';
+import { ObjectId } from 'mongodb';
 
 @Injectable()
 export class UserActivityService {
@@ -14,12 +18,17 @@ export class UserActivityService {
     @InjectModel(UserActivity.name)
     private readonly userActivityModel: Model<UserActivityDocument>,
   ) {}
-  async create(userId: string, createUserActivityDto: CreateUserActivityDto) {
+  async create(
+    userId: string,
+    createUserActivityDto: CreateUserActivityDto,
+  ): Promise<CreateUserActivityResDto> {
     try {
-      return await this.userActivityModel.create({
+      const userActivity = await this.userActivityModel.create({
         ...createUserActivityDto,
-        userId,
+        userId: new ObjectId(userId),
       });
+
+      return { userActivityId: userActivity._id.toString() };
     } catch (error) {
       throw new InternalServerErrorException(
         `Error creating user activity : ${error}`,
