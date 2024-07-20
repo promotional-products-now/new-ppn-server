@@ -15,6 +15,7 @@ import { PaginationDto } from 'src/commons/dtos/pagination.dto';
 import { FilterWithCreatedAt, FindUsers } from './dto/fetch-user.dto';
 import { DatabaseException } from 'src/commons/exceptions/database.exception';
 import { BanMultipleUsers } from './dto/update-user.dto';
+import { UserActivityService } from '../user_activity/user_activity.service';
 
 @Injectable()
 export class UserService {
@@ -23,6 +24,7 @@ export class UserService {
     private readonly userModel: Model<UserDocument>,
     @InjectModel(UserDevice.name)
     private readonly userDeviceModel: Model<UserDeviceDocument>,
+    private readonly userActivityService: UserActivityService,
   ) {}
 
   async create(payload: Partial<UserDocument>): Promise<UserDocument> {
@@ -169,6 +171,11 @@ export class UserService {
     if (result.modifiedCount === 0) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
+
+    await this.userActivityService.create(id.toString(), {
+      activity: 'update account',
+      additionalData: { ...updateData },
+    });
     return { message: 'update successful' };
   }
 
@@ -217,6 +224,10 @@ export class UserService {
         { _id: id },
         { $set: { status: UserStatus.DELETED } },
       );
+
+      await this.userActivityService.create(user._id.toString(), {
+        activity: 'delete user',
+      });
       return user;
     } catch (error) {
       throw new InternalServerErrorException('Error deleting user');

@@ -101,6 +101,7 @@ export class User {
       postCode: { type: String, required: false },
     },
     required: false,
+    _id: false,
   })
   location: Location;
 

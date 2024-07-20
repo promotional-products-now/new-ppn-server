@@ -25,6 +25,9 @@ export class Suspend {
   })
   @Prop({ default: Date.now })
   suspendedAt: Date;
+
+  @Prop({ type: Types.ObjectId, ref: User.name, required: true })
+  suspendedBy: Types.ObjectId;
 }
 
 export type SuspendDocument = HydratedDocument<Suspend>;

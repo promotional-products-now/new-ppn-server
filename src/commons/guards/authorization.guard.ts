@@ -54,6 +54,7 @@ export class AuthorizationGuard implements CanActivate {
     if (userId !== payload.uid) {
       throw new BadRequestException('Invalid authorization credentials');
     }
+
     request['user'] = {
       email: payload.email,
       userId: payload.uid,
