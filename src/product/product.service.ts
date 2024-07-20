@@ -286,7 +286,14 @@ export class ProductService {
   }
 
   async findAll(query: FilterProductQueryDto): Promise<any> {
-    let filterQuery: Record<string, any> = {};
+    const { page = 1, limit = 15 } = query;
+
+    let filterQuery: Record<string, any> = {
+      isActive: true,
+      // 'supplier.isActive': true,
+      // 'category.isActive': true,
+      // 'subCategory.isActive': true,
+    };
 
     let sort = {};
 
@@ -316,17 +323,17 @@ export class ProductService {
         switch (filterValue) {
           case PRODUCT_FILTER.ITEMS_WITH_IMAGE:
             Object.assign(filterQuery, {
-              'product.images': { $exist: true, $ne: [] },
+              'product.images': { $exists: true, $ne: [] },
             });
             break;
           case PRODUCT_FILTER.ITEMS_WITH_DESCRIPTION:
             Object.assign(filterQuery, {
-              'product.description': { $exist: true, $ne: '' },
+              'product.description': { $exists: true, $ne: '' },
             });
             break;
           case PRODUCT_FILTER.ITEMS_WITH_DETAILS:
             Object.assign(filterQuery, {
-              'product.details': { $exist: true, $ne: [] },
+              'product.details': { $exists: true, $ne: [] },
             });
             break;
           case PRODUCT_FILTER.ITEMS_FROM_API_SUPPLIERS:
@@ -359,24 +366,29 @@ export class ProductService {
         sort = { createdAt: -1 };
     }
 
+    console.log(filterQuery);
     const products = await this.productModel
       .find({ ...filterQuery })
-      .skip(query.limit * (query.page - 1))
-      .limit(query.limit)
-      .populate(['supplier', 'subCategory', 'category'])
+      .skip(limit * (page - 1))
+      .limit(limit)
+      .populate('supplier')
+      .populate('product.prices.priceGroups.additions')
+      .populate('product.prices.priceGroups.basePrice')
+      .populate('category')
+      .populate('subCategory')
       .sort(sort);
 
     const count = await this.productModel.countDocuments({ ...filterQuery });
-    const totalPages = Math.ceil(count / query.limit);
+    const totalPages = Math.ceil(count / limit);
 
     return {
-      docs: products.map((product) => product.toJSON() as any),
-      page: query.page,
-      limit: query.limit,
+      docs: products,
+      page: page,
+      limit: limit,
       totalItems: count,
       totalPages,
-      hasNextPage: query.page < totalPages,
-      hasPrevPage: query.page > 1,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
     };
   }
 
