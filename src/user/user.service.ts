@@ -164,6 +164,7 @@ export class UserService {
   async updateOne(
     id: Types.ObjectId,
     updateData: Partial<UserDocument>,
+    createActivity: boolean = true,
   ): Promise<any> {
     const result = await this.userModel.updateOne({ _id: id }, updateData, {
       lean: true,
@@ -172,10 +173,12 @@ export class UserService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    await this.userActivityService.create(id.toString(), {
-      activity: 'update account',
-      additionalData: { ...updateData },
-    });
+    if (createActivity) {
+      await this.userActivityService.create(id.toString(), {
+        activity: 'update account',
+        additionalData: { ...updateData },
+      });
+    }
     return { message: 'update successful' };
   }
 
