@@ -4,12 +4,19 @@ import {
   IsArray,
   IsBoolean,
   IsDateString,
+  IsEmail,
   IsNumber,
   IsObject,
   IsOptional,
   IsString,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+
+class EmailDto {
+  @ApiProperty({ example: 'example@gmail.com' })
+  @IsEmail()
+  address: string;
+}
 
 export class UserDto {
   @ApiProperty({ example: '1234567543' })
@@ -23,6 +30,11 @@ export class UserDto {
   @ApiProperty({ example: 'Doe' })
   @IsString()
   lastName: string;
+
+  @ApiProperty({ type: EmailDto })
+  @IsObject()
+  @Type(() => EmailDto)
+  email: EmailDto;
 }
 
 export class UserActivityDto {

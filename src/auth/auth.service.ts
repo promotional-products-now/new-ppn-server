@@ -76,7 +76,7 @@ export class AuthService {
       action: 'verify_otp',
     });
 
-    await this.userActivityService.create(newUser._id.toString(), {
+    await this.userActivityService.create(String(newUser._id), {
       activity: 'signup',
     });
 
@@ -164,9 +164,13 @@ export class AuthService {
         action: 'authorize',
       });
 
-      await this.userService.updateOne(user._id, {
-        email: { address: email, isVerified: true },
-      });
+      await this.userService.updateOne(
+        user._id,
+        {
+          email: { address: email, isVerified: true },
+        },
+        false,
+      );
 
       await this.userActivityService.create(user._id.toString(), {
         activity: 'login',

@@ -27,9 +27,11 @@ export class UserActivityService {
     createUserActivityDto: CreateUserActivityDto,
   ): Promise<CreateUserActivityResDto> {
     try {
+      const _id = new ObjectId();
       const userActivity = await this.userActivityModel.create({
         ...createUserActivityDto,
         userId: new ObjectId(userId),
+        _id,
       });
 
       return { userActivityId: userActivity._id.toString() };
@@ -65,7 +67,10 @@ export class UserActivityService {
           { password: 0, otpSecret: 0 },
           { skip, limit: limit + 1 },
         )
-        .populate({ path: 'userId', select: '_id firstName lastName' })
+        .populate({
+          path: 'userId',
+          select: '_id firstName lastName email.address',
+        })
         .exec();
 
       const total = await this.userActivityModel.countDocuments();
