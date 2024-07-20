@@ -31,6 +31,9 @@ export class FindUsers {
   @ApiProperty({ example: 0, description: 'The pervious page number' })
   @IsNumber()
   prevPage: number;
+  @ApiProperty({ example: 5, description: 'The total number of pages' })
+  @IsNumber()
+  totalPages: number;
 }
 
 export class FilterWithCreatedAt extends PaginationDto {
