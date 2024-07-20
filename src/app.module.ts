@@ -15,6 +15,7 @@ import { DataExportModule } from './data_export/data_export.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { SearchModule } from './search/search.module';
 import { ProductCategoryModule } from './product-category/product-category.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { ProductCategoryModule } from './product-category/product-category.modul
     AnalyticsModule,
     SearchModule,
     ProductCategoryModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [

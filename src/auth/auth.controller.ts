@@ -40,6 +40,7 @@ import { UserRole } from '../user/enums/role.enum';
 import { UserService } from '../user/user.service';
 import { MagicLoginStrategy } from '../commons/strategy/magiclogin.strategy';
 import { JwtAction } from '../commons/dtos/jwt.dto';
+import { BannedUserGuard } from 'src/commons/guards/banned_user.guard';
 // import { AlgoliaService } from '../commons/services/Algolia/algolia.service';
 // import { omit } from 'lodash';
 
@@ -59,6 +60,7 @@ export class AuthController {
   ) {}
 
   @UseGuards(AuthGuard('local'))
+  @UseGuards(BannedUserGuard)
   @HttpCode(200)
   @Post('login')
   async login(
@@ -225,6 +227,7 @@ export class AuthController {
   }
 
   @UseGuards(AuthorizationGuard)
+  @UseGuards(BannedUserGuard)
   @ApiSecurity('uid')
   @ApiBearerAuth()
   @Post('change-password')
