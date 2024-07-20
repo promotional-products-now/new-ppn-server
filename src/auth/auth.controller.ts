@@ -227,7 +227,6 @@ export class AuthController {
   }
 
   @UseGuards(AuthorizationGuard)
-  @UseGuards(BannedUserGuard)
   @ApiSecurity('uid')
   @ApiBearerAuth()
   @Post('change-password')
