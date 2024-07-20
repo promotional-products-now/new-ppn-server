@@ -25,7 +25,11 @@ import {
   ApiBearerAuth,
   ApiSecurity,
 } from '@nestjs/swagger';
-import { UpdateUserDto } from './dto/update-user.dto';
+import {
+  BanMultipleUsers,
+  BanMultipleUsersDto,
+  UpdateUserDto,
+} from './dto/update-user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../commons/guards/roles.guard';
 import { UserRole } from './enums/role.enum';
@@ -131,6 +135,16 @@ export class UserController {
   @Put('/user/:id')
   async banUserAccount(@Param('id') id: string): Promise<UserDocument> {
     return await this.userService.banUserAccount(id);
+  }
+
+  @Put('/ban-users')
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully banned users.',
+    type: BanMultipleUsers,
+  })
+  async banMultipleUsers(@Body() users: BanMultipleUsersDto) {
+    return await this.userService.banMultipleUserAccounts(users.usersId);
   }
 
   @Get(':id')
