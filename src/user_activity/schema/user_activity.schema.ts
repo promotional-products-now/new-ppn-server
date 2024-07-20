@@ -23,6 +23,9 @@ export class UserActivity {
   @ApiProperty({ type: Map })
   @Prop({ type: Map, of: String })
   additionalData?: Record<string, any>;
+
+  @Prop({ type: Types.ObjectId, auto: true })
+  _id: Types.ObjectId;
 }
 
 export type UserActivityDocument = HydratedDocument<UserActivity>;

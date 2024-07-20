@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { UserActivityService } from './user_activity.service';
 import {
@@ -24,12 +25,16 @@ import {
   ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
+import {
+  FilterWithCreatedAt,
+  FindUserActivity,
+} from './dto/find_user_activity.dto';
 
 @ApiTags('users-activity')
 @Controller('user-activity')
-@UseGuards(AuthorizationGuard)
-@ApiSecurity('uid')
-@ApiBearerAuth()
+// @UseGuards(AuthorizationGuard)
+// @ApiSecurity('uid')
+// @ApiBearerAuth()
 export class UserActivityController {
   constructor(private readonly userActivityService: UserActivityService) {}
 
@@ -46,9 +51,15 @@ export class UserActivityController {
     return this.userActivityService.create(userId, createUserActivityDto);
   }
 
-  @Get()
-  findAll() {
-    return this.userActivityService.findAll();
+  @Get('/filter')
+  @ApiOperation({ summary: 'Filtered all users' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully filtered all users.',
+    type: FindUserActivity,
+  })
+  filterActivityWithCreatedAt(@Query() filterQuery: FilterWithCreatedAt) {
+    return this.userActivityService.filterActivityWithCreatedAt(filterQuery);
   }
 
   @Get(':id')
