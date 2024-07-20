@@ -5,15 +5,20 @@ import { Suspend, SuspendDocument } from './schemas/suspend.schema';
 import { CreateSuspendDto, UnSuspendDto } from './dto/create-suspend.dto';
 import { User, UserDocument } from '../user/schemas/user.schema';
 import { UserStatus } from '../user/enums/status.enum';
+import { UserActivityService } from 'src/user_activity/user_activity.service';
 
 @Injectable()
 export class SuspendService {
   constructor(
     @InjectModel(Suspend.name) private suspendModel: Model<SuspendDocument>,
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
+    private readonly userActivityService: UserActivityService,
   ) {}
 
-  async suspend(createSuspendDto: CreateSuspendDto): Promise<{
+  async suspend(
+    userId: string,
+    createSuspendDto: CreateSuspendDto,
+  ): Promise<{
     message: string;
   }> {
     const existingBan = await this.suspendModel.findOne({
@@ -26,11 +31,18 @@ export class SuspendService {
       };
     }
 
-    const createdSuspend = await this.suspendModel.create(createSuspendDto);
+    const createdSuspend = await this.suspendModel.create({
+      ...createSuspendDto,
+      suspendedBy: userId,
+    });
     await this.userModel.findByIdAndUpdate(createSuspendDto.userId, {
       status: UserStatus.SUSPENDED,
     });
 
+    await this.userActivityService.create(userId, {
+      activity: 'suspend user',
+      additionalData: { reason: createSuspendDto.reason },
+    });
     return {
       message: 'user has been suspended',
     };
