@@ -73,7 +73,7 @@ export class SettingsController {
   @ApiOperation({ summary: 'Udate banner setting' })
   @ApiOkResponse({
     description: 'Bannersetting updated successfully.',
-    type: BannerSetting,
+    type: UpdateBannerSettingDto,
   })
   async updateBannerSetting(@Body() body: UpdateBannerSettingDto) {
     return this.settingsService.updateBannerSetting(body);
