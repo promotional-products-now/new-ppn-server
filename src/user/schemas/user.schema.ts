@@ -55,7 +55,7 @@ export class User {
     description: 'Encrypted password',
     example: 'encrypted_password',
   })
-  @Prop({ required: true })
+  @Prop({ required: false })
   password: string;
 
   @ApiPropertyOptional({
@@ -101,6 +101,7 @@ export class User {
       postCode: { type: String, required: false },
     },
     required: false,
+    _id: false,
   })
   location: Location;
 

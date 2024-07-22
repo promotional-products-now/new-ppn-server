@@ -8,12 +8,8 @@ import {
   Patch,
   UseGuards,
   Request,
-  UploadedFile,
-  UseInterceptors,
   Put,
   Req,
-  UploadedFiles,
-  NotFoundException,
   Query,
 } from '@nestjs/common';
 
@@ -29,7 +25,11 @@ import {
   ApiBearerAuth,
   ApiSecurity,
 } from '@nestjs/swagger';
-import { UpdateUserDto } from './dto/update-user.dto';
+import {
+  BanMultipleUsers,
+  BanMultipleUsersDto,
+  UpdateUserDto,
+} from './dto/update-user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../commons/guards/roles.guard';
 import { UserRole } from './enums/role.enum';
@@ -59,8 +59,10 @@ export class UserController {
     status: 200,
     description: 'Successfully retrieved all admins.',
   })
-  async findAllAdmin(): Promise<UserDocument[] | null> {
-    return await this.userService.findAllAdmin();
+  async findAllAdmin(
+    @Query() paginationDto: PaginationDto,
+  ): Promise<FindUsers | null> {
+    return await this.userService.findAllAdmin(paginationDto);
   }
 
   @Patch('/')
@@ -125,6 +127,28 @@ export class UserController {
     return await this.userService.findWithCreatedAt(filterQuery);
   }
 
+  @ApiOperation({ summary: 'Banned a user by ID' })
+  @ApiParam({ name: 'id', description: 'User ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully banned user.',
+    type: User,
+  })
+  @Put('/user/:id')
+  async banUserAccount(@Param('id') id: string): Promise<UserDocument> {
+    return await this.userService.banUserAccount(id);
+  }
+
+  @Put('/ban-users')
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully banned users.',
+    type: BanMultipleUsers,
+  })
+  async banMultipleUsers(@Body() users: BanMultipleUsersDto) {
+    return await this.userService.banMultipleUserAccounts(users.usersId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Retrieve a user by ID' })
   @ApiParam({ name: 'id', description: 'User ID' })
@@ -156,8 +180,8 @@ export class UserController {
     return await this.userService.find(paginationDto);
   }
 
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(UserRole.SUPER_Admin)
+  // @UseGuards(AuthGuard('jwt'), RolesGuard)
+  // @Roles(UserRole.SUPER_Admin)
   @Delete()
   @ApiOperation({ summary: 'Delete multiple users by IDs' })
   @ApiBody({ type: Array, description: 'array of user ids to delete' })

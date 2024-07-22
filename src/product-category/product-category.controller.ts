@@ -6,7 +6,7 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { UpdateCategoryDto } from 'src/product/dto/update-product.dto';
+import { UpdateCategoryDto } from '../product/dto/update-product.dto';
 import { ProductCategory } from './schemas/category.schema';
 import { UpdateSubCategoryDto } from './dto/update-product-category.dto';
 import { ProductSubCategory } from './schemas/subCategory.schema';

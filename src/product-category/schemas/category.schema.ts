@@ -6,13 +6,7 @@ import { STATUS_ENUM } from '../../product/product.interface';
 
 @Schema({
   timestamps: false,
-  toJSON: {
-    transform: function (doc, ret) {
-      ret.id = ret._id;
-      delete ret._id;
-      delete ret.__v;
-    },
-  },
+  versionKey: false,
 })
 export class ProductCategory extends Document {
   @Prop({ type: String })
