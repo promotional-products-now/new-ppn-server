@@ -120,7 +120,7 @@ const env = (): AppConfig => {
     domain: 'promotionalproductsnow.au',
 
     database: {
-      uri: secrets.DATABASE_URI,
+      uri: 'mongodb+srv://production_spiderMonkey:WMaYggQeP8jtTuuP@ppn.hfq7y.mongodb.net/ppn?retryWrites=true&w=majority', //secrets.DATABASE_URI,
     },
     otp: {
       secret: secrets.OTP_SECRET,

@@ -25,6 +25,12 @@ import {
   ProductCategory,
   ProductCategoryDocument,
 } from '../product-category/schemas/category.schema';
+import {
+  ProductSubCategory,
+  ProductSubCategoryDocument,
+} from '../product-category/schemas/subCategory.schema';
+import { UdpateSupplierDto, UpdateProductDto } from './dto/update-product.dto';
+import { FetchtQueryDto } from './dto/fetch-query.dto';
 
 @Injectable()
 export class ProductService {
@@ -41,6 +47,8 @@ export class ProductService {
     private readonly basePriceModel: Model<BasePriceDocument>,
     @InjectModel(ProductCategory.name)
     private readonly productCategoryModel: Model<ProductCategoryDocument>,
+    @InjectModel(ProductSubCategory.name)
+    private readonly productSubCategoryModel: Model<ProductSubCategoryDocument>,
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {}
@@ -79,6 +87,33 @@ export class ProductService {
         appaMemberNumber: product.supplier.supplier_appa_member_number,
       },
       { upsert: true, new: true },
+    );
+
+    const category = await this.productCategoryModel.findOneAndUpdate(
+      {
+        name: product.product.categorisation.supplier_category,
+        supplier: supplier._id,
+      },
+      {
+        name: product.product.categorisation.supplier_category,
+        supplier: supplier._id,
+      },
+      { upseert: true, new: true },
+    );
+
+    const subCategory = await this.productSubCategoryModel.findOneAndUpdate(
+      {
+        name: product.product.categorisation.supplier_subcategory,
+        category: category._id,
+      },
+      {
+        name: product.product.categorisation.supplier_subcategory,
+        category: category._id,
+      },
+      {
+        upsert: true,
+        new: true,
+      },
     );
 
     const payload = {
@@ -206,6 +241,8 @@ export class ProductService {
           currencyOptions: product.product.prices.currency_options,
         },
       },
+      subCategory: subCategory._id,
+      category: category._id,
     };
 
     const newProduct = await this.productModel.findOneAndUpdate(
@@ -222,7 +259,7 @@ export class ProductService {
   }
 
   // @Cron('0 0 * * 0')
-  // @Cron('* * * * * *')
+  // @Cron('*/5 * * * *')
   async fetchThirdPartyProducts() {
     try {
       let page = 1;
@@ -249,7 +286,15 @@ export class ProductService {
   }
 
   async findAll(query: FilterProductQueryDto): Promise<any> {
-    let filterQuery = {};
+    const { page = 1, limit = 15 } = query;
+
+    let filterQuery: Record<string, any> = {
+      isActive: true,
+      // 'supplier.isActive': true,
+      // 'category.isActive': true,
+      // 'subCategory.isActive': true,
+    };
+
     let sort = {};
 
     if (query.colours && query.colours.length > 0) {
@@ -278,17 +323,17 @@ export class ProductService {
         switch (filterValue) {
           case PRODUCT_FILTER.ITEMS_WITH_IMAGE:
             Object.assign(filterQuery, {
-              'product.images': { $exist: true, $ne: [] },
+              'product.images': { $exists: true, $ne: [] },
             });
             break;
           case PRODUCT_FILTER.ITEMS_WITH_DESCRIPTION:
             Object.assign(filterQuery, {
-              'product.description': { $exist: true, $ne: '' },
+              'product.description': { $exists: true, $ne: '' },
             });
             break;
           case PRODUCT_FILTER.ITEMS_WITH_DETAILS:
             Object.assign(filterQuery, {
-              'product.details': { $exist: true, $ne: [] },
+              'product.details': { $exists: true, $ne: [] },
             });
             break;
           case PRODUCT_FILTER.ITEMS_FROM_API_SUPPLIERS:
@@ -321,80 +366,120 @@ export class ProductService {
         sort = { createdAt: -1 };
     }
 
+    console.log(filterQuery);
     const products = await this.productModel
-      .find({ ...filterQuery })
-      .skip(query.limit * (query.page - 1))
-      .limit(query.limit)
-      .populate(['supplier'])
+      // .find({ ...filterQuery })
+      .find()
+      .skip(limit * (page - 1))
+      .limit(limit)
+      // .populate('supplier')
+      // .populate('product.prices.priceGroups.additions')
+      // .populate('product.prices.priceGroups.basePrice')
+      // .populate('category')
+      // .populate('subCategory')
       .sort(sort);
+
     const count = await this.productModel.countDocuments({ ...filterQuery });
-    const totalPages = Math.ceil(count / query.limit);
+    const totalPages = Math.ceil(count / limit);
 
     return {
-      docs: products.map((product) => product.toJSON() as any),
-      page: query.page,
-      limit: query.limit,
+      docs: products,
+      page: page,
+      limit: limit,
       totalItems: count,
       totalPages,
-      hasNextPage: query.page < totalPages,
-      hasPrevPage: query.page > 1,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
     };
   }
 
   async findById(id: string) {
-    const product = await this.productModel
+    return await this.productModel
       .findById(id)
       .populate('supplier')
       .populate('product.prices.priceGroups.additions')
-      .populate('product.prices.priceGroups.basePrice');
-
-    if (!product) return null;
-
-    return product;
+      .populate('product.prices.priceGroups.basePrice')
+      .populate('category')
+      .populate('subCategory')
+      .exec();
   }
 
-  async findSuppliers(): Promise<any> {
-    const suppliers = await this.supplierModel.find({});
+  async updateProduct(id: string, updateProductDto: UpdateProductDto) {
+    return await this.productModel.findByIdAndUpdate(id, updateProductDto, {
+      new: true,
+    });
+  }
+
+  async updateSupplier(id: string, updateSupplierDto: UdpateSupplierDto) {
+    return await this.supplierModel.findByIdAndUpdate(id, updateSupplierDto, {
+      new: true,
+    });
+  }
+
+  async findSuppliers(query: FetchtQueryDto) {
+    const { page, limit, query: search } = query;
+
+    let payload: Record<string, any> = {};
+
+    if (search) {
+      const regex = new RegExp(search, 'i');
+      payload.name = { $regex: regex };
+    }
+
+    const suppliers = await this.supplierModel
+      .find(payload)
+      .skip(limit * (page - 1))
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const count = await this.supplierModel.countDocuments(payload);
+    const totalPages = Math.ceil(count / limit);
 
     return {
-      suppliers, //suppliers.map((supplier) => supplier.toJSON() as SupplierDocument),
+      docs: suppliers,
+      page,
+      limit,
+      totalItems: count,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
     };
   }
 
-  async findAllProductCategory(): Promise<any[]> {
-    const category = await this.productCategoryModel.find({});
+  // async findAllProductCategory(): Promise<any[]> {
+  //   const category = await this.productCategoryModel.find({});
 
-    const res = await Promise.all(
-      category.map(async (obj, i) => {
-        let totalProducts = obj.totalProducts;
+  //   const res = await Promise.all(
+  //     category.map(async (obj, i) => {
+  //       let totalProducts = obj.totalProducts;
 
-        if (totalProducts === null) {
-          const count = await this.productModel.countDocuments({
-            category: obj._id,
-          });
-          await this.productCategoryModel.updateOne(
-            { _id: obj._id },
-            { totalProducts: count },
-          );
-          totalProducts = count;
-        }
+  //       if (totalProducts === null) {
+  //         const count = await this.productModel.countDocuments({
+  //           category: obj._id,
+  //         });
+  //         await this.productCategoryModel.updateOne(
+  //           { _id: obj._id },
+  //           { totalProducts: count },
+  //         );
+  //         totalProducts = count;
+  //       }
 
-        // Convert the Mongoose document to a plain JavaScript object
-        const plainObj = obj.toObject();
-        delete plainObj.subCategory;
+  //       // Convert the Mongoose document to a plain JavaScript object
+  //       const plainObj = obj.toObject();
+  //       delete plainObj.subCategory;
 
-        return {
-          name: plainObj.name,
-          id: plainObj.id,
-          _id: plainObj._id,
-          totalProducts,
-        };
-      }),
-    );
+  //       return {
+  //         name: plainObj.name,
+  //         id: plainObj.id,
+  //         _id: plainObj._id,
+  //         totalProducts,
+  //       };
+  //     }),
+  //   );
 
-    // console.log(res);
-    return res;
-  }
+  //   // console.log(res);
+  //   return res;
+  // }
 
   async findProductByCategory(
     query: FilterProductByCategoryQueryDto,
