@@ -17,8 +17,14 @@ import {
 } from './schemas/subCategory.schema';
 import { FetchtQueryDto } from './dto/fetch-query.dto';
 import { ObjectId } from 'mongodb';
-import { GlobalProductSubCategory, GlobalProductSubCategoryDocument } from './schemas/globalSubCategory.schema';
-import { GlobalProductCategory, GlobalProductCategoryDocument } from './schemas/globalCategory.schema';
+import {
+  GlobalProductSubCategory,
+  GlobalProductSubCategoryDocument,
+} from './schemas/globalSubCategory.schema';
+import {
+  GlobalProductCategory,
+  GlobalProductCategoryDocument,
+} from './schemas/globalCategory.schema';
 
 @Injectable()
 export class ProductCategoryService {
@@ -53,8 +59,10 @@ export class ProductCategoryService {
   //   ]);
   // }
 
-  async findAll(){
-    return await this.globalProductCategoryModel.find().populate({path:'subCategory'})
+  async findAll() {
+    return await this.globalProductCategoryModel
+      .find()
+      .populate({ path: 'subCategory' });
   }
 
   async findAllSubCategory(categoryName: string) {

@@ -1,11 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import {  HydratedDocument, Types } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 import { ProductCategory } from './category.schema';
 import { ApiProperty } from '@nestjs/swagger';
 import { STATUS_ENUM } from '../../product/product.interface';
 
-@Schema({timestamps: false, versionKey:false})
-export class ProductSubCategory  {
+@Schema({ timestamps: false, versionKey: false })
+export class ProductSubCategory {
   @Prop({ type: String })
   name: string;
 
