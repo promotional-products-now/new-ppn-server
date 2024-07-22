@@ -15,6 +15,9 @@ import {
   FilterWithCreatedAt,
   FindUserActivity,
 } from './dto/find_user_activity.dto';
+import { PaginationDto } from 'src/commons/dtos/pagination.dto';
+import { UserStatus } from 'src/user/enums/status.enum';
+import { UserRole } from 'src/user/enums/role.enum';
 
 @Injectable()
 export class UserActivityService {
@@ -119,8 +122,72 @@ export class UserActivityService {
     }
   }
 
-  findAll() {
-    return `This action returns all userActivity`;
+  async getAdminActivity(paginationDto: PaginationDto) {
+    try {
+      const data = paginationDto;
+
+      const page = data.page ? data.page : 1;
+      const limit = data.limit ? data.limit : 10;
+      const skip = (page - 1) * limit;
+
+      const userActivities = await this.userActivityModel
+        .find(
+          {
+            role: { $ne: UserRole.USER },
+          },
+          { password: 0, otpSecret: 0 },
+          { skip, limit: limit + 1 },
+        )
+        .populate({
+          path: 'userId',
+          select: '_id firstName lastName email.address',
+        })
+        .exec();
+
+      const total = await this.userActivityModel.countDocuments();
+
+      const hasPrevious = skip === 0 ? false : true;
+      const hasNext = userActivities.length > limit ? true : false;
+      const nextPage = hasNext ? page + 1 : null;
+      const prevPage = hasPrevious ? page - 1 : null;
+
+      if (userActivities.length > limit) {
+        userActivities.pop();
+      }
+
+      const activities = userActivities.map(
+        (userActivity: UserActivityDocument) => {
+          const {
+            _id,
+            userId,
+            activity,
+            additionalData,
+            createdAt,
+            updatedAt,
+          } = userActivity;
+
+          return {
+            activityId: _id.toString(),
+            user: userId,
+            createdAt,
+            activity,
+            additionalData,
+            updatedAt,
+          };
+        },
+      );
+
+      return {
+        activities,
+        hasPrevious,
+        hasNext,
+        nextPage,
+        prevPage,
+        totalPages: Math.ceil(total / limit),
+      };
+    } catch (error) {
+      throw new InternalServerErrorException('Error retrieving users', error);
+    }
   }
 
   findOne(id: number) {

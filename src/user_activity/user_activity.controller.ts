@@ -29,6 +29,7 @@ import {
   FilterWithCreatedAt,
   FindUserActivity,
 } from './dto/find_user_activity.dto';
+import { PaginationDto } from 'src/commons/dtos/pagination.dto';
 
 @ApiTags('users-activity')
 @Controller('user-activity')
@@ -62,9 +63,15 @@ export class UserActivityController {
     return this.userActivityService.filterActivityWithCreatedAt(filterQuery);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userActivityService.findOne(+id);
+  @ApiOperation({ summary: 'Fetched all admins' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully fetched all admins.',
+    type: FindUserActivity,
+  })
+  @Get('/admin')
+  findOne(@Query() paginationData: PaginationDto) {
+    return this.userActivityService.getAdminActivity(paginationData);
   }
 
   @Patch(':id')
