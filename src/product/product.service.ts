@@ -288,7 +288,7 @@ export class ProductService {
   async findAll(query: FilterProductQueryDto): Promise<any> {
     const { page = 1, limit = 15 } = query;
 
-    let filterQuery: Record<string, any> = {
+    const filterQuery: Record<string, any> = {
       isActive: true,
       // 'supplier.isActive': true,
       // 'category.isActive': true,
