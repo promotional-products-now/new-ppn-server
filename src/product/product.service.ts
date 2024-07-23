@@ -366,7 +366,7 @@ export class ProductService {
         sort = { createdAt: -1 };
     }
 
-    console.log(filterQuery);
+    // console.log(filterQuery);
     const products = await this.productModel
       // .find({ ...filterQuery })
       .find()
