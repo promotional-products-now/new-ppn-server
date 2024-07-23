@@ -126,7 +126,7 @@ export class ProductCategoryService {
 
   async findSubCategoriesByCategory(id: string, query: FetchtQueryDto) {
     const { query: search } = query;
-    
+
     const page = query.page ? Number(query.page) : 1;
     const limit = query.limit ? Number(query.limit) : 15;
 

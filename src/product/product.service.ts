@@ -51,7 +51,7 @@ export class ProductService {
     private readonly productSubCategoryModel: Model<ProductSubCategoryDocument>,
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
-  ) { }
+  ) {}
 
   private async fetchProducts(page: number) {
     console.log('pages in fetchproducts', page);
@@ -183,7 +183,7 @@ export class ProductService {
           appaProductType: {
             healthAndPersonal:
               product.product.categorisation.appa_product_type[
-              'Health & Personal'
+                'Health & Personal'
               ] ?? [],
           },
           supplierCategory: product.product.categorisation.supplier_category,
