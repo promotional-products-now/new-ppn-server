@@ -54,7 +54,7 @@ export class FilterProductByCategoryQueryDto {
   page: number;
 
   @ApiPropertyOptional({ example: 15 })
-  @Transform((val) => Number(val))
+  @Transform(({ value }) => Number({ value }))
   @IsNumber()
   @IsOptional()
   limit: number;
