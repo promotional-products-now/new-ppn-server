@@ -366,16 +366,17 @@ export class ProductService {
         sort = { createdAt: -1 };
     }
 
-    console.log(filterQuery);
+    // console.log(filterQuery);
     const products = await this.productModel
-      .find({ ...filterQuery })
+      // .find({ ...filterQuery })
+      .find()
       .skip(limit * (page - 1))
       .limit(limit)
-      .populate('supplier')
-      .populate('product.prices.priceGroups.additions')
-      .populate('product.prices.priceGroups.basePrice')
-      .populate('category')
-      .populate('subCategory')
+      // .populate('supplier')
+      // .populate('product.prices.priceGroups.additions')
+      // .populate('product.prices.priceGroups.basePrice')
+      // .populate('category')
+      // .populate('subCategory')
       .sort(sort);
 
     const count = await this.productModel.countDocuments({ ...filterQuery });

@@ -1,8 +1,8 @@
 export enum PopupPosition {
   TOP = 'top',
   TOP_CENTER = 'top-center',
-  TOP_RIGHT = 'top-right',
-  TOP_LEFT = 'top-left',
+  CENTER = 'center',
+  BOTTOM = 'bottom',
 }
 
 export enum FreightType {

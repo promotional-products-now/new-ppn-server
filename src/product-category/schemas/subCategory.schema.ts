@@ -1,20 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, HydratedDocument, Types } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 import { ProductCategory } from './category.schema';
 import { ApiProperty } from '@nestjs/swagger';
 import { STATUS_ENUM } from '../../product/product.interface';
 
-@Schema({
-  timestamps: false,
-  toJSON: {
-    transform: function (doc, ret) {
-      ret.id = ret._id;
-      delete ret._id;
-      delete ret.__v;
-    },
-  },
-})
-export class ProductSubCategory extends Document {
+@Schema({ timestamps: false, versionKey: false })
+export class ProductSubCategory {
   @Prop({ type: String })
   name: string;
 

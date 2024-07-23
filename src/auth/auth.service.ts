@@ -14,6 +14,8 @@ import { AccessToken } from '../configs';
 import { JwtSigningPayload } from '../commons/dtos/jwt.dto';
 import * as speakeasy from 'speakeasy';
 import { ChangePasswordDto, EmailDTO, ValidateUserDto } from './dto/auth.dto';
+import { UserDocument } from '../user/schemas/user.schema';
+import { UserActivityService } from '../user_activity/user_activity.service';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +23,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly userActivityService: UserActivityService,
   ) {}
 
   async validateUser(
@@ -73,10 +76,14 @@ export class AuthService {
       action: 'verify_otp',
     });
 
+    await this.userActivityService.create(String(newUser._id), {
+      activity: 'signup',
+    });
+
     return { ...result, accessToken };
   }
 
-  private async generateToken(payload: JwtSigningPayload): Promise<string> {
+  async generateToken(payload: JwtSigningPayload): Promise<string> {
     const { email, uid, did, r, action } = payload;
     const { access_token_private_key, access_token_ttl } =
       this.configService.getOrThrow<AccessToken>('accessToken');
@@ -118,11 +125,18 @@ export class AuthService {
     return this.decodeOTP(otpSecret);
   }
 
-  async changePassword(params: ChangePasswordDto) {
+  async changePassword(params: ChangePasswordDto): Promise<UserDocument> {
     const { email, password } = params;
     const pass = await this.hashPassword(password);
 
-    return await this.userService.findOneAndUpdate(email, { password: pass });
+    const user = await this.userService.findOneAndUpdate(email, {
+      password: pass,
+    });
+
+    await this.userActivityService.create(user._id.toString(), {
+      activity: 'change password',
+    });
+    return user;
   }
 
   async validateUserOtp(
@@ -150,8 +164,16 @@ export class AuthService {
         action: 'authorize',
       });
 
-      await this.userService.updateOne(user._id, {
-        email: { address: email, isVerified: true },
+      await this.userService.updateOne(
+        user._id,
+        {
+          email: { address: email, isVerified: true },
+        },
+        false,
+      );
+
+      await this.userActivityService.create(user._id.toString(), {
+        activity: 'login',
       });
 
       return { user, accessToken };

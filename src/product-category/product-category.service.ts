@@ -16,6 +16,14 @@ import {
 } from './schemas/subCategory.schema';
 import { FetchtQueryDto } from './dto/fetch-query.dto';
 import { ObjectId } from 'mongodb';
+import {
+  GlobalProductSubCategory,
+  GlobalProductSubCategoryDocument,
+} from './schemas/globalSubCategory.schema';
+import {
+  GlobalProductCategory,
+  GlobalProductCategoryDocument,
+} from './schemas/globalCategory.schema';
 
 @Injectable()
 export class ProductCategoryService {
@@ -26,22 +34,34 @@ export class ProductCategoryService {
     private readonly productCategoryModel: Model<ProductCategoryDocument>,
     @InjectModel(ProductSubCategory.name)
     private readonly productSubCategoryModel: Model<ProductSubCategoryDocument>,
+
+    @InjectModel(GlobalProductSubCategory.name)
+    private readonly globalProductSubCategoryModel: Model<GlobalProductSubCategoryDocument>,
+
+    @InjectModel(GlobalProductCategory.name)
+    private readonly globalProductCategoryModel: Model<GlobalProductCategoryDocument>,
   ) {}
 
+  // async findAll() {
+  //   return await this.productCategoryModel.aggregate([
+  //     {
+  //       $group: {
+  //         _id: '$name',
+  //       },
+  //     },
+  //     {
+  //       $project: {
+  //         _id: 0,
+  //         name: '$_id',
+  //       },
+  //     },
+  //   ]);
+  // }
+
   async findAll() {
-    return await this.productCategoryModel.aggregate([
-      {
-        $group: {
-          _id: '$name',
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          name: '$_id',
-        },
-      },
-    ]);
+    return await this.globalProductCategoryModel
+      .find()
+      .populate({ path: 'subCategory' });
   }
 
   async findAllSubCategory(categoryName: string) {

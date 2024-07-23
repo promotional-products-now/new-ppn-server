@@ -41,6 +41,12 @@ export class ProductController {
     );
   }
 
+  @Get('/:id')
+  @ApiParam({ name: 'id', type: 'string', required: true })
+  async findById(@Param('id') id: string) {
+    return await this.productsService.findById(id);
+  }
+
   @Get('/suppliers')
   @ApiOperation({ summary: 'Fetch suppliers' })
   @ApiOkResponse({
@@ -49,12 +55,6 @@ export class ProductController {
   })
   async findSuppliers(@Query() query: FetchtQueryDto) {
     return await this.productsService.findSuppliers(query);
-  }
-
-  @Get('/:id')
-  @ApiParam({ name: 'id', type: 'string', required: true })
-  async findById(@Param('id') id: string) {
-    return await this.productsService.findById(id);
   }
 
   @Patch('/:id')

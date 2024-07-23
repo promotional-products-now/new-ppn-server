@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -29,8 +37,8 @@ export class SuspendController {
   })
   @ApiBody({ type: CreateSuspendDto })
   @Post()
-  async create(@Body() createSuspendDto: CreateSuspendDto) {
-    return await this.suspendService.suspend(createSuspendDto);
+  async create(@Body() createSuspendDto: CreateSuspendDto, @Request() req) {
+    return await this.suspendService.suspend(req.user, createSuspendDto);
   }
 
   async unsuspend(@Body() unSuspendDto: UnSuspendDto) {

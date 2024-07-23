@@ -12,6 +12,14 @@ import {
   ProductSubCategorySchema,
 } from './schemas/subCategory.schema';
 import { Supplier, SupplierSchema } from '../product/schemas/supplier.schema';
+import {
+  GlobalProductCategory,
+  GlobalProductCategorySchema,
+} from './schemas/globalCategory.schema';
+import {
+  GlobalProductSubCategory,
+  GlobalProductSubCategorySchema,
+} from './schemas/globalSubCategory.schema';
 
 @Module({
   imports: [
@@ -19,6 +27,11 @@ import { Supplier, SupplierSchema } from '../product/schemas/supplier.schema';
       { name: Product.name, schema: ProductSchema },
       { name: ProductCategory.name, schema: ProductCategorySchema },
       { name: ProductSubCategory.name, schema: ProductSubCategorySchema },
+      { name: GlobalProductCategory.name, schema: GlobalProductCategorySchema },
+      {
+        name: GlobalProductSubCategory.name,
+        schema: GlobalProductSubCategorySchema,
+      },
       { name: Supplier.name, schema: SupplierSchema },
     ]),
   ],
