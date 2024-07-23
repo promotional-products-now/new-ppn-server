@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class FilterProductQueryDto {
@@ -29,6 +29,7 @@ export class FilterProductQueryDto {
   vendors: string[];
 
   @ApiPropertyOptional({ example: 1 })
+  @Type(() => Number)
   @Transform(({ value }) => Number(value))
   @IsNumber()
   @IsOptional()
@@ -36,6 +37,7 @@ export class FilterProductQueryDto {
 
   @ApiPropertyOptional({ example: 15 })
   @Transform(({ value }) => Number(value))
+  @Type(() => Number)
   @IsNumber()
   @IsOptional()
   limit: number;
@@ -48,12 +50,14 @@ export class FilterProductByCategoryQueryDto {
   sort: string;
 
   @ApiPropertyOptional({ example: 1 })
+  @Type(() => Number)
   @Transform(({ value }) => Number(value))
   @IsNumber()
   @IsOptional()
   page: number;
 
   @ApiPropertyOptional({ example: 15 })
+  @Type(() => Number)
   @Transform(({ value }) => Number({ value }))
   @IsNumber()
   @IsOptional()

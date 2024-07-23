@@ -92,7 +92,10 @@ export class ProductCategoryService {
   }
 
   async findSuppliersCategories(id: string, query: FetchtQueryDto) {
-    const { page, limit, query: search } = query;
+    const { query: search } = query;
+
+    const page = query.page ? Number(query.page) : 1;
+    const limit = query.limit ? Number(query.limit) : 15;
 
     const payload: Record<string, any> = { supplier: new ObjectId(id) };
 
@@ -122,7 +125,10 @@ export class ProductCategoryService {
   }
 
   async findSubCategoriesByCategory(id: string, query: FetchtQueryDto) {
-    const { page, limit, query: search } = query;
+    const { query: search } = query;
+    
+    const page = query.page ? Number(query.page) : 1;
+    const limit = query.limit ? Number(query.limit) : 15;
 
     const payload: Record<string, any> = { category: new ObjectId(id) };
 

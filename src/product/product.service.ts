@@ -51,7 +51,7 @@ export class ProductService {
     private readonly productSubCategoryModel: Model<ProductSubCategoryDocument>,
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
 
   private async fetchProducts(page: number) {
     console.log('pages in fetchproducts', page);
@@ -183,7 +183,7 @@ export class ProductService {
           appaProductType: {
             healthAndPersonal:
               product.product.categorisation.appa_product_type[
-                'Health & Personal'
+              'Health & Personal'
               ] ?? [],
           },
           supplierCategory: product.product.categorisation.supplier_category,
@@ -286,10 +286,11 @@ export class ProductService {
   }
 
   async findAll(query: FilterProductQueryDto): Promise<any> {
-    const { page = 1, limit = 15 } = query;
+    const page = query.page ? Number(query.page) : 1;
+    const limit = query.limit ? Number(query.limit) : 15;
 
     const filterQuery: Record<string, any> = {
-      isActive: true,
+      // isActive: true,
       // 'supplier.isActive': true,
       // 'category.isActive': true,
       // 'subCategory.isActive': true,
@@ -419,7 +420,7 @@ export class ProductService {
   async findSuppliers(query: FetchtQueryDto) {
     const { page, limit, query: search } = query;
 
-    let payload: Record<string, any> = {};
+    const payload: Record<string, any> = {};
 
     if (search) {
       const regex = new RegExp(search, 'i');
