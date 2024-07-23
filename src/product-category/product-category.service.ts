@@ -1,5 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateProductCategoryDto } from './dto/create-product-category.dto';
+import { Injectable } from '@nestjs/common';
 import {
   UpdateCategoryDto,
   UpdateSubCategoryDto,
@@ -75,7 +74,7 @@ export class ProductCategoryService {
   async findSuppliersCategories(id: string, query: FetchtQueryDto) {
     const { page, limit, query: search } = query;
 
-    let payload: Record<string, any> = { supplier: new ObjectId(id) };
+    const payload: Record<string, any> = { supplier: new ObjectId(id) };
 
     if (search) {
       const regex = new RegExp(search, 'i');
@@ -105,7 +104,7 @@ export class ProductCategoryService {
   async findSubCategoriesByCategory(id: string, query: FetchtQueryDto) {
     const { page, limit, query: search } = query;
 
-    let payload: Record<string, any> = { category: new ObjectId(id) };
+    const payload: Record<string, any> = { category: new ObjectId(id) };
 
     if (search) {
       const regex = new RegExp(search, 'i');
