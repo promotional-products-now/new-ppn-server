@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from 'src/user/schemas/user.schema';
+import { User, UserDocument } from '../user/schemas/user.schema';
 import { Model } from 'mongoose';
 import { AnalyticsDto } from './dto/analytics.dto';
-import { UserRole } from 'src/user/enums/role.enum';
+import { UserRole } from '../user/enums/role.enum';
+import { UserStatus } from '../user/enums/status.enum';
 
 @Injectable()
 export class UserAnalyticsService {
@@ -27,11 +28,12 @@ export class UserAnalyticsService {
     const users = await this.userModel.find(
       {
         createdAt: { $gte: startingDateTime, $lte: endingDateTime },
+        status: { $ne: UserStatus.DELETED },
         role: UserRole.USER,
       },
       { createdAt: 1, firstName: 1, lastName: 1 },
     );
 
-    return { users };
+    return users;
   }
 }

@@ -13,7 +13,7 @@ import { UserRole } from './enums/role.enum';
 import { UserStatus } from './enums/status.enum';
 import { PaginationDto } from 'src/commons/dtos/pagination.dto';
 import { FilterWithCreatedAt, FindUsers } from './dto/fetch-user.dto';
-import { DatabaseException } from 'src/commons/exceptions/database.exception';
+import { DatabaseException } from '../commons/exceptions/database.exception';
 import { BanMultipleUsers } from './dto/update-user.dto';
 import { UserActivityService } from '../user_activity/user_activity.service';
 
@@ -63,12 +63,15 @@ export class UserService {
       const skip = (page - 1) * limit;
 
       const users = await this.userModel.find(
-        { status: { $ne: UserStatus.DELETED } },
+        { status: { $ne: UserStatus.DELETED }, role: UserRole.USER },
         { password: 0, otpSecret: 0 },
         { skip, limit: limit + 1 },
       );
 
-      const total = await this.userModel.countDocuments();
+      const total = await this.userModel.countDocuments({
+        status: { $ne: UserStatus.DELETED },
+        role: UserRole.USER,
+      });
 
       const hasPrevious = skip === 0 ? false : true;
       const hasNext = users.length > limit ? true : false;
@@ -264,10 +267,12 @@ export class UserService {
 
     const totalUsers = await this.userModel.countDocuments({
       status: { $ne: UserStatus.DELETED },
+      role: UserRole.USER,
     });
     const newUsers = await this.userModel.countDocuments({
       createdAt: { $gte: startDateTime, $lte: endDateTime },
       status: { $ne: UserStatus.DELETED },
+      role: UserRole.USER,
     });
 
     return { totalUsers, newUsers };
