@@ -6,7 +6,6 @@
 
 ## Project
 
-[FrshApp](#) A mature dating app for singles.
 
 ## Description
 The project uses doppler for secrete management and npm for dependency management
