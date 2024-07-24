@@ -24,14 +24,18 @@ export class UserSearchService {
 
   async userSearch(searchData: UserSearchDto): Promise<FindUsers> {
     try {
-      const data = searchData;
-      const page = data.page ? data.page : 1;
-      const limit = data.limit ? data.limit : 10;
+      let { page = 1, limit = 10, searchTerm } = searchData;
+
+      if (!page || page <= 0) {
+        page = 1;
+      }
+      if (!limit || limit <= 0) {
+        limit = 10;
+      }
+
       const skip = (page - 1) * limit;
 
-      const formattedString = this.formatSearchTerm(
-        searchData.searchTerm,
-      ).toLowerCase();
+      const formattedString = this.formatSearchTerm(searchTerm).toLowerCase();
 
       const users = await this.userModel.find(
         {
@@ -39,7 +43,7 @@ export class UserSearchService {
           $or: [
             {
               'email.address': {
-                $regex: searchData.searchTerm.toLowerCase(),
+                $regex: searchTerm.toLowerCase(),
               },
             },
             { firstName: { $regex: formattedString } },
@@ -50,7 +54,18 @@ export class UserSearchService {
         { skip, limit: limit + 1 },
       );
 
-      const total = await this.userModel.countDocuments();
+      const total = await this.userModel.countDocuments({
+        status: { $ne: UserStatus.DELETED },
+        $or: [
+          {
+            'email.address': {
+              $regex: searchTerm.toLowerCase(),
+            },
+          },
+          { firstName: { $regex: formattedString } },
+          { lastName: { $regex: formattedString } },
+        ],
+      });
 
       const hasPrevious = skip === 0 ? false : true;
       const hasNext = users.length > limit ? true : false;
