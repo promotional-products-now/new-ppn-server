@@ -17,6 +17,7 @@ import { SearchModule } from './search/search.module';
 import { ProductCategoryModule } from './product-category/product-category.module';
 import { EmailModule } from './email/email.module';
 import { UserActivityModule } from './user_activity/user_activity.module';
+import { CheckoutModule } from './checkout/checkout.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { UserActivityModule } from './user_activity/user_activity.module';
     ProductCategoryModule,
     EmailModule,
     UserActivityModule,
+    CheckoutModule,
   ],
   controllers: [AppController],
   providers: [

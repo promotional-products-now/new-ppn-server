@@ -96,6 +96,13 @@ export type CloudinaryConfig = {
   cloudName: string;
 };
 
+export type StripeConfig = {
+  secretKey: string;
+  publishableKey: string;
+  webhookSecret: string;
+  webhookEndpoint?: string;
+};
+
 export type AppConfig = {
   appEnv: Environments;
   port: number;
@@ -110,6 +117,7 @@ export type AppConfig = {
   storage: AzureBlobStorage;
   algolia: AlgoliaConfig;
   cloudinary: CloudinaryConfig;
+  stripe: StripeConfig;
 };
 
 const env = (): AppConfig => {
@@ -173,6 +181,12 @@ const env = (): AppConfig => {
       apiKey: secrets.CLOUDINARY_API_KEY,
       apiSecret: secrets.CLOUDINARY_API_SECRET,
       cloudName: secrets.CLOUDINARY_CLOUD_NAME,
+    },
+    stripe: {
+      secretKey: secrets.STRIPE_SECRET_KEY,
+      publishableKey: secrets.STRIPE_PUBLISHABLE_KEY,
+      webhookSecret: secrets.STRIPE_WEBHOOK_SECRET,
+      webhookEndpoint: secrets.STRIPE_WEBHOOK_ENDPOINT,
     },
   };
 };
