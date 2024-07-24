@@ -1,6 +1,4 @@
-<p align="center">
-  <a href="https://saltechapps.com/" target="blank"><img src="https://avatars.githubusercontent.com/u/168007621?s=48&v=4" width="100" alt="salTech Logo" /></a>
-</p>
+
 
   <p align="center">ppn App server.</p>
     <p align="center">
