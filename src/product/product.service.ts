@@ -286,10 +286,11 @@ export class ProductService {
   }
 
   async findAll(query: FilterProductQueryDto): Promise<any> {
-    const { page = 1, limit = 15 } = query;
+    const page = query.page ? Number(query.page) : 1;
+    const limit = query.limit ? Number(query.limit) : 15;
 
-    let filterQuery: Record<string, any> = {
-      isActive: true,
+    const filterQuery: Record<string, any> = {
+      // isActive: true,
       // 'supplier.isActive': true,
       // 'category.isActive': true,
       // 'subCategory.isActive': true,
@@ -419,7 +420,7 @@ export class ProductService {
   async findSuppliers(query: FetchtQueryDto) {
     const { page, limit, query: search } = query;
 
-    let payload: Record<string, any> = {};
+    const payload: Record<string, any> = {};
 
     if (search) {
       const regex = new RegExp(search, 'i');
