@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsDate,
   IsNotEmpty,
@@ -11,7 +12,7 @@ export class BillingAddress {
   addressLine1: string;
 
   @IsString()
-  addressLine2: string;
+  addressLine2?: string;
 
   @IsString()
   city: string;
@@ -20,7 +21,7 @@ export class BillingAddress {
   state: string;
 
   @IsString()
-  zipCode: string;
+  zipCode?: string;
 
   @IsString()
   country: string;
@@ -31,7 +32,7 @@ export class ShippingAddress {
   addressLine1: string;
 
   @IsString()
-  addressLine2: string;
+  addressLine2?: string;
 
   @IsString()
   city: string;
@@ -40,27 +41,39 @@ export class ShippingAddress {
   state: string;
 
   @IsString()
-  zipCode: string;
+  zipCode?: string;
 
   @IsString()
   country: string;
 }
 
 export class CheckoutInput {
+  @ApiProperty({
+    description: 'cart items',
+  })
   @IsNotEmpty()
   @ValidateNested({ each: true })
   cartItems: CartItem[];
 
+  @ApiProperty({
+    description: '',
+  })
   @IsDate()
   orderDate: Date;
 
   @ValidateNested()
-  billingAddress: BillingAddress;
+  @ApiProperty({
+    description: 'cart items',
+  })
+  billingAddress: Partial<BillingAddress>;
 
   @ValidateNested()
-  shippingAddress: ShippingAddress;
+  shippingAddress: Partial<ShippingAddress>;
 
   @IsString()
+  @ApiProperty({
+    description: 'payment',
+  })
   paymentMethod: string;
 }
 

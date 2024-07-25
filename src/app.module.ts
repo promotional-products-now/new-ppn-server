@@ -18,6 +18,10 @@ import { ProductCategoryModule } from './product-category/product-category.modul
 import { EmailModule } from './email/email.module';
 import { UserActivityModule } from './user_activity/user_activity.module';
 import { CheckoutModule } from './checkout/checkout.module';
+import { OrderService } from './order/order.service';
+import { OrderModule } from './order/order.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import { Order, OrderSchema } from './order/schemas/order.schema';
 
 @Module({
   imports: [
@@ -49,6 +53,8 @@ import { CheckoutModule } from './checkout/checkout.module';
     EmailModule,
     UserActivityModule,
     CheckoutModule,
+    OrderModule,
+    MongooseModule.forFeature([{ name: Order.name, schema: OrderSchema }]),
   ],
   controllers: [AppController],
   providers: [
@@ -56,6 +62,7 @@ import { CheckoutModule } from './checkout/checkout.module';
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
+    OrderService,
   ],
 })
 export class AppModule {}
