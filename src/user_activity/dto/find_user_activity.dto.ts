@@ -5,12 +5,20 @@ import {
   IsBoolean,
   IsDateString,
   IsEmail,
+  IsEnum,
   IsNumber,
   IsObject,
   IsOptional,
   IsString,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+
+export enum UserRole {
+  USER = 'user',
+  SUPER_Admin = 'super-admin',
+  Editor_Admin = 'editor-admin',
+  CUSTOMER_CARE_Admin = 'customer-care-admin',
+}
 
 class EmailDto {
   @ApiProperty({ example: 'example@gmail.com' })
@@ -35,6 +43,10 @@ export class UserDto {
   @IsObject()
   @Type(() => EmailDto)
   email: EmailDto;
+
+  @ApiProperty({ enum: UserRole })
+  @IsEnum(UserRole)
+  role: UserRole;
 }
 
 export class UserActivityDto {

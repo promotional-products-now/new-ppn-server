@@ -24,6 +24,7 @@ import {
   ApiResponse,
   ApiSecurity,
   ApiTags,
+  ApiParam,
 } from '@nestjs/swagger';
 import {
   FilterWithCreatedAt,
@@ -70,8 +71,23 @@ export class UserActivityController {
     type: FindUserActivity,
   })
   @Get('/admin')
-  findOne(@Query() paginationData: PaginationDto) {
+  fetchAdminActivities(@Query() paginationData: PaginationDto) {
     return this.userActivityService.getAdminActivity(paginationData);
+  }
+
+  @Get('/:id')
+  @ApiOperation({ summary: 'Retrieved all user activities' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved a user activities.',
+    type: FindUserActivity,
+  })
+  @ApiParam({ name: 'id', description: 'User ID' })
+  getUserActivity(
+    @Query() filterQuery: PaginationDto,
+    @Param('id') id: string,
+  ) {
+    return this.userActivityService.getOneUserActivity(id, filterQuery);
   }
 
   @Patch(':id')
