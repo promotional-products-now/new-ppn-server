@@ -184,10 +184,14 @@ const env = (): AppConfig => {
       cloudName: secrets.CLOUDINARY_CLOUD_NAME,
     },
     stripe: {
-      secretKey: secrets.STRIPE_SECRET_KEY,
+      secretKey:
+        secrets.STRIPE_SECRET_KEY ||
+        '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',
       publishableKey: secrets.STRIPE_PUBLISHABLE_KEY,
       webhookSecret: secrets.STRIPE_WEBHOOK_SECRET,
-      webhookEndpoint: secrets.STRIPE_WEBHOOK_ENDPOINT,
+      webhookEndpoint:
+        secrets.STRIPE_WEBHOOK_ENDPOINT ||
+        'https://promotionalproductsnow.au/webhook/success',
     },
   };
 };

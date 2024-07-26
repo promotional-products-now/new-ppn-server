@@ -7,13 +7,14 @@ import { CheckoutController } from './checkout.controller';
 import { User } from 'src/user/schemas/user.schema';
 import { CheckoutInput } from './dto/checkout.dto';
 import * as uuid from 'uuid';
+import { JWTModule } from 'src/commons/services/JWTService/JWTService.module';
 
 describe('BillingService', () => {
   let service: CheckoutService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [OrderModule, AppModule],
+      imports: [OrderModule, AppModule, JWTModule],
       providers: [CheckoutService, ConfigService],
       controllers: [CheckoutController],
     }).compile();
@@ -62,7 +63,8 @@ describe('BillingService', () => {
       shippingAddress: {},
       paymentMethod: '',
     };
-    const result = await service.processOrder(user, items);
-    console.log(result);
+
+    const { url } = await service.processOrder(user, items);
+    expect(url).toBeDefined();
   });
 });
