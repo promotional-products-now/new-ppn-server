@@ -25,10 +25,12 @@ export class CheckoutController {
   constructor(
     readonly checkoutService: CheckoutService,
     private configService: ConfigService,
-  ) { }
+  ) {}
 
   @Get('/redirector')
-  @ApiOperation({ summary: 'redirects the user after a successful or failed checkout' })
+  @ApiOperation({
+    summary: 'redirects the user after a successful or failed checkout',
+  })
   async callback(
     @Query('status') status: string,
     @Query('orderId') orderId: string,
