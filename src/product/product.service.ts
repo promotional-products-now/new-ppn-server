@@ -487,17 +487,17 @@ export class ProductService {
     categoryName: string,
   ): Promise<any[]> {
     try {
-      // Find the category
       const category = await this.productCategoryModel
         .findOne({ name: this.removeSnakeCase(categoryName) })
         .select(['name', 'id'])
         .lean();
 
+      console.log({ category });
+
       if (!category) {
         throw new NotFoundException('Category not found');
       }
 
-      // Determine the sort order
       const sortOptions: { [key: string]: any } = {
         'A-Z': { 'product.name': 1 },
         'Z-A': { 'product.name': -1 },
@@ -516,12 +516,15 @@ export class ProductService {
 
       return products;
     } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       throw new InternalServerErrorException(
-        'An error occured while fetching product',
+        'An error occurred while fetching products',
       );
     }
   }
-
+  
   async populateDatabase() {
     const products = [
       {

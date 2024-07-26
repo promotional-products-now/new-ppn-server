@@ -35,16 +35,11 @@ export class ProductController {
     @Query() query,
     @Param('categoryName') categoryName: string,
   ) {
+    console.log({query,categoryName})
     return await this.productsService.findProductByCategory(
       query,
       categoryName,
     );
-  }
-
-  @Get('/:id')
-  @ApiParam({ name: 'id', type: 'string', required: true })
-  async findById(@Param('id') id: string) {
-    return await this.productsService.findById(id);
   }
 
   @Get('/suppliers')
@@ -55,6 +50,12 @@ export class ProductController {
   })
   async findSuppliers(@Query() query: FetchtQueryDto) {
     return await this.productsService.findSuppliers(query);
+  }
+
+  @Get('/:id')
+  @ApiParam({ name: 'id', type: 'string', required: true })
+  async findById(@Param('id') id: string) {
+    return await this.productsService.findById(id);
   }
 
   @Patch('/:id')
