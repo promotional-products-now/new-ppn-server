@@ -13,9 +13,11 @@ import {
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { Freight, FreightSchema } from './schemas/freight.schema';
 import { Supplier, SupplierSchema } from '../product/schemas/supplier.schema';
+import { JWTModule } from '../commons/services/JWTService/JWTService.module';
 
 @Module({
   imports: [
+    JWTModule,
     MongooseModule.forFeature([
       {
         name: BannerSetting.name,
