@@ -16,7 +16,7 @@ import {
   CreateUserActivityResDto,
 } from './dto/create-user_activity.dto';
 import { UpdateUserActivityDto } from './dto/update-user_activity.dto';
-import { AuthorizationGuard } from 'src/commons/guards/authorization.guard';
+import { AuthorizationGuard } from '../commons/guards/authorization.guard';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -30,13 +30,13 @@ import {
   FilterWithCreatedAt,
   FindUserActivity,
 } from './dto/find_user_activity.dto';
-import { PaginationDto } from 'src/commons/dtos/pagination.dto';
+import { PaginationDto } from '../commons/dtos/pagination.dto';
 
 @ApiTags('users-activity')
+@UseGuards(AuthorizationGuard)
+@ApiSecurity('uid')
+@ApiBearerAuth()
 @Controller('user-activity')
-// @UseGuards(AuthorizationGuard)
-// @ApiSecurity('uid')
-// @ApiBearerAuth()
 export class UserActivityController {
   constructor(private readonly userActivityService: UserActivityService) {}
 

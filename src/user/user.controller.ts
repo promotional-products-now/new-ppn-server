@@ -40,12 +40,12 @@ import { CreateUserDevice, singleImageUploadDTO } from './dto/create-user.dto';
 import { AzureBlobService } from '../commons/services/FileUploadService/azure-blob.service';
 import { CountUserResDto } from './dto/count-user.dto';
 import { FilterWithCreatedAt, FindUsers } from './dto/fetch-user.dto';
-import { PaginationDto } from 'src/commons/dtos/pagination.dto';
+import { PaginationDto } from '../commons/dtos/pagination.dto';
 
 @ApiTags('users')
-// @UseGuards(AuthorizationGuard)
-// @ApiSecurity('uid')
-// @ApiBearerAuth()
+@UseGuards(AuthorizationGuard)
+@ApiSecurity('uid')
+@ApiBearerAuth()
 @Controller('users')
 export class UserController {
   constructor(
@@ -75,7 +75,8 @@ export class UserController {
     const { userId } = req.user;
     const user = await this.userService.updateOne(userId, {
       ...updateUserDto,
-      email: req.user.email,
+      ...(updateUserDto.email && { email: req.user.email }),
+      //  ...(optionalKey8 && { optionalKey8 }),
     });
     return user;
   }
@@ -180,8 +181,8 @@ export class UserController {
     return await this.userService.find(paginationDto);
   }
 
-  // @UseGuards(AuthGuard('jwt'), RolesGuard)
-  // @Roles(UserRole.SUPER_Admin)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(UserRole.SUPER_Admin)
   @Delete()
   @ApiOperation({ summary: 'Delete multiple users by IDs' })
   @ApiBody({ type: Array, description: 'array of user ids to delete' })

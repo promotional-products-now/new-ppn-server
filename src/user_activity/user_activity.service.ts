@@ -15,9 +15,9 @@ import {
   FilterWithCreatedAt,
   FindUserActivity,
 } from './dto/find_user_activity.dto';
-import { PaginationDto } from 'src/commons/dtos/pagination.dto';
-import { UserStatus } from 'src/user/enums/status.enum';
-import { UserRole } from 'src/user/enums/role.enum';
+import { PaginationDto } from '../commons/dtos/pagination.dto';
+import { UserStatus } from '../user/enums/status.enum';
+import { UserRole } from '../user/enums/role.enum';
 
 @Injectable()
 export class UserActivityService {
@@ -39,6 +39,7 @@ export class UserActivityService {
 
       return { userActivityId: userActivity._id.toString() };
     } catch (error) {
+      console.log({ error });
       throw new InternalServerErrorException(
         `Error creating user activity : ${error}`,
       );

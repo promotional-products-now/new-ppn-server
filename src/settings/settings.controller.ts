@@ -8,6 +8,7 @@ import {
   UseInterceptors,
   Query,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { SettingsService } from './settings.service';
 import {
@@ -17,6 +18,8 @@ import {
   ApiBody,
   ApiOperation,
   ApiCreatedResponse,
+  ApiBearerAuth,
+  ApiSecurity,
 } from '@nestjs/swagger';
 import { UpdateProfitSettingDto } from './dto/update-profit-setting.dto';
 import { UpdateBannerSettingDto } from './dto/update-banner-setting.dto';
@@ -30,8 +33,12 @@ import { CreateFreightDto } from './dto/create-freight.dto';
 import { UpdateFreightDto } from './dto/update-freight.dto';
 import { Freight } from './schemas/freight.schema';
 import { FetchSupplierstQueryDto } from './dto/fetch-suppliers.dto';
+import { AuthorizationGuard } from '../commons/guards/authorization.guard';
 
 @Controller('settings')
+@UseGuards(AuthorizationGuard)
+@ApiSecurity('uid')
+@ApiBearerAuth()
 @ApiTags('settings')
 export class SettingsController {
   constructor(

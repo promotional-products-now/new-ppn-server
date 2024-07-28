@@ -6,13 +6,6 @@ import { User } from '../../user/schemas/user.schema';
 
 @Schema({
   timestamps: true,
-  toJSON: {
-    transform: function (doc, ret) {
-      ret.id = ret._id;
-      delete ret._id;
-      delete ret.__v;
-    },
-  },
 })
 export class Freight extends Document {
   @Prop({

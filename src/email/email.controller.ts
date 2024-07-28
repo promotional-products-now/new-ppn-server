@@ -1,9 +1,19 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
 import { EmailService } from './email.service';
 import { BulkEmailRequestDto } from './dto/create-email.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiSecurity,
+  ApiTags,
+} from '@nestjs/swagger';
+import { AuthorizationGuard } from '../commons/guards/authorization.guard';
 
 @ApiTags('email')
+@UseGuards(AuthorizationGuard)
+@ApiSecurity('uid')
+@ApiBearerAuth()
 @Controller('email')
 export class EmailController {
   constructor(private readonly emailService: EmailService) {}
