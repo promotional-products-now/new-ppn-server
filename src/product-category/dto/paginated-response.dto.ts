@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PaginatedResponseDto } from 'src/types';
+import { PaginatedResponseDto } from '../../types';
 import { ProductCategory } from '../schemas/category.schema';
 import { ProductSubCategory } from '../schemas/subCategory.schema';
 

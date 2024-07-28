@@ -5,7 +5,7 @@ import { Suspend, SuspendDocument } from './schemas/suspend.schema';
 import { CreateSuspendDto, UnSuspendDto } from './dto/create-suspend.dto';
 import { User, UserDocument } from '../user/schemas/user.schema';
 import { UserStatus } from '../user/enums/status.enum';
-import { UserActivityService } from 'src/user_activity/user_activity.service';
+import { UserActivityService } from '../user_activity/user_activity.service';
 
 @Injectable()
 export class SuspendService {

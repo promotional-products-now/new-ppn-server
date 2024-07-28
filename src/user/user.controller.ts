@@ -40,7 +40,7 @@ import { CreateUserDevice, singleImageUploadDTO } from './dto/create-user.dto';
 import { AzureBlobService } from '../commons/services/FileUploadService/azure-blob.service';
 import { CountUserResDto } from './dto/count-user.dto';
 import { FilterWithCreatedAt, FindUsers } from './dto/fetch-user.dto';
-import { PaginationDto } from 'src/commons/dtos/pagination.dto';
+import { PaginationDto } from '../commons/dtos/pagination.dto';
 
 @ApiTags('users')
 // @UseGuards(AuthorizationGuard)
