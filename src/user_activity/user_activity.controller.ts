@@ -30,7 +30,7 @@ import {
   FilterWithCreatedAt,
   FindUserActivity,
 } from './dto/find_user_activity.dto';
-import { PaginationDto } from 'src/commons/dtos/pagination.dto';
+import { PaginationDto } from '../commons/dtos/pagination.dto';
 
 @ApiTags('users-activity')
 @Controller('user-activity')

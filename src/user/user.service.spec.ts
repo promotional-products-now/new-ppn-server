@@ -4,6 +4,11 @@ import { Model, Types } from 'mongoose';
 import { UserService } from './user.service';
 import { UserDocument } from './schemas/user.schema';
 import { NotFoundException } from '@nestjs/common';
+import { UserStub } from './user.stubs';
+import { UserDeviceDocument } from './schemas/userDevice.schema';
+import { UserActivityService } from '../user_activity/user_activity.service';
+import { UserActivityDocument } from 'src/user_activity/schema/user_activity.schema';
+import { faker } from '@faker-js/faker';
 
 const mockBlock = {
   blocker: new Types.ObjectId(),
@@ -18,33 +23,53 @@ const mockUserModel = () => ({
   updateOne: jest.fn(),
   deleteOne: jest.fn(),
   deleteMany: jest.fn(),
+  countDocuments: jest.fn(),
 });
 
-const mockBlockModel = {
-  findOne: jest.fn().mockResolvedValue(null),
-  create: jest.fn().mockResolvedValue(mockBlock),
-  findOneAndDelete: jest.fn().mockResolvedValue(mockBlock),
-  find: jest.fn().mockImplementation(() => ({
-    populate: () => [mockBlock],
-  })),
+const mockUserDeviceModel = {
+  findOne: jest.fn(),
+  create: jest.fn(),
+  findOneAndDelete: jest.fn(),
+  find: jest.fn(),
+};
+
+const mockUserActivityModel = {
+  findOne: jest.fn(),
+  create: jest.fn(),
+  find: jest.fn(),
 };
 
 describe('UserService', () => {
   let service: UserService;
   let model: Model<UserDocument>;
+  let userDeviceModel: Model<UserDeviceDocument>;
+  let userActivitiesModel: Model<UserActivityDocument>;
+
+  const user = UserStub();
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserService,
         { provide: getModelToken('User'), useValue: mockUserModel() },
-        { provide: getModelToken('UserDevice'), useValue: mockUserModel() },
-        { provide: getModelToken('Block'), useValue: mockBlockModel },
+        { provide: getModelToken('UserDevice'), useValue: mockUserDeviceModel },
+        UserActivityService,
+        {
+          provide: getModelToken('UserActivity'),
+          useValue: mockUserActivityModel,
+        },
       ],
     }).compile();
 
     service = module.get<UserService>(UserService);
     model = module.get<Model<UserDocument>>(getModelToken('User'));
+    userDeviceModel = module.get<Model<UserDeviceDocument>>(
+      getModelToken('UserDevice'),
+    );
+
+    userActivitiesModel = module.get<Model<UserActivityDocument>>(
+      getModelToken('UserActivity'),
+    );
   });
 
   it('should be defined', () => {
@@ -53,13 +78,19 @@ describe('UserService', () => {
 
   describe('create', () => {
     it('should create a user', async () => {
-      const payload = { userName: 'testUser' };
-      const createdUser = { _id: '1', userName: 'testUser' };
-      (model.create as jest.Mock).mockResolvedValue(createdUser);
+      const payload = UserStub();
+      (model.create as jest.Mock).mockResolvedValue(payload);
 
-      const result = await service.create(payload);
-      expect(result).toEqual(createdUser);
-      expect(model.create).toHaveBeenCalledWith(payload);
+      const result = await service.create({
+        ...payload,
+        _id: new Types.ObjectId(payload._id),
+      });
+
+      expect({ ...result }).toEqual(payload);
+      expect(model.create).toHaveBeenCalledWith({
+        ...payload,
+        _id: new Types.ObjectId(payload._id),
+      });
     });
   });
 
@@ -118,19 +149,41 @@ describe('UserService', () => {
   describe('find', () => {
     it('should return an array of users', async () => {
       const users = [{ _id: '1' }, { _id: '2' }] as UserDocument[];
-      (model.find as jest.Mock).mockResolvedValue(users);
+      (model.find as jest.Mock).mockResolvedValue({
+        users,
+        hasNext: false,
+        hasPrevious: false,
+        nextPage: null,
+        prevPage: null,
+        totalPages: 1,
+      });
 
-      const result = await service.find();
-      expect(result).toEqual(users);
+      jest.spyOn(model, 'countDocuments').mockResolvedValueOnce(1);
+
+      const result = await service.find({ page: 0, limit: 0 });
+      expect(result).toEqual({
+        users,
+        hasNext: false,
+        hasPrevious: false,
+        nextPage: null,
+        prevPage: null,
+        totalPages: 1,
+      });
       expect(model.find).toHaveBeenCalled();
     });
   });
 
   describe('updateOne', () => {
     it('should update a user', async () => {
-      const id = new Types.ObjectId();
-      const updateData = { userName: 'updatedUser' };
+      const id = new Types.ObjectId(user._id);
+      const updateData = { firstName: 'updatedUser' };
       (model.updateOne as jest.Mock).mockResolvedValue({ modified: 1 });
+
+      (userActivitiesModel.create as jest.Mock).mockImplementation(
+        (id, updateData) => {
+          // userActivityId: faker.database.mongodbObjectId(),
+        },
+      );
 
       await service.updateOne(id, updateData);
       expect(model.updateOne).toHaveBeenCalledWith({ _id: id }, updateData, {

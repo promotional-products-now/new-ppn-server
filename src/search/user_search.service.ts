@@ -1,10 +1,10 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { UserSearchDto } from './dto/user-search.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from 'src/user/schemas/user.schema';
+import { User, UserDocument } from '../user/schemas/user.schema';
 import { Model } from 'mongoose';
-import { UserStatus } from 'src/user/enums/status.enum';
-import { FindUsers } from 'src/user/dto/fetch-user.dto';
+import { UserStatus } from '../user/enums/status.enum';
+import { FindUsers } from '../user/dto/fetch-user.dto';
 
 @Injectable()
 export class UserSearchService {
