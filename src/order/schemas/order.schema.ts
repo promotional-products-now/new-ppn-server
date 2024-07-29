@@ -1,15 +1,7 @@
 import { Document, HydratedDocument, Types } from 'mongoose';
 import { Schema, SchemaFactory, Prop } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-
-export enum STATUS_ENUM {
-  FAILED = 'failed',
-  SUCCESS = 'success',
-  CANCELLED = 'cancelled',
-  PENDING = 'pending',
-  CASH_ON_DELIVERY = 'cash_on_delivery',
-  DELIVERED = 'delivered',
-}
+import { STATUS_ENUM } from '../order.contants';
 
 export class OrderCartItem {
   productId: string;

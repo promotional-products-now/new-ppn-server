@@ -5,8 +5,9 @@ import { ConfigService } from '@nestjs/config';
 import { StripeConfig } from 'src/configs';
 import { CheckoutInput } from './dto/checkout.dto';
 import { OrderService } from 'src/order/order.service';
-import { Order, STATUS_ENUM } from 'src/order/schemas/order.schema';
+import { Order } from 'src/order/schemas/order.schema';
 import { User } from 'src/user/schemas/user.schema';
+import { STATUS_ENUM } from 'src/order/order.contants';
 
 @Injectable()
 export class CheckoutService {
@@ -66,8 +67,8 @@ export class CheckoutService {
   ): Promise<Stripe.Checkout.Session> {
     try {
       const domain = this.configService.getOrThrow('domain');
-      // const url = `https://${domain}/api/v1/checkout/redirector`;
-      const url = `http://localhost:3010/api/v1/checkout/redirector`;
+      const url = `https://${domain}/api/v1/checkout/redirector`;
+      // const url = `http://localhost:3010/api/v1/checkout/redirector`;
       const orderId = order._id.toString();
 
       const session = await this.stripe.checkout.sessions.create({

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { STATUS_ENUM } from '../schemas/order.schema';
+import { STATUS_ENUM } from 'src/order/order.contants';
 
 export class CreateOrderDto {
   @ApiProperty({
