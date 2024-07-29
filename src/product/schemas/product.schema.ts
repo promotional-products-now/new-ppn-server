@@ -10,13 +10,6 @@ import { STATUS_ENUM } from '../product.interface';
 
 @Schema({
   timestamps: true,
-  toJSON: {
-    transform: function (doc, ret) {
-      ret.id = ret._id;
-      delete ret._id;
-      delete ret.__v;
-    },
-  },
 })
 export class Product extends Document {
   @Prop({

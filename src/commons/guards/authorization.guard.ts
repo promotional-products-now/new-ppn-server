@@ -4,6 +4,7 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAction, JwtSigningPayload } from '../dtos/jwt.dto';
@@ -39,20 +40,20 @@ export class AuthorizationGuard implements CanActivate {
     try {
       payload = this.jwtService.verifyToken(accessToken);
     } catch (error) {
-      throw new BadRequestException('Invalid authorization credentials');
+      throw new UnauthorizedException('Invalid authorization credentials');
     }
 
     console.log({ payload1: payload });
 
     if (payload.action !== JwtAction.authorize) {
-      throw new BadRequestException('Invalid authorization credentials');
+      throw new UnauthorizedException('Invalid authorization credentials');
     }
     console.log({ payload2: payload });
 
     const userId = this.extractUserIdFromHeader(request);
 
     if (userId !== payload.uid) {
-      throw new BadRequestException('Invalid authorization credentials');
+      throw new UnauthorizedException('Invalid authorization credentials');
     }
 
     request['user'] = {

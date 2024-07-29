@@ -3,13 +3,6 @@ import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 
 @Schema({
   timestamps: true,
-  toJSON: {
-    transform: function (doc, ret) {
-      ret.id = ret._id;
-      delete ret._id;
-      delete ret.__v;
-    },
-  },
 })
 export class Addition extends Document {
   @Prop({ type: String })

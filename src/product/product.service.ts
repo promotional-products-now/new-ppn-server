@@ -524,7 +524,7 @@ export class ProductService {
       );
     }
   }
-  
+
   async populateDatabase() {
     const products = [
       {

@@ -1,9 +1,19 @@
-import { Body, Controller, Get, Param, Patch, Query } from '@nestjs/common';
 import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiQuery,
+  ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
 import { ProductService } from './product.service';
@@ -16,6 +26,7 @@ import { PaginatedSupplierResponse } from './dto/paginated-response.dto';
 import { UdpateSupplierDto, UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './schemas/product.schema';
 import { Supplier } from './schemas/supplier.schema';
+import { AuthorizationGuard } from '../commons/guards/authorization.guard';
 
 @Controller('products')
 @ApiTags('product')
@@ -35,13 +46,16 @@ export class ProductController {
     @Query() query,
     @Param('categoryName') categoryName: string,
   ) {
-    console.log({query,categoryName})
+    console.log({ query, categoryName });
     return await this.productsService.findProductByCategory(
       query,
       categoryName,
     );
   }
 
+  @UseGuards(AuthorizationGuard)
+  @ApiSecurity('uid')
+  @ApiBearerAuth()
   @Get('/suppliers')
   @ApiOperation({ summary: 'Fetch suppliers' })
   @ApiOkResponse({
@@ -58,6 +72,9 @@ export class ProductController {
     return await this.productsService.findById(id);
   }
 
+  @UseGuards(AuthorizationGuard)
+  @ApiSecurity('uid')
+  @ApiBearerAuth()
   @Patch('/:id')
   @ApiParam({ name: 'id', type: 'string', required: true })
   @ApiOperation({ summary: 'Update Product' })
@@ -66,6 +83,9 @@ export class ProductController {
     return await this.productsService.updateProduct(id, body);
   }
 
+  @UseGuards(AuthorizationGuard)
+  @ApiSecurity('uid')
+  @ApiBearerAuth()
   @Patch('/supplier/:id')
   @ApiParam({ name: 'id', type: 'string', required: true })
   @ApiOperation({ summary: 'Update Supplier' })

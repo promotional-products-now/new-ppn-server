@@ -96,6 +96,13 @@ export type CloudinaryConfig = {
   cloudName: string;
 };
 
+export type StripeConfig = {
+  secretKey: string;
+  publishableKey: string;
+  webhookSecret: string;
+  webhookEndpoint?: string;
+};
+
 export type AppConfig = {
   appEnv: Environments;
   port: number;
@@ -110,6 +117,7 @@ export type AppConfig = {
   storage: AzureBlobStorage;
   algolia: AlgoliaConfig;
   cloudinary: CloudinaryConfig;
+  stripe: StripeConfig;
 };
 
 const env = (): AppConfig => {
@@ -120,7 +128,7 @@ const env = (): AppConfig => {
     domain: 'promotionalproductsnow.au',
 
     database: {
-      uri: 'mongodb+srv://production_spiderMonkey:WMaYggQeP8jtTuuP@ppn.hfq7y.mongodb.net/ppn?retryWrites=true&w=majority', //secrets.DATABASE_URI,
+      uri: secrets.DATABASE_URI,
     },
     otp: {
       secret: secrets.OTP_SECRET,
@@ -173,6 +181,16 @@ const env = (): AppConfig => {
       apiKey: secrets.CLOUDINARY_API_KEY,
       apiSecret: secrets.CLOUDINARY_API_SECRET,
       cloudName: secrets.CLOUDINARY_CLOUD_NAME,
+    },
+    stripe: {
+      secretKey:
+        secrets.STRIPE_SECRET_KEY ||
+        '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',
+      publishableKey: secrets.STRIPE_PUBLISHABLE_KEY,
+      webhookSecret: secrets.STRIPE_WEBHOOK_SECRET,
+      webhookEndpoint:
+        secrets.STRIPE_WEBHOOK_ENDPOINT ||
+        'https://promotionalproductsnow.au/webhook/success',
     },
   };
 };

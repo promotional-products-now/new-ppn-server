@@ -15,10 +15,11 @@ import {
   ProductSubCategory,
   ProductSubCategorySchema,
 } from '../product-category/schemas/subCategory.schema';
+import { JWTModule } from '../commons/services/JWTService/JWTService.module';
 
 @Module({
   imports: [
-    // JWTModule,
+    JWTModule,
     // FileUploadModule,
     HttpModule,
     MongooseModule.forFeature([

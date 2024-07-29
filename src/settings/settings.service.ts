@@ -89,7 +89,7 @@ export class SettingsService {
   async fetchFreights(query: FetchFreightQueryDto) {
     const { page, limit, query: search } = query;
 
-    let payload: Record<string, any> = {};
+    const payload: Record<string, any> = {};
 
     if (search) {
       const regex = new RegExp(search, 'i');
@@ -136,7 +136,7 @@ export class SettingsService {
   async getSuppliers(query: FetchSupplierstQueryDto) {
     const { page, limit, query: search } = query;
 
-    let payload: Record<string, any> = {};
+    const payload: Record<string, any> = {};
 
     if (search) {
       const regex = new RegExp(search, 'i');
