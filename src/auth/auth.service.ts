@@ -16,6 +16,7 @@ import * as speakeasy from 'speakeasy';
 import { ChangePasswordDto, EmailDTO, ValidateUserDto } from './dto/auth.dto';
 import { UserDocument } from '../user/schemas/user.schema';
 import { UserActivityService } from '../user_activity/user_activity.service';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class AuthService {
@@ -75,6 +76,8 @@ export class AuthService {
       r: UserRole.USER,
       action: 'verify_otp',
     });
+
+    await this.userService.updateOne(result._id, { token: accessToken }, false);
 
     await this.userActivityService.create(String(newUser._id), {
       activity: 'signup',
@@ -168,6 +171,7 @@ export class AuthService {
         user._id,
         {
           email: { address: email, isVerified: true },
+          token: accessToken,
         },
         false,
       );
@@ -197,5 +201,17 @@ export class AuthService {
   ): Promise<boolean> {
     const match = await bcrypt.compare(enteredPassword, dbPassword);
     return match;
+  }
+
+  async logout(userId: string) {
+    await this.userService.updateOne(
+      new Types.ObjectId(userId),
+      {
+        token: null,
+      },
+      false,
+    );
+
+    return { message: 'Logout successful' };
   }
 }

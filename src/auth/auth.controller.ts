@@ -276,7 +276,11 @@ export class AuthController {
   @ApiBearerAuth()
   @Get('logout')
   async logout(@Req() req, @Res({ passthrough: true }) response) {
+    const { userId } = req.user;
     response.clearCookie('token');
+
+    await this.authService.logout(userId);
+
     return { message: 'Logout successful' };
   }
 
