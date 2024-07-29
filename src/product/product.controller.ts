@@ -35,7 +35,7 @@ export class ProductController {
     @Query() query,
     @Param('categoryName') categoryName: string,
   ) {
-    console.log({query,categoryName})
+    console.log({ query, categoryName });
     return await this.productsService.findProductByCategory(
       query,
       categoryName,
