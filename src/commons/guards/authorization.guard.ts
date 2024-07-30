@@ -9,10 +9,15 @@ import {
 import { Request } from 'express';
 import { JwtAction, JwtSigningPayload } from '../dtos/jwt.dto';
 import { JWTService } from '../services/JWTService/JWTService.service';
+import { UserService } from '../../user/user.service';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
-  constructor(private readonly jwtService: JWTService) {}
+  constructor(
+    private readonly jwtService: JWTService,
+    private readonly userService: UserService,
+  ) {}
 
   private extractTokenFromHeader(request: Request): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
@@ -53,6 +58,15 @@ export class AuthorizationGuard implements CanActivate {
     const userId = this.extractUserIdFromHeader(request);
 
     if (userId !== payload.uid) {
+      throw new UnauthorizedException('Invalid authorization credentials');
+    }
+
+    const user = await this.userService.findOneById(new Types.ObjectId(userId));
+    if (!user) {
+      throw new UnauthorizedException('Invalid authorization credentials');
+    }
+
+    if (payload.tokenVersion !== user.tokenVersion) {
       throw new UnauthorizedException('Invalid authorization credentials');
     }
 

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { SettingsService } from './settings.service';
 import { SettingsController } from './settings.controller';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -14,6 +14,8 @@ import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { Freight, FreightSchema } from './schemas/freight.schema';
 import { Supplier, SupplierSchema } from '../product/schemas/supplier.schema';
 import { JWTModule } from '../commons/services/JWTService/JWTService.module';
+import { AuthorizationGuard } from '../commons/guards/authorization.guard';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
@@ -36,8 +38,9 @@ import { JWTModule } from '../commons/services/JWTService/JWTService.module';
         schema: SupplierSchema,
       },
     ]),
+    forwardRef(() => UserModule),
   ],
   controllers: [SettingsController],
-  providers: [SettingsService, CloudinaryService],
+  providers: [SettingsService, CloudinaryService, AuthorizationGuard],
 })
 export class SettingsModule {}
