@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ProductService } from './product.service';
@@ -18,6 +18,8 @@ import {
 import { JWTModule } from '../commons/services/JWTService/JWTService.module';
 import { SupplierController } from './supplier.controller';
 import { SupplierService } from './supplier.service';
+import { AuthorizationGuard } from '../commons/guards/authorization.guard';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
@@ -32,8 +34,14 @@ import { SupplierService } from './supplier.service';
       { name: ProductCategory.name, schema: ProductCategorySchema },
       { name: ProductSubCategory.name, schema: ProductSubCategorySchema },
     ]),
+    forwardRef(() => UserModule),
   ],
+<<<<<<< HEAD
   controllers: [ProductController, SupplierController],
   providers: [ProductService, SupplierService],
+=======
+  controllers: [ProductController],
+  providers: [ProductService, AuthorizationGuard],
+>>>>>>> 1e9840f4b4102052a30813d25a8afcaab094fddf
 })
 export class ProductModule {}

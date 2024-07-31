@@ -207,6 +207,7 @@ export class AuthController {
       uid: user._id.toHexString(),
       r: UserRole.USER,
       action: JwtAction.authorize,
+      tokenVersion: user.tokenVersion,
     });
     const href = `https://app.${this.configService.get<string>('domain')}/change-password/?token=${accessToken}`;
     console.log({ accessToken, href });
@@ -271,12 +272,16 @@ export class AuthController {
     return result;
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthorizationGuard)
   @ApiSecurity('uid')
   @ApiBearerAuth()
   @Get('logout')
   async logout(@Req() req, @Res({ passthrough: true }) response) {
+    const { userId } = req.user;
     response.clearCookie('token');
+
+    await this.authService.logout(userId);
+
     return { message: 'Logout successful' };
   }
 
