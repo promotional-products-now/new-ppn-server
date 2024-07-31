@@ -123,6 +123,9 @@ export class User {
 
   @Prop()
   updatedAt: Date;
+
+  @Prop({ default: 0 })
+  tokenVersion: number;
   // @Prop({ default: null })
   // refreshToken: string | null;
 }

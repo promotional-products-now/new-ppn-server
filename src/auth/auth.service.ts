@@ -16,6 +16,7 @@ import * as speakeasy from 'speakeasy';
 import { ChangePasswordDto, EmailDTO, ValidateUserDto } from './dto/auth.dto';
 import { UserDocument } from '../user/schemas/user.schema';
 import { UserActivityService } from '../user_activity/user_activity.service';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class AuthService {
@@ -50,7 +51,12 @@ export class AuthService {
       uid: user._id,
       r: user.role,
       action: 'verify_otp',
+      tokenVersion: user.tokenVersion ? user.tokenVersion : 0,
     });
+
+    if (!user.tokenVersion) {
+      await this.userService.updateOne(user._id, { tokenVersion: 0 });
+    }
     await this.userService.updateOne(user._id, { otpSecret: user.otpSecret });
 
     return { ...user, accessToken, otpSecret: user.otpSecret };
@@ -74,6 +80,7 @@ export class AuthService {
       uid: result._id.toHexString(),
       r: UserRole.USER,
       action: 'verify_otp',
+      tokenVersion: result.tokenVersion,
     });
 
     await this.userActivityService.create(String(newUser._id), {
@@ -84,11 +91,11 @@ export class AuthService {
   }
 
   async generateToken(payload: JwtSigningPayload): Promise<string> {
-    const { email, uid, did, r, action } = payload;
+    const { email, uid, did, r, action, tokenVersion } = payload;
     const { access_token_private_key, access_token_ttl } =
       this.configService.getOrThrow<AccessToken>('accessToken');
     const token = await this.jwtService.signAsync(
-      { email, uid: uid, did, r, action },
+      { email, uid: uid, did, r, action, tokenVersion },
       {
         secret: access_token_private_key,
         expiresIn: access_token_ttl,
@@ -162,6 +169,7 @@ export class AuthService {
         uid: user._id.toHexString(),
         r: UserRole.USER,
         action: 'authorize',
+        tokenVersion: user.tokenVersion,
       });
 
       await this.userService.updateOne(
@@ -197,5 +205,18 @@ export class AuthService {
   ): Promise<boolean> {
     const match = await bcrypt.compare(enteredPassword, dbPassword);
     return match;
+  }
+
+  async logout(userId: string) {
+    const user = await this.userService.findOneById(new Types.ObjectId(userId));
+    await this.userService.updateOne(
+      new Types.ObjectId(userId),
+      {
+        tokenVersion: user.tokenVersion + 1,
+      },
+      false,
+    );
+
+    return { message: 'Logout successful' };
   }
 }

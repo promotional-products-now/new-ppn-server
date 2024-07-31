@@ -13,6 +13,7 @@ export type JwtSigningPayload = {
   r: UserRole; // role
   did?: string; // deviceId
   action: JwtAction;
+  tokenVersion: number;
 };
 
 // standard claims https://datatracker.ietf.org/doc/html/rfc7519#section-4.1
