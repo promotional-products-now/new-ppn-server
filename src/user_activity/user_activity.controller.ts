@@ -29,6 +29,7 @@ import {
 import {
   FilterWithCreatedAt,
   FindUserActivity,
+  UserActivitySearchDto,
 } from './dto/find_user_activity.dto';
 import { PaginationDto } from '../commons/dtos/pagination.dto';
 
@@ -75,6 +76,17 @@ export class UserActivityController {
     return this.userActivityService.getAdminActivity(paginationData);
   }
 
+  @Get('/search')
+  @ApiOperation({ summary: 'Search user activities' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved a user activities by search.',
+    type: FindUserActivity,
+  })
+  searchUserActivity(@Query() searchQuery: UserActivitySearchDto) {
+    return this.userActivityService.searchAndFilterActivityLogs(searchQuery);
+  }
+
   @Get('/:id')
   @ApiOperation({ summary: 'Retrieved all user activities' })
   @ApiResponse({
@@ -88,14 +100,6 @@ export class UserActivityController {
     @Param('id') id: string,
   ) {
     return this.userActivityService.getOneUserActivity(id, filterQuery);
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateUserActivityDto: UpdateUserActivityDto,
-  ) {
-    return this.userActivityService.update(+id, updateUserActivityDto);
   }
 
   @Delete(':id')
