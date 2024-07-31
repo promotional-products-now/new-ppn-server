@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CheckoutController } from './checkout.controller';
-import { OrderModule } from 'src/order/order.module';
+import { OrderModule } from '../order/order.module';
 import { CheckoutService } from './checkout.service';
 import { ConfigService } from '@nestjs/config';
-import { AppModule } from 'src/app.module';
+import { AppModule } from '../app.module';
 
 describe('CheckoutController', () => {
   let controller: CheckoutController;

@@ -5,8 +5,8 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { UserStatus } from 'src/user/enums/status.enum';
-import { UserService } from 'src/user/user.service';
+import { UserStatus } from '../../user/enums/status.enum';
+import { UserService } from '../../user/user.service';
 
 @Injectable()
 export class BannedUserGuard implements CanActivate {

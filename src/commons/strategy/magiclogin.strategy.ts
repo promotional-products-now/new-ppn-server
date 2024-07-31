@@ -9,7 +9,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import Strategy from 'passport-magic-login';
 import { UserService } from '../../user/user.service';
 import { User } from '../../user/schemas/user.schema';
-import { AccessToken, AppConfig, sendGrid } from 'src/configs';
+import { AccessToken, AppConfig, sendGrid } from '../../configs';
 import { EmailService } from '../services/Notification/Email/email.service';
 
 @Injectable()

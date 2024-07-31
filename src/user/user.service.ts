@@ -11,7 +11,7 @@ import { UserDevice, UserDeviceDocument } from './schemas/userDevice.schema';
 import { CreateUserDevice } from './dto/create-user.dto';
 import { UserRole } from './enums/role.enum';
 import { UserStatus } from './enums/status.enum';
-import { PaginationDto } from 'src/commons/dtos/pagination.dto';
+import { PaginationDto } from '../commons/dtos/pagination.dto';
 import { FilterWithCreatedAt, FindUsers } from './dto/fetch-user.dto';
 import { DatabaseException } from '../commons/exceptions/database.exception';
 import { BanMultipleUsers } from './dto/update-user.dto';
