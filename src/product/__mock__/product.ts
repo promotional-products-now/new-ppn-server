@@ -16,7 +16,7 @@ const getProductMock = () => {
       discontinuedReason: faker.lorem.lines(),
       sourcesDataChangedAt: faker.date.past(),
       verifiedLast3months: faker.helpers.arrayElement([true, false]),
-      changedComparisonTimestamp: faker
+      changedComparisonTimestamp: faker,
     },
   };
 };
