@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsString, IsOptional } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { STATUS_ENUM } from 'src/order/order.contants';
+import { STATUS_ENUM } from '../../order/order.contants';
 
 export class FindOrderDto {
   @ApiProperty({ example: 1 })

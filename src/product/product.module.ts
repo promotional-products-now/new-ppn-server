@@ -16,6 +16,8 @@ import {
   ProductSubCategorySchema,
 } from '../product-category/schemas/subCategory.schema';
 import { JWTModule } from '../commons/services/JWTService/JWTService.module';
+import { SupplierController } from './supplier.controller';
+import { SupplierService } from './supplier.service';
 
 @Module({
   imports: [
@@ -31,7 +33,7 @@ import { JWTModule } from '../commons/services/JWTService/JWTService.module';
       { name: ProductSubCategory.name, schema: ProductSubCategorySchema },
     ]),
   ],
-  controllers: [ProductController],
-  providers: [ProductService],
+  controllers: [ProductController, SupplierController],
+  providers: [ProductService, SupplierService],
 })
 export class ProductModule {}

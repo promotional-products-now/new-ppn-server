@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from 'src/user/schemas/user.schema';
+import { User, UserDocument } from '../user/schemas/user.schema';
 import { Model } from 'mongoose';
 import * as ExcelJS from 'exceljs';
 import { Response } from 'express';

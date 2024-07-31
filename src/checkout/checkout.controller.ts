@@ -13,7 +13,7 @@ import {
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CheckoutService } from './checkout.service';
 import { CheckoutInput } from './dto/checkout.dto';
-import { AuthorizationGuard } from 'src/commons/guards/authorization.guard';
+import { AuthorizationGuard } from '../commons/guards/authorization.guard';
 import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 

@@ -5,7 +5,7 @@ import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { JWTModule } from '../commons/services/JWTService/JWTService.module';
 import { UserDevice, UserDeviceSchema } from './schemas/userDevice.schema';
-import { UserActivityModule } from 'src/user_activity/user_activity.module';
+import { UserActivityModule } from '../user_activity/user_activity.module';
 // import { FileUploadModule } from '../commons/services/FileUploadService/file-upload.module';
 
 @Module({

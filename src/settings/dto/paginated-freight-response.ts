@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PaginatedResponse } from 'src/types';
+import { PaginatedResponse } from '../../types';
 import { Freight } from '../schemas/freight.schema';
 
 export class PaginatedFreightSettingsResponse

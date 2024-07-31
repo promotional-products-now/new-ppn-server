@@ -12,7 +12,7 @@ import { FetchFreightQueryDto } from './dto/fetch-freight-query.dto';
 import { CreateFreightDto } from './dto/create-freight.dto';
 import { UpdateFreightDto } from './dto/update-freight.dto';
 import { FetchSupplierstQueryDto } from './dto/fetch-suppliers.dto';
-import { Supplier } from 'src/product/schemas/supplier.schema';
+import { Supplier } from '../product/schemas/supplier.schema';
 
 @Injectable()
 export class SettingsService {
