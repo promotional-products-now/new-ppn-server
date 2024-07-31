@@ -8,13 +8,20 @@ import { User } from 'src/user/schemas/user.schema';
 import { CheckoutInput } from './dto/checkout.dto';
 import * as uuid from 'uuid';
 import { JWTModule } from 'src/commons/services/JWTService/JWTService.module';
+import { forwardRef } from '@nestjs/common';
+import { UserModule } from 'src/user/user.module';
 
 describe('BillingService', () => {
   let service: CheckoutService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [OrderModule, AppModule, JWTModule],
+      imports: [
+        OrderModule,
+        AppModule,
+        JWTModule,
+        forwardRef(() => UserModule),
+      ],
       providers: [CheckoutService, ConfigService],
       controllers: [CheckoutController],
     }).compile();

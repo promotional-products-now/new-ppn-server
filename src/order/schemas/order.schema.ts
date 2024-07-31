@@ -2,11 +2,17 @@ import { Document, HydratedDocument, Types } from 'mongoose';
 import { Schema, SchemaFactory, Prop } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import { STATUS_ENUM } from '../order.contants';
+import { Product } from 'src/product/schemas/product.schema';
 
 export class OrderCartItem {
   productId: string;
   quantity: number;
   price: number;
+
+  /**
+   * The product associated with the order item. populated during agreegation
+   */
+  product?: Product;
 }
 
 @Schema({
