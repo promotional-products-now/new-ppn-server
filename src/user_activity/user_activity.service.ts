@@ -373,7 +373,7 @@ export class UserActivityService {
         },
         {
           $facet: {
-            metadata: [{ $count: 'total' }], // Count the total number of matching documents
+            metadata: [{ $count: 'total' }],
             data: [
               {
                 $project: {
@@ -389,16 +389,16 @@ export class UserActivityService {
                   'userDetails.role': 1,
                 },
               },
-              { $skip: skip }, // Skip the documents based on the page number
-              { $limit: limit + 1 }, // Limit the number of documents returned
+              { $skip: skip },
+              { $limit: limit + 1 },
             ],
           },
         },
       ])
       .exec();
 
-    const total = result[0].metadata[0] ? result[0].metadata[0].total : 0; // Get total count from metadata
-    const userActivities = result[0].data; // Get the paginated results
+    const total = result[0].metadata[0] ? result[0].metadata[0].total : 0;
+    const userActivities = result[0].data;
 
     const hasPrevious = skip > 0;
     const hasNext = userActivities.length > limit;
