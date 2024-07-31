@@ -140,8 +140,25 @@ export class SupplierService {
   }
 
   async updateSupplier(id: string, updateSupplierDto: UdpateSupplierDto) {
-    return await this.supplierModel.findByIdAndUpdate(id, updateSupplierDto, {
-      new: true,
-    });
+    const supplier = await this.supplierModel.findByIdAndUpdate(
+      id,
+      updateSupplierDto,
+      {
+        new: true,
+      },
+    );
+
+    if (!supplier) {
+      throw new NotFoundException("Supplier doesn't exist");
+    }
+
+    if (!updateSupplierDto.isActive) {
+      await this.productModel.updateMany(
+        { supplier: supplier._id },
+        { isActive: supplier.isActive },
+      );
+    }
+
+    return supplier;
   }
 }
