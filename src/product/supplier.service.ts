@@ -132,10 +132,12 @@ export class SupplierService {
       docs: products,
       page,
       limit,
+      nextPage: page < totalPages ? page + 1 : null,
+      prevPage: page > 1 ? page - 1 : null,
       totalItems: count,
       totalPages,
-      hasNextPage: page < totalPages,
-      hasPrevPage: page > 1,
+      hasNext: page < totalPages,
+      hasPrevious: page > 1,
     };
   }
 
