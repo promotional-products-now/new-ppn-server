@@ -117,16 +117,117 @@ export class SupplierService {
     const page = query.page ? Number(query.page) : 1;
     const limit = query.limit ? Number(query.limit) : 15;
 
-    const filter: Record<string, any> = { supplier: new ObjectId(id) };
-    const sort: Record<string, any> = {};
+    const filter: Record<string, any> = { 'supplier._id': new ObjectId(id) };
+    const sort: Record<string, any> = { createdAt: -1 };
 
-    const products = await this.productModel.find(
-      filter,
-      {},
-      { sort, skip: limit * (page - 1), limit },
-    );
-    const count = await this.productModel.countDocuments(filter);
-    const totalPages = Math.ceil(count / limit);
+    const products = await this.productModel.aggregate([
+      {
+        $lookup: {
+          from: 'suppliers',
+          localField: 'supplier',
+          foreignField: '_id',
+          as: 'supplier',
+        },
+      },
+      {
+        $unwind: {
+          path: '$supplier',
+        },
+      },
+      {
+        $lookup: {
+          from: 'productcategories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      {
+        $unwind: {
+          path: '$category',
+        },
+      },
+      {
+        $lookup: {
+          from: 'productsubcategories',
+          localField: 'subCategory',
+          foreignField: '_id',
+          as: 'subCategory',
+        },
+      },
+      {
+        $unwind: {
+          path: '$subCategory',
+        },
+      },
+      {
+        $match: {
+          ...filter,
+        },
+      },
+      {
+        $skip: limit * (page - 1),
+      },
+      {
+        $limit: limit,
+      },
+      {
+        $sort: {
+          ...sort,
+        },
+      },
+    ]);
+
+    const count = await this.productModel.aggregate([
+      {
+        $lookup: {
+          from: 'suppliers',
+          localField: 'supplier',
+          foreignField: '_id',
+          as: 'supplier',
+        },
+      },
+      {
+        $unwind: {
+          path: '$supplier',
+        },
+      },
+      {
+        $lookup: {
+          from: 'productcategories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      {
+        $unwind: {
+          path: '$category',
+        },
+      },
+      {
+        $lookup: {
+          from: 'productsubcategories',
+          localField: 'subCategory',
+          foreignField: '_id',
+          as: 'subCategory',
+        },
+      },
+      {
+        $unwind: {
+          path: '$subCategory',
+        },
+      },
+      {
+        $match: {
+          ...filter,
+        },
+      },
+      {
+        $count: 'count',
+      },
+    ]);
+    const totalPages = Math.ceil(count[0].count / limit);
 
     return {
       docs: products,
@@ -134,7 +235,7 @@ export class SupplierService {
       limit,
       nextPage: page < totalPages ? page + 1 : null,
       prevPage: page > 1 ? page - 1 : null,
-      totalItems: count,
+      totalItems: count[0].count,
       totalPages,
       hasNext: page < totalPages,
       hasPrevious: page > 1,
@@ -152,13 +253,6 @@ export class SupplierService {
 
     if (!supplier) {
       throw new NotFoundException("Supplier doesn't exist");
-    }
-
-    if (!updateSupplierDto.isActive) {
-      await this.productModel.updateMany(
-        { supplier: supplier._id },
-        { isActive: supplier.isActive },
-      );
     }
 
     return supplier;
