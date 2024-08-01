@@ -34,11 +34,13 @@ import { UpdateFreightDto } from './dto/update-freight.dto';
 import { Freight } from './schemas/freight.schema';
 import { FetchSupplierstQueryDto } from './dto/fetch-suppliers.dto';
 import { AuthorizationGuard } from '../commons/guards/authorization.guard';
+import { PurchaseSetting } from './schemas/purchase-setting.schema';
+import { UpdatePurchaseSettingDto } from './dto/update-purchase-setting.dto';
 
 @Controller('settings')
-@UseGuards(AuthorizationGuard)
-@ApiSecurity('uid')
-@ApiBearerAuth()
+// @UseGuards(AuthorizationGuard)
+// @ApiSecurity('uid')
+// @ApiBearerAuth()
 @ApiTags('settings')
 export class SettingsController {
   constructor(
@@ -145,5 +147,25 @@ export class SettingsController {
   @ApiOkResponse({ description: 'Suppliers fetched successfully' })
   async getSuppliers(@Query() query: FetchSupplierstQueryDto) {
     return this.settingsService.getSuppliers(query);
+  }
+
+  @Get('/purchase-setting')
+  @ApiOkResponse({
+    description: 'Purchase Setting Fetched successfully',
+    type: PurchaseSetting,
+  })
+  @ApiOperation({ summary: 'Fetch Purchase Setting' })
+  async fetchPurchaseSetting() {
+    return this.settingsService.getPurchaseSetting();
+  }
+
+  @Patch('/purchase-setting')
+  @ApiOkResponse({
+    description: 'Purchase Setting Update successfully',
+    type: PurchaseSetting,
+  })
+  @ApiOperation({ summary: 'Update Purchase Setting' })
+  async updatePurchaseSetting(@Body() body: UpdatePurchaseSettingDto) {
+    return this.settingsService.updatePurchaseSetting(body);
   }
 }
