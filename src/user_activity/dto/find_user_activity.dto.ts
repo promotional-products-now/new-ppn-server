@@ -6,6 +6,7 @@ import {
   IsDateString,
   IsEmail,
   IsEnum,
+  IsNotEmpty,
   IsNumber,
   IsObject,
   IsOptional,
@@ -113,4 +114,24 @@ export class FilterWithCreatedAt extends PaginationDto {
   @IsDateString()
   @IsOptional()
   endDate: string;
+}
+
+export class UserActivitySearchDto extends PaginationDto {
+  @ApiProperty({
+    example: 'john',
+    description: 'The user you are searching for',
+  })
+  @IsString()
+  @IsNotEmpty()
+  searchTerm: string;
+
+  @ApiProperty({ required: false, example: '2024-07-20' })
+  @IsOptional()
+  @IsDateString()
+  startDate?: string;
+
+  @ApiProperty({ required: false, example: '2024-07-20' })
+  @IsOptional()
+  @IsDateString()
+  endDate?: string;
 }

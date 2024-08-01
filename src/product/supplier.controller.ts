@@ -28,14 +28,14 @@ import {
   PaginatedSupplierResponse,
 } from './dto/paginated-response.dto';
 
-@Controller('suppliers')
 @ApiTags('Supplier')
+@UseGuards(AuthorizationGuard)
+@ApiSecurity('uid')
+@ApiBearerAuth()
+@Controller('suppliers')
 export class SupplierController {
   constructor(private readonly supplierService: SupplierService) {}
 
-  @UseGuards(AuthorizationGuard)
-  @ApiSecurity('uid')
-  @ApiBearerAuth()
   @Get()
   @ApiOperation({ summary: 'Fetch suppliers' })
   @ApiOkResponse({
@@ -46,9 +46,6 @@ export class SupplierController {
     return await this.supplierService.findSuppliers(query);
   }
 
-  @UseGuards(AuthorizationGuard)
-  @ApiSecurity('uid')
-  @ApiBearerAuth()
   @Get(':id')
   @ApiOkResponse({ description: 'supplier data', type: Supplier })
   async fetchSupplier(@Param('id') id: string) {
@@ -56,9 +53,6 @@ export class SupplierController {
   }
 
   @Patch('/:id')
-  @UseGuards(AuthorizationGuard)
-  @ApiSecurity('uid')
-  @ApiBearerAuth()
   @ApiParam({ name: 'id', type: 'string', required: true })
   @ApiOperation({ summary: 'Update Supplier' })
   @ApiOkResponse({ description: 'Updated supplier data', type: Supplier })
@@ -69,9 +63,6 @@ export class SupplierController {
     return await this.supplierService.updateSupplier(id, body);
   }
 
-  @UseGuards(AuthorizationGuard)
-  @ApiSecurity('uid')
-  @ApiBearerAuth()
   @Get('/:id/products')
   @ApiParam({ name: 'id', type: 'string', required: true })
   @ApiOperation({ summary: "Feth SUpplier's Products" })
@@ -92,9 +83,6 @@ export class SupplierController {
     return await this.supplierService.getProductsBySupplier(id, query);
   }
 
-  @UseGuards(AuthorizationGuard)
-  @ApiSecurity('uid')
-  @ApiBearerAuth()
   @Delete(':id')
   @ApiOperation({ summary: 'Delete Supplier' })
   async deleteSupplier(@Param('id') id: string) {

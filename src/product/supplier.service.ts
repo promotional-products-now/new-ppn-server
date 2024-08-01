@@ -83,7 +83,7 @@ export class SupplierService {
     };
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<any> {
     const supplier = await this.supplierModel.findOne({ _id: id }).lean();
 
     if (!supplier) {
@@ -94,7 +94,7 @@ export class SupplierService {
       supplier: supplier._id,
     });
 
-    return { ...supplier.toObject(), totalProducts };
+    return { ...supplier, totalProducts };
   }
 
   async findById(id: string) {
@@ -117,7 +117,7 @@ export class SupplierService {
     const page = query.page ? Number(query.page) : 1;
     const limit = query.limit ? Number(query.limit) : 15;
 
-    const filter: Record<string, any> = { Supplier: new ObjectId(id) };
+    const filter: Record<string, any> = { supplier: new ObjectId(id) };
     const sort: Record<string, any> = {};
 
     const products = await this.productModel.find(
@@ -132,10 +132,12 @@ export class SupplierService {
       docs: products,
       page,
       limit,
+      nextPage: page < totalPages ? page + 1 : null,
+      prevPage: page > 1 ? page - 1 : null,
       totalItems: count,
       totalPages,
-      hasNextPage: page < totalPages,
-      hasPrevPage: page > 1,
+      hasNext: page < totalPages,
+      hasPrevious: page > 1,
     };
   }
 
