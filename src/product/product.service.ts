@@ -389,6 +389,8 @@ export class ProductService {
       limit: limit,
       totalItems: count,
       totalPages,
+      nextPage: page < totalPages ? page + 1 : null,
+      prevPage: page > 1 ? page - 1 : null,
       hasNextPage: page < totalPages,
       hasPrevPage: page > 1,
     };
