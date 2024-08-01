@@ -36,12 +36,7 @@ import { UserModule } from '../user/user.module';
     ]),
     forwardRef(() => UserModule),
   ],
-<<<<<<< HEAD
   controllers: [ProductController, SupplierController],
-  providers: [ProductService, SupplierService],
-=======
-  controllers: [ProductController],
-  providers: [ProductService, AuthorizationGuard],
->>>>>>> 1e9840f4b4102052a30813d25a8afcaab094fddf
+  providers: [ProductService, AuthorizationGuard, SupplierService],
 })
 export class ProductModule {}

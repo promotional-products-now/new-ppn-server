@@ -31,6 +31,7 @@ import {
 } from '../product-category/schemas/subCategory.schema';
 import { UdpateSupplierDto, UpdateProductDto } from './dto/update-product.dto';
 import { FetchtQueryDto } from './dto/fetch-query.dto';
+import { filter } from 'lodash';
 
 @Injectable()
 export class ProductService {
@@ -290,10 +291,10 @@ export class ProductService {
     const limit = query.limit ? Number(query.limit) : 15;
 
     const filterQuery: Record<string, any> = {
-      // isActive: true,
-      // 'supplier.isActive': true,
-      // 'category.isActive': true,
-      // 'subCategory.isActive': true,
+      isActive: true,
+      'supplier.isActive': true,
+      'category.isActive': true,
+      'subCategory.isActive': true,
     };
 
     let sort = {};
@@ -309,7 +310,7 @@ export class ProductService {
     }
 
     if (query.search) {
-      Object.assign(filterQuery, { $text: { $search: query.search } });
+      filterQuery.name = { $regex: new RegExp(query.search, 'gi') };
     }
 
     if (query.vendors) {
@@ -367,27 +368,120 @@ export class ProductService {
         sort = { createdAt: -1 };
     }
 
-    // console.log(filterQuery);
-    const products = await this.productModel
-      // .find({ ...filterQuery })
-      .find()
-      .skip(limit * (page - 1))
-      .limit(limit)
-      // .populate('supplier')
-      // .populate('product.prices.priceGroups.additions')
-      // .populate('product.prices.priceGroups.basePrice')
-      // .populate('category')
-      // .populate('subCategory')
-      .sort(sort);
+    const products = await this.productModel.aggregate([
+      {
+        $lookup: {
+          from: 'suppliers',
+          localField: 'supplier',
+          foreignField: '_id',
+          as: 'supplier',
+        },
+      },
+      {
+        $unwind: {
+          path: '$supplier',
+        },
+      },
+      {
+        $lookup: {
+          from: 'productcategories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      {
+        $unwind: {
+          path: '$category',
+        },
+      },
+      {
+        $lookup: {
+          from: 'productsubcategories',
+          localField: 'subCategory',
+          foreignField: '_id',
+          as: 'subCategory',
+        },
+      },
+      {
+        $unwind: {
+          path: '$subCategory',
+        },
+      },
+      {
+        $match: {
+          ...filterQuery,
+        },
+      },
+      {
+        $skip: limit * (page - 1),
+      },
+      {
+        $limit: limit,
+      },
+      {
+        $sort: {
+          ...sort,
+        },
+      },
+    ]);
 
-    const count = await this.productModel.countDocuments({ ...filterQuery });
-    const totalPages = Math.ceil(count / limit);
+    const count = await this.productModel.aggregate([
+      {
+        $lookup: {
+          from: 'suppliers',
+          localField: 'supplier',
+          foreignField: '_id',
+          as: 'supplier',
+        },
+      },
+      {
+        $unwind: {
+          path: '$supplier',
+        },
+      },
+      {
+        $lookup: {
+          from: 'productcategories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      {
+        $unwind: {
+          path: '$category',
+        },
+      },
+      {
+        $lookup: {
+          from: 'productsubcategories',
+          localField: 'subCategory',
+          foreignField: '_id',
+          as: 'subCategory',
+        },
+      },
+      {
+        $unwind: {
+          path: '$subCategory',
+        },
+      },
+      {
+        $match: {
+          ...filterQuery,
+        },
+      },
+      {
+        $count: 'count',
+      },
+    ]);
+    const totalPages = Math.ceil(count[0].count / limit);
 
     return {
       docs: products,
       page: page,
       limit: limit,
-      totalItems: count,
+      totalItems: count[0].count,
       totalPages,
       hasNextPage: page < totalPages,
       hasPrevPage: page > 1,
