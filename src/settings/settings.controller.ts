@@ -38,9 +38,9 @@ import { PurchaseSetting } from './schemas/purchase-setting.schema';
 import { UpdatePurchaseSettingDto } from './dto/update-purchase-setting.dto';
 
 @Controller('settings')
-// @UseGuards(AuthorizationGuard)
-// @ApiSecurity('uid')
-// @ApiBearerAuth()
+@UseGuards(AuthorizationGuard)
+@ApiSecurity('uid')
+@ApiBearerAuth()
 @ApiTags('settings')
 export class SettingsController {
   constructor(
