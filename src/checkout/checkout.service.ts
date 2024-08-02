@@ -92,9 +92,9 @@ export class CheckoutService {
         success_url: `${url}?status=success&orderId=${orderId}`,
         cancel_url: `${url}?status=cancelled&orderId=${orderId}`,
         metadata: {
-          // @ts-expect-error
+          // @ts-expect-error/
           // `_id` doesnt not exist on user, fix issues with userid types
-          customerId: user._id,
+          customerId: String(user._id),
           customerEmail: user.email.address,
           orderId: orderId,
           orderDate: new Date().toISOString(),

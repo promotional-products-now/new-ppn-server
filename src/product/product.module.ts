@@ -36,5 +36,6 @@ import { UserModule } from '../user/user.module';
   ],
   controllers: [ProductController],
   providers: [ProductService, AuthorizationGuard],
+  exports: [ProductService],
 })
 export class ProductModule {}

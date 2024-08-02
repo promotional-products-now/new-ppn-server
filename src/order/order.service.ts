@@ -101,17 +101,18 @@ export class OrderService {
         $unwind: '$productsDetails',
       },
 
-      // {
-      //   $lookup: {
-      //     from: 'users',
-      //     localField: 'userId',
-      //     foreignField: '_id',
-      //     as: 'userDetails',
-      //   },
-      // },
-      // {
-      //   $unwind: '$userDetails',
-      // },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'userDetails',
+        },
+      },
+
+      {
+        $unwind: '$userDetails',
+      },
 
       {
         $group: {
@@ -124,6 +125,7 @@ export class OrderService {
             },
           },
           totalQuantity: { $sum: '$cartItems.quantity' },
+          status: { $first: '$status' },
           totalAmount: { $sum: '$cartItems.price' },
           userId: { $first: '$userDetails' },
           user: { $first: '$userDetails' },
@@ -139,6 +141,7 @@ export class OrderService {
           cartItems: 1,
           totalAmount: 1,
           totalQuantity: 1,
+          status: 1,
           user: 1,
         },
       },
