@@ -19,7 +19,6 @@ export class UserDataExportService {
       );
 
       const workbook = new ExcelJS.Workbook();
-
       const sheet = workbook.addWorksheet('users');
 
       sheet.columns = [
@@ -40,7 +39,7 @@ export class UserDataExportService {
         { header: 'Updated At', key: 'updatedAt', width: 25 },
       ];
 
-      await users.map((user, idx) => {
+      users.forEach((user) => {
         sheet.addRow({
           _id: user._id.toString(),
           emailAddress: user.email.address,
@@ -49,12 +48,12 @@ export class UserDataExportService {
           lastName: user.lastName,
           status: user.status,
           role: user.role,
-          state: user.location.state,
-          address: user.location.address,
-          city: user.location.city,
-          country: user.location.country,
-          timeZone: user.location.timeZone,
-          postalCode: user.location.postalCode,
+          state: user.location ? user.location.state : null,
+          address: user.location ? user.location.address : null,
+          city: user.location ? user.location.city : null,
+          country: user.location ? user.location.country : null,
+          timeZone: user.location ? user.location.timeZone : null,
+          postalCode: user.location ? user.location.postalCode : null,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
         });
@@ -66,13 +65,13 @@ export class UserDataExportService {
       );
       response.setHeader(
         'Content-Disposition',
-        'attachment; filename=' + 'users.xlsx',
+        'attachment; filename=users.xlsx',
       );
 
-      const buffer = await workbook.xlsx.write(response);
-      response.send(buffer);
-    } catch (error) {
-      throw new InternalServerErrorException('');
+      await workbook.xlsx.write(response);
+      response.end(); // End the response
+    } catch (error: any) {
+      throw new InternalServerErrorException(error.message);
     }
   }
 }
