@@ -31,7 +31,7 @@ import {
 } from '../product-category/schemas/subCategory.schema';
 import { UdpateSupplierDto, UpdateProductDto } from './dto/update-product.dto';
 import { FetchtQueryDto } from './dto/fetch-query.dto';
-import { filter } from 'lodash';
+import { ObjectId } from 'mongodb';
 
 @Injectable()
 export class ProductService {
@@ -299,6 +299,18 @@ export class ProductService {
 
     let sort = {};
 
+    if (query.category) {
+      Object.assign(filterQuery, {
+        'category.name': { $regex: new RegExp(query.category, 'gi') },
+      });
+    }
+
+    if (query.subCategory) {
+      Object.assign(filterQuery, {
+        'subCategory.name': { $regex: new RegExp(query.subCategory, 'gi') },
+      });
+    }
+
     if (query.colours && query.colours.length > 0) {
       Object.assign(filterQuery, {
         'product.colours.list': {
@@ -310,12 +322,16 @@ export class ProductService {
     }
 
     if (query.search) {
-      filterQuery.name = { $regex: new RegExp(query.search, 'gi') };
+      Object.assign(filterQuery, {
+        'product.name': { $regex: new RegExp(query.search, 'gi') },
+      });
     }
 
     if (query.vendors) {
       Object.assign(filterQuery, {
-        'supplier.supplierId': { $in: query.vendors },
+        'supplier._id': {
+          $in: query.vendors.map((vendor) => new ObjectId(vendor)),
+        },
       });
     }
 
@@ -367,6 +383,8 @@ export class ProductService {
       default:
         sort = { createdAt: -1 };
     }
+
+    console.log(filterQuery);
 
     const products = await this.productModel.aggregate([
       {
