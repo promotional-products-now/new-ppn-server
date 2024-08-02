@@ -61,7 +61,12 @@ export class ProductCategoryService {
   async findAll() {
     return await this.globalProductCategoryModel
       .find()
-      .populate({ path: 'subCategory' });
+      .select(['name', 'subCategory'])
+      .populate({
+        path: 'subCategory',
+        model: GlobalProductSubCategory.name,
+        select: 'name',
+      });
   }
 
   async findAllSubCategory(categoryName: string) {
