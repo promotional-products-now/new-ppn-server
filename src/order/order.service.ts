@@ -6,6 +6,7 @@ import { CreateOrderDto } from './dto/create-order';
 import { UpdateOrderDto } from './dto/update-order';
 import { FindOrderDto } from './dto/find-order';
 import { ObjectId } from 'mongodb';
+import { Product } from '../product/schemas/product.schema';
 
 @Injectable()
 export class OrderService {
@@ -51,7 +52,13 @@ export class OrderService {
 
     const orders = await this.orderModel
       .find(searchTerm)
-      .populate('userId')
+      .populate([
+        'userId',
+        {
+          path: 'cartItems.productId',
+          model: Product.name,
+        },
+      ])
       .skip(limit * (page - 1))
       .limit(limit)
       .sort({ createdAt: -1 });
