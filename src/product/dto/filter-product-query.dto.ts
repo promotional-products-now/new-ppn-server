@@ -41,6 +41,16 @@ export class FilterProductQueryDto {
   @IsNumber()
   @IsOptional()
   limit: number;
+
+  @ApiPropertyOptional({ example: 'football boots' })
+  @IsString()
+  @IsOptional()
+  subCategory: string;
+
+  @ApiPropertyOptional({ example: 'footwears' })
+  @IsString()
+  @IsOptional()
+  category: string;
 }
 
 export class FilterProductByCategoryQueryDto {
