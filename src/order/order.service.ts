@@ -5,6 +5,9 @@ import { Model } from 'mongoose';
 import { CreateOrderDto } from './dto/create-order';
 import { UpdateOrderDto } from './dto/update-order';
 import { FindOrderDto } from './dto/find-order';
+import { ObjectId } from 'mongodb';
+import { Product } from '../product/schemas/product.schema';
+import { Supplier } from '../product/schemas/supplier.schema';
 
 @Injectable()
 export class OrderService {
@@ -50,6 +53,19 @@ export class OrderService {
 
     const orders = await this.orderModel
       .find(searchTerm)
+      .populate([
+        'userId',
+        {
+          path: 'cartItems.productId',
+          model: Product.name,
+          select: ['overview', 'supplier', '_id', 'isActive'],
+          populate: {
+            path: 'supplier',
+            model: Supplier.name,
+            select: ['name'],
+          },
+        },
+      ])
       .skip(limit * (page - 1))
       .limit(limit)
       .sort({ createdAt: -1 });
@@ -69,7 +85,83 @@ export class OrderService {
   }
 
   async findOne(id: string): Promise<Order> {
-    return await this.orderModel.findById(id).exec();
+    const data = await this.orderModel.aggregate([
+      {
+        $match: {
+          _id: new ObjectId(id),
+        },
+      },
+
+      {
+        $unwind: '$cartItems',
+      },
+
+      {
+        $addFields: {
+          'cartItems.productId': { $toObjectId: '$cartItems.productId' },
+          userId: { $toObjectId: '$userId' },
+        },
+      },
+
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'cartItems.productId',
+          foreignField: '_id',
+          as: 'productsDetails',
+        },
+      },
+
+      {
+        $unwind: '$productsDetails',
+      },
+
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'userDetails',
+        },
+      },
+
+      {
+        $unwind: '$userDetails',
+      },
+
+      {
+        $group: {
+          _id: '$_id',
+          cartItems: {
+            $push: {
+              productId: '$cartItems.productId',
+              quantity: '$cartItems.quantity',
+              product: '$productsDetails',
+            },
+          },
+          totalQuantity: { $sum: '$cartItems.quantity' },
+          status: { $first: '$status' },
+          totalAmount: { $sum: '$cartItems.price' },
+          userId: { $first: '$userDetails' },
+          user: { $first: '$userDetails' },
+          createdAt: { $first: '$createdAt' },
+          updatedAt: { $first: '$updatedAt' },
+        },
+      },
+
+      {
+        $project: {
+          _id: 0,
+          id: '$_id',
+          cartItems: 1,
+          totalAmount: 1,
+          totalQuantity: 1,
+          status: 1,
+          user: 1,
+        },
+      },
+    ]);
+    return data[0];
   }
 
   async update(inputs: Partial<UpdateOrderDto>): Promise<Order> {
