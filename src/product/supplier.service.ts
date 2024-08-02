@@ -132,6 +132,12 @@ export class SupplierService {
       });
     }
 
+    if (query.search) {
+      Object.assign(filter, {
+        'product.name': { $regex: new RegExp(query.search, 'gi') },
+      });
+    }
+
     const products = await this.productModel.aggregate([
       {
         $lookup: {
