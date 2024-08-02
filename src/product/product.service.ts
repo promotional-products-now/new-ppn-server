@@ -354,8 +354,8 @@ export class ProductService {
               'product.details': { $exists: true, $ne: [] },
             });
             break;
-            break;
           case PRODUCT_FILTER.ITEMS_FROM_API_SUPPLIERS:
+            break;
           case PRODUCT_FILTER.NEW_ITEMS_LAST_30_DAYS:
             const currentDate = new Date();
             currentDate.setDate(currentDate.getDate() - 30);
