@@ -11,7 +11,7 @@ import {
 import { UserSearchService } from './user_search.service';
 import { UserSearchDto } from './dto/user-search.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { FindUsers } from 'src/user/dto/fetch-user.dto';
+import { FindUsers } from '../user/dto/fetch-user.dto';
 
 @ApiTags('search')
 @Controller('search')

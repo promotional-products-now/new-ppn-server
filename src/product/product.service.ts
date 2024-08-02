@@ -31,6 +31,7 @@ import {
 } from '../product-category/schemas/subCategory.schema';
 import { UdpateSupplierDto, UpdateProductDto } from './dto/update-product.dto';
 import { FetchtQueryDto } from './dto/fetch-query.dto';
+import { ObjectId } from 'mongodb';
 
 @Injectable()
 export class ProductService {
@@ -290,13 +291,25 @@ export class ProductService {
     const limit = query.limit ? Number(query.limit) : 15;
 
     const filterQuery: Record<string, any> = {
-      // isActive: true,
-      // 'supplier.isActive': true,
-      // 'category.isActive': true,
-      // 'subCategory.isActive': true,
+      isActive: true,
+      'supplier.isActive': true,
+      'category.isActive': true,
+      'subCategory.isActive': true,
     };
 
     let sort = {};
+
+    if (query.category) {
+      Object.assign(filterQuery, {
+        'category.name': { $regex: new RegExp(query.category, 'gi') },
+      });
+    }
+
+    if (query.subCategory) {
+      Object.assign(filterQuery, {
+        'subCategory.name': { $regex: new RegExp(query.subCategory, 'gi') },
+      });
+    }
 
     if (query.colours && query.colours.length > 0) {
       Object.assign(filterQuery, {
@@ -309,12 +322,16 @@ export class ProductService {
     }
 
     if (query.search) {
-      Object.assign(filterQuery, { $text: { $search: query.search } });
+      Object.assign(filterQuery, {
+        'product.name': { $regex: new RegExp(query.search, 'gi') },
+      });
     }
 
     if (query.vendors) {
       Object.assign(filterQuery, {
-        'supplier.supplierId': { $in: query.vendors },
+        'supplier._id': {
+          $in: query.vendors.map((vendor) => new ObjectId(vendor)),
+        },
       });
     }
 
@@ -367,27 +384,122 @@ export class ProductService {
         sort = { createdAt: -1 };
     }
 
-    // console.log(filterQuery);
-    const products = await this.productModel
-      // .find({ ...filterQuery })
-      .find()
-      .skip(limit * (page - 1))
-      .limit(limit)
-      // .populate('supplier')
-      // .populate('product.prices.priceGroups.additions')
-      // .populate('product.prices.priceGroups.basePrice')
-      // .populate('category')
-      // .populate('subCategory')
-      .sort(sort);
+    console.log(filterQuery);
 
-    const count = await this.productModel.countDocuments({ ...filterQuery });
-    const totalPages = Math.ceil(count / limit);
+    const products = await this.productModel.aggregate([
+      {
+        $lookup: {
+          from: 'suppliers',
+          localField: 'supplier',
+          foreignField: '_id',
+          as: 'supplier',
+        },
+      },
+      {
+        $unwind: {
+          path: '$supplier',
+        },
+      },
+      {
+        $lookup: {
+          from: 'productcategories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      {
+        $unwind: {
+          path: '$category',
+        },
+      },
+      {
+        $lookup: {
+          from: 'productsubcategories',
+          localField: 'subCategory',
+          foreignField: '_id',
+          as: 'subCategory',
+        },
+      },
+      {
+        $unwind: {
+          path: '$subCategory',
+        },
+      },
+      {
+        $match: {
+          ...filterQuery,
+        },
+      },
+      {
+        $skip: limit * (page - 1),
+      },
+      {
+        $limit: limit,
+      },
+      {
+        $sort: {
+          ...sort,
+        },
+      },
+    ]);
+
+    const count = await this.productModel.aggregate([
+      {
+        $lookup: {
+          from: 'suppliers',
+          localField: 'supplier',
+          foreignField: '_id',
+          as: 'supplier',
+        },
+      },
+      {
+        $unwind: {
+          path: '$supplier',
+        },
+      },
+      {
+        $lookup: {
+          from: 'productcategories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      {
+        $unwind: {
+          path: '$category',
+        },
+      },
+      {
+        $lookup: {
+          from: 'productsubcategories',
+          localField: 'subCategory',
+          foreignField: '_id',
+          as: 'subCategory',
+        },
+      },
+      {
+        $unwind: {
+          path: '$subCategory',
+        },
+      },
+      {
+        $match: {
+          ...filterQuery,
+        },
+      },
+      {
+        $count: 'count',
+      },
+    ]);
+    const totalPages = Math.ceil(count[0].count / limit);
 
     return {
       docs: products,
       page: page,
       limit: limit,
-      totalItems: count,
+      totalItems: count[0].count,
       totalPages,
       hasNextPage: page < totalPages,
       hasPrevPage: page > 1,

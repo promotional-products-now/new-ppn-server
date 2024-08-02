@@ -2,12 +2,12 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { Stripe } from 'stripe';
 import { ConfigService } from '@nestjs/config';
-import { StripeConfig } from 'src/configs';
+import { StripeConfig } from '../configs';
 import { CheckoutInput } from './dto/checkout.dto';
-import { OrderService } from 'src/order/order.service';
-import { Order } from 'src/order/schemas/order.schema';
-import { User } from 'src/user/schemas/user.schema';
-import { STATUS_ENUM } from 'src/order/order.contants';
+import { OrderService } from '../order/order.service';
+import { Order } from '../order/schemas/order.schema';
+import { User } from '../user/schemas/user.schema';
+import { STATUS_ENUM } from '../order/order.contants';
 
 @Injectable()
 export class CheckoutService {

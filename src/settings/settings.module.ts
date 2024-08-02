@@ -16,6 +16,10 @@ import { Supplier, SupplierSchema } from '../product/schemas/supplier.schema';
 import { JWTModule } from '../commons/services/JWTService/JWTService.module';
 import { AuthorizationGuard } from '../commons/guards/authorization.guard';
 import { UserModule } from '../user/user.module';
+import {
+  PurchaseSetting,
+  PurchaseSettingSchema,
+} from './schemas/purchase-setting.schema';
 
 @Module({
   imports: [
@@ -36,6 +40,10 @@ import { UserModule } from '../user/user.module';
       {
         name: Supplier.name,
         schema: SupplierSchema,
+      },
+      {
+        name: PurchaseSetting.name,
+        schema: PurchaseSettingSchema,
       },
     ]),
     forwardRef(() => UserModule),

@@ -3,7 +3,7 @@ import * as sgMail from '@sendgrid/mail';
 import * as pug from 'pug';
 import * as path from 'path';
 import { ConfigService } from '@nestjs/config';
-import { sendGrid } from 'src/configs';
+import { sendGrid } from '../configs';
 
 @Injectable()
 export class EmailService {

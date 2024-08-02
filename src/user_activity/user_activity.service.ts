@@ -14,6 +14,7 @@ import { ObjectId } from 'mongodb';
 import {
   FilterWithCreatedAt,
   FindUserActivity,
+  UserActivitySearchDto,
 } from './dto/find_user_activity.dto';
 import { PaginationDto } from '../commons/dtos/pagination.dto';
 import { UserStatus } from '../user/enums/status.enum';
@@ -139,21 +140,52 @@ export class UserActivityService {
 
       const skip = (page - 1) * limit;
 
-      const userActivities = await this.userActivityModel
-        .find(
+      const result = await this.userActivityModel
+        .aggregate([
           {
-            role: { $ne: UserRole.USER },
+            $lookup: {
+              from: 'users',
+              localField: 'userId',
+              foreignField: '_id',
+              as: 'userDetails',
+            },
           },
-          { password: 0, otpSecret: 0 },
-          { skip, limit: limit + 1 },
-        )
-        .populate({
-          path: 'userId',
-          select: '_id firstName lastName email.address role',
-        })
+          {
+            $unwind: '$userDetails',
+          },
+          {
+            $match: {
+              'userDetails.role': { $ne: UserRole.USER },
+            },
+          },
+          {
+            $facet: {
+              metadata: [{ $count: 'total' }],
+              data: [
+                {
+                  $project: {
+                    userId: 1,
+                    activity: 1,
+                    createdAt: 1,
+                    updatedAt: 1,
+                    additionalData: 1,
+                    'userDetails._id': 1,
+                    'userDetails.firstName': 1,
+                    'userDetails.lastName': 1,
+                    'userDetails.email.address': 1,
+                    'userDetails.role': 1,
+                  },
+                },
+                { $skip: skip },
+                { $limit: limit + 1 },
+              ],
+            },
+          },
+        ])
         .exec();
 
-      const total = await this.userActivityModel.countDocuments();
+      const total = result[0].metadata[0] ? result[0].metadata[0].total : 0;
+      const userActivities = result[0].data;
 
       const hasPrevious = skip === 0 ? false : true;
       const hasNext = userActivities.length > limit ? true : false;
@@ -164,27 +196,27 @@ export class UserActivityService {
         userActivities.pop();
       }
 
-      const activities = userActivities.map(
-        (userActivity: UserActivityDocument) => {
-          const {
-            _id,
-            userId,
-            activity,
-            additionalData,
-            createdAt,
-            updatedAt,
-          } = userActivity;
+      const activities = userActivities.map((userActivity: any) => {
+        const {
+          _id,
+          userId,
+          activity,
+          additionalData,
+          createdAt,
+          updatedAt,
+          userDetails,
+        } = userActivity;
 
-          return {
-            activityId: _id.toString(),
-            user: userId,
-            createdAt,
-            activity,
-            additionalData,
-            updatedAt,
-          };
-        },
-      );
+        return {
+          activityId: _id.toString(),
+          userId,
+          user: userDetails,
+          createdAt,
+          activity,
+          additionalData,
+          updatedAt,
+        };
+      });
 
       return {
         activities,
@@ -273,8 +305,131 @@ export class UserActivityService {
     }
   }
 
-  update(id: number, updateUserActivityDto: UpdateUserActivityDto) {
-    return `This action updates a #${id} userActivity`;
+  async searchAndFilterActivityLogs(activitySearchDto: UserActivitySearchDto) {
+    let {
+      page = 1,
+      limit = 10,
+      searchTerm,
+      startDate,
+      endDate,
+    } = activitySearchDto;
+
+    if (!page || page <= 0) {
+      page = 1;
+    }
+    if (!limit || limit <= 0) {
+      limit = 10;
+    }
+
+    const skip = (page - 1) * limit;
+
+    const startDateTime = startDate ? new Date(startDate) : new Date();
+
+    startDateTime.setHours(0, 0, 0);
+
+    const endDateTime = endDate ? new Date(endDate) : new Date();
+    endDateTime.setHours(23, 59, 59, 999);
+
+    const result = await this.userActivityModel
+      .aggregate([
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'userId',
+            foreignField: '_id',
+            as: 'userDetails',
+          },
+        },
+        {
+          $unwind: '$userDetails',
+        },
+        {
+          $match: {
+            $and: [
+              {
+                $or: [
+                  {
+                    'userDetails.firstName': {
+                      $regex: searchTerm,
+                      $options: 'i',
+                    },
+                  },
+                  {
+                    'userDetails.lastName': {
+                      $regex: searchTerm,
+                      $options: 'i',
+                    },
+                  },
+                ],
+              },
+              {
+                createdAt: {
+                  $gte: startDateTime,
+                  $lte: endDateTime,
+                },
+              },
+            ],
+          },
+        },
+        {
+          $facet: {
+            metadata: [{ $count: 'total' }],
+            data: [
+              {
+                $project: {
+                  userId: 1,
+                  activity: 1,
+                  createdAt: 1,
+                  updatedAt: 1,
+                  additionalData: 1,
+                  'userDetails._id': 1,
+                  'userDetails.firstName': 1,
+                  'userDetails.lastName': 1,
+                  'userDetails.email.address': 1,
+                  'userDetails.role': 1,
+                },
+              },
+              { $skip: skip },
+              { $limit: limit + 1 },
+            ],
+          },
+        },
+      ])
+      .exec();
+
+    const total = result[0].metadata[0] ? result[0].metadata[0].total : 0;
+    const userActivities = result[0].data;
+
+    const hasPrevious = skip > 0;
+    const hasNext = userActivities.length > limit;
+    const nextPage = hasNext ? page + 1 : null;
+    const prevPage = hasPrevious ? page - 1 : null;
+
+    if (hasNext) {
+      userActivities.pop();
+    }
+
+    const activities = userActivities.map(
+      //TODO:create proper type
+      (userActivity: any) => {
+        const { _id, userDetails, ...rest } = userActivity;
+
+        return {
+          activityId: _id.toString(),
+          user: userDetails,
+          ...rest,
+        };
+      },
+    );
+
+    return {
+      activities,
+      hasPrevious,
+      hasNext,
+      nextPage,
+      prevPage,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   remove(id: number) {

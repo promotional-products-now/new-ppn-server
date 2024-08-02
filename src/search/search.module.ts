@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { UserSearchService } from './user_search.service';
 import { SearchController } from './search.controller';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from 'src/user/schemas/user.schema';
+import { User, UserSchema } from '../user/schemas/user.schema';
 
 @Module({
   imports: [

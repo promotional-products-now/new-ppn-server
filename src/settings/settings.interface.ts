@@ -13,3 +13,8 @@ export enum FreightType {
 export enum DestinationType {
   METROPOLITAN = 'metropolitan',
 }
+
+export enum BuyNowCandidateStatus {
+  DISABLED = 'disabled',
+  ENABLED = 'enabled',
+}

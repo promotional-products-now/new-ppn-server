@@ -12,7 +12,13 @@ import { FetchFreightQueryDto } from './dto/fetch-freight-query.dto';
 import { CreateFreightDto } from './dto/create-freight.dto';
 import { UpdateFreightDto } from './dto/update-freight.dto';
 import { FetchSupplierstQueryDto } from './dto/fetch-suppliers.dto';
-import { Supplier } from 'src/product/schemas/supplier.schema';
+import { Supplier } from '../product/schemas/supplier.schema';
+import {
+  PurchaseSetting,
+  PurchaseSettingDocument,
+} from './schemas/purchase-setting.schema';
+import { BuyNowCandidateStatus } from './settings.interface';
+import { UpdatePurchaseSettingDto } from './dto/update-purchase-setting.dto';
 
 @Injectable()
 export class SettingsService {
@@ -25,6 +31,8 @@ export class SettingsService {
     private readonly freightModel: Model<Freight>,
     @InjectModel(Supplier.name)
     private readonly supplierModel: Model<Supplier>,
+    @InjectModel(PurchaseSetting.name)
+    private readonly purchaseSettingModel: Model<PurchaseSettingDocument>,
   ) {
     void this.initSetting();
   }
@@ -64,6 +72,17 @@ export class SettingsService {
         },
       });
     }
+
+    const purchaseSetting = await this.purchaseSettingModel.findOne({});
+
+    if (!purchaseSetting) {
+      await this.purchaseSettingModel.create({
+        defaultBuyNowCandidateStatus: BuyNowCandidateStatus.ENABLED,
+        largeOrderQuotationRequest:
+          'Your order appears substantial. Please request a quote from us to offer a more suitable price on your order',
+        defaultQuotationRequest: 30000,
+      });
+    }
   }
 
   async getProfitSetting() {
@@ -72,6 +91,10 @@ export class SettingsService {
 
   async getBannerSetting() {
     return await this.bannerSettingModel.findOne({});
+  }
+
+  async getPurchaseSetting() {
+    return await this.purchaseSettingModel.findOne({});
   }
 
   async updateBannerSetting(payload: UpdateQuery<BannerSettingDocument>) {
@@ -86,8 +109,17 @@ export class SettingsService {
     });
   }
 
+  async updatePurchaseSetting(payload: UpdatePurchaseSettingDto) {
+    return await this.purchaseSettingModel.findOneAndUpdate({}, payload, {
+      new: true,
+    });
+  }
+
   async fetchFreights(query: FetchFreightQueryDto) {
-    const { page, limit, query: search } = query;
+    const page = query.page ? Number(query.page) : 1;
+    const limit = query.limit ? Number(query.limit) : 15;
+
+    const { query: search } = query;
 
     const payload: Record<string, any> = {};
 

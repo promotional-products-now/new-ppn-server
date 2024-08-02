@@ -8,7 +8,7 @@ import {
 import { User, UserDocument } from '../schemas/user.schema';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { PaginationDto } from 'src/commons/dtos/pagination.dto';
+import { PaginationDto } from '../../commons/dtos/pagination.dto';
 
 export class FindUsers {
   @ApiProperty({ type: User, isArray: true })

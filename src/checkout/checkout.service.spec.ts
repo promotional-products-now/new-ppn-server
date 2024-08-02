@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CheckoutService } from './checkout.service';
 import { ConfigService } from '@nestjs/config';
-import { AppModule } from 'src/app.module';
-import { OrderModule } from 'src/order/order.module';
+import { AppModule } from '../app.module';
+import { OrderModule } from '../order/order.module';
 import { CheckoutController } from './checkout.controller';
-import { User } from 'src/user/schemas/user.schema';
+import { User } from '../user/schemas/user.schema';
 import { CheckoutInput } from './dto/checkout.dto';
 import { JWTModule } from 'src/commons/services/JWTService/JWTService.module';
 import { forwardRef } from '@nestjs/common';
@@ -55,6 +55,8 @@ describe('BillingService', () => {
       filter: [],
       vendors: [],
       page: 0,
+      subCategory: '',
+      category: '',
     });
 
     const products = productsRes.docs.map((product) => product).slice(0, 5);
