@@ -51,6 +51,7 @@ export class OrderService {
 
     const orders = await this.orderModel
       .find(searchTerm)
+      .populate('userId')
       .skip(limit * (page - 1))
       .limit(limit)
       .sort({ createdAt: -1 });
