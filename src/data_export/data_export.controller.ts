@@ -11,6 +11,7 @@ export class DataExportController {
   @Get('/user-data')
   @ApiOperation({ summary: 'Export all users data' })
   exportUserData(@Res() res: Response) {
+    console.log('hi');
     return this.userDataExportService.exportUserData(res);
   }
 }
