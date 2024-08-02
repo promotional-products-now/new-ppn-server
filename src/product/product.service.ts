@@ -31,7 +31,7 @@ import {
 } from '../product-category/schemas/subCategory.schema';
 import { UdpateSupplierDto, UpdateProductDto } from './dto/update-product.dto';
 import { FetchtQueryDto } from './dto/fetch-query.dto';
-import { filter } from 'lodash';
+import { ObjectId } from 'mongodb';
 
 @Injectable()
 export class ProductService {
@@ -322,12 +322,16 @@ export class ProductService {
     }
 
     if (query.search) {
-      filterQuery.name = { $regex: new RegExp(query.search, 'gi') };
+      Object.assign(filterQuery, {
+        'product.name': { $regex: new RegExp(query.search, 'gi') },
+      });
     }
 
     if (query.vendors) {
       Object.assign(filterQuery, {
-        'supplier.supplierId': { $in: query.vendors },
+        'supplier._id': {
+          $in: query.vendors.map((vendor) => new ObjectId(vendor)),
+        },
       });
     }
 
@@ -350,8 +354,8 @@ export class ProductService {
               'product.details': { $exists: true, $ne: [] },
             });
             break;
-          case PRODUCT_FILTER.ITEMS_FROM_API_SUPPLIERS:
             break;
+          case PRODUCT_FILTER.ITEMS_FROM_API_SUPPLIERS:
           case PRODUCT_FILTER.NEW_ITEMS_LAST_30_DAYS:
             const currentDate = new Date();
             currentDate.setDate(currentDate.getDate() - 30);
