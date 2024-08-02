@@ -7,6 +7,7 @@ import { UpdateOrderDto } from './dto/update-order';
 import { FindOrderDto } from './dto/find-order';
 import { ObjectId } from 'mongodb';
 import { Product } from '../product/schemas/product.schema';
+import { Supplier } from '../product/schemas/supplier.schema';
 
 @Injectable()
 export class OrderService {
@@ -57,6 +58,12 @@ export class OrderService {
         {
           path: 'cartItems.productId',
           model: Product.name,
+          select: ['overview', 'supplier', '_id', 'isActive'],
+          populate: {
+            path: 'supplier',
+            model: Supplier.name,
+            select: ['name'],
+          },
         },
       ])
       .skip(limit * (page - 1))
