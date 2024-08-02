@@ -120,6 +120,18 @@ export class SupplierService {
     const filter: Record<string, any> = { 'supplier._id': new ObjectId(id) };
     const sort: Record<string, any> = { createdAt: -1 };
 
+    if (query.category) {
+      Object.assign(filter, {
+        'category.name': { $regex: new RegExp(query.category, 'gi') },
+      });
+    }
+
+    if (query.subCategory) {
+      Object.assign(filter, {
+        'subCategory.name': { $regex: new RegExp(query.subCategory, 'gi') },
+      });
+    }
+
     const products = await this.productModel.aggregate([
       {
         $lookup: {

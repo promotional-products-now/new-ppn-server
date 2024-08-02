@@ -299,6 +299,18 @@ export class ProductService {
 
     let sort = {};
 
+    if (query.category) {
+      Object.assign(filterQuery, {
+        'category.name': { $regex: new RegExp(query.category, 'gi') },
+      });
+    }
+
+    if (query.subCategory) {
+      Object.assign(filterQuery, {
+        'subCategory.name': { $regex: new RegExp(query.subCategory, 'gi') },
+      });
+    }
+
     if (query.colours && query.colours.length > 0) {
       Object.assign(filterQuery, {
         'product.colours.list': {
@@ -367,6 +379,8 @@ export class ProductService {
       default:
         sort = { createdAt: -1 };
     }
+
+    console.log(filterQuery);
 
     const products = await this.productModel.aggregate([
       {
