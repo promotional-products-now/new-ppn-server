@@ -135,12 +135,12 @@ export class UserController {
     description: 'Successfully banned user.',
     type: User,
   })
-  @Put('/user/:id')
+  @Put('/suspend/:id')
   async banUserAccount(@Param('id') id: string): Promise<UserDocument> {
     return await this.userService.banUserAccount(id);
   }
 
-  @Put('/ban-users')
+  @Put('/suspend/multiple')
   @ApiResponse({
     status: 200,
     description: 'Successfully banned users.',
@@ -190,59 +190,4 @@ export class UserController {
     const objectIds = ids.map((id) => new Types.ObjectId(id));
     await this.userService.deleteMany(objectIds);
   }
-
-  // @Post('/upload-single')
-  // @ApiBody({
-  //   type: singleImageUploadDTO,
-  //   description: 'position of the image, count starts from 0',
-  // })
-  // @UseInterceptors(FileInterceptor('image'))
-  // async uploadSingleImage(
-  //   @Body('imagePosition')
-  //   imagePosition: singleImageUploadDTO,
-  //   @UploadedFile()
-  //   file: Express.Multer.File,
-  //   @Req() req,
-  // ) {
-  //   const { userId, email } = req.user;
-  //   const user = await this.userService.findOneById(userId);
-  //   if (!user) throw new NotFoundException('user not found');
-
-  //   const uploadedUrl = await this.azureBlobService.uploadImage(
-  //     file.buffer,
-  //     `${user._id}/${user._id}_${imagePosition}`,
-  //   );
-
-  //   await this.userService.findOneAndUpdate(email.address, {
-  //     $push: { images: uploadedUrl },
-  //   });
-
-  //   return { image: uploadedUrl };
-  // }
-
-  // @Post('/upload-multiple')
-  // @UseInterceptors(FilesInterceptor('images'))
-  // async uploadMultipleImages(
-  //   @UploadedFiles() images: Express.Multer.File[],
-  //   @Req() req,
-  // ) {
-  //   const { userId, email } = req.user;
-  //   const user = await this.userService.findOneById(userId);
-  //   if (!user) throw new NotFoundException('user not found');
-
-  //   const uploadResults = await Promise.all(
-  //     images.map((file, i) =>
-  //       this.azureBlobService.uploadImage(
-  //         file.buffer,
-  //         `${user._id}/${user._id}_${i}`,
-  //       ),
-  //     ),
-  //   );
-
-  //   const _user = await this.userService.findOneAndUpdate(email.address, {
-  //     images: uploadResults,
-  //   });
-
-  //   return _user;
-  // }
 }
