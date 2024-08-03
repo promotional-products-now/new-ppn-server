@@ -15,7 +15,7 @@ export class UserAnalyticsService {
   async userAnalytics(userAnalyticsDto: AnalyticsDto) {
     const startingDateTime = userAnalyticsDto.startDate
       ? new Date(userAnalyticsDto.startDate)
-      : new Date();
+      : new Date('2024-01-01');
 
     startingDateTime.setHours(0, 0, 0, 0);
 

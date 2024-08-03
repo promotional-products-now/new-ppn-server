@@ -12,8 +12,12 @@ export class OrderAnalyticsService {
   ) {}
 
   async getOrderAnalytics(orderAnalyticsDto: AnalyticsDto) {
-    const from = new Date(orderAnalyticsDto.startDate);
-    const to = new Date(orderAnalyticsDto.endDate);
+    const from = orderAnalyticsDto.startDate
+      ? new Date(orderAnalyticsDto.startDate)
+      : new Date('2024-01-01');
+    const to = orderAnalyticsDto.endDate
+      ? new Date(orderAnalyticsDto.endDate)
+      : new Date();
 
     const totalOrders = await this.orderModel.countDocuments({
       createdAt: { $gte: from, $lte: to },

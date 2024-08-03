@@ -129,6 +129,7 @@ const env = (): AppConfig => {
 
     database: {
       uri: secrets.DATABASE_URI,
+      //'mongodb+srv://production_spiderMonkey:WMaYggQeP8jtTuuP@ppn.hfq7y.mongodb.net/ppn?retryWrites=true&w=majority',
     },
     otp: {
       secret: secrets.OTP_SECRET,
