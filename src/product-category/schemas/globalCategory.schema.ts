@@ -21,7 +21,7 @@ export class GlobalProductCategory extends Document {
   subCategory: Types.ObjectId[];
 
   @Prop({ type: Number, default: null })
-  totalProducts: number;
+  totalProduct: number;
 }
 
 export type GlobalProductCategoryDocument =

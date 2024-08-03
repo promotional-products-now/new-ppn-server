@@ -18,6 +18,8 @@ import {
 import { JWTModule } from '../commons/services/JWTService/JWTService.module';
 import { AuthorizationGuard } from '../commons/guards/authorization.guard';
 import { UserModule } from '../user/user.module';
+import { SupplierController } from './supplier.controller';
+import { SupplierService } from './supplier.service';
 
 @Module({
   imports: [
@@ -34,8 +36,8 @@ import { UserModule } from '../user/user.module';
     ]),
     forwardRef(() => UserModule),
   ],
-  controllers: [ProductController],
-  providers: [ProductService, AuthorizationGuard],
+  controllers: [ProductController, SupplierController],
+  providers: [ProductService, SupplierService, AuthorizationGuard],
   exports: [ProductService],
 })
 export class ProductModule {}

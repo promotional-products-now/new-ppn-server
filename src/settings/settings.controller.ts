@@ -38,9 +38,6 @@ import { PurchaseSetting } from './schemas/purchase-setting.schema';
 import { UpdatePurchaseSettingDto } from './dto/update-purchase-setting.dto';
 
 @Controller('settings')
-@UseGuards(AuthorizationGuard)
-@ApiSecurity('uid')
-@ApiBearerAuth()
 @ApiTags('settings')
 export class SettingsController {
   constructor(
@@ -48,6 +45,9 @@ export class SettingsController {
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
+  @UseGuards(AuthorizationGuard)
+  @ApiSecurity('uid')
+  @ApiBearerAuth()
   @Get('/profits')
   @ApiOperation({ summary: 'Fetch profit setting' })
   @ApiOkResponse({
@@ -58,6 +58,9 @@ export class SettingsController {
     return this.settingsService.getProfitSetting();
   }
 
+  @UseGuards(AuthorizationGuard)
+  @ApiSecurity('uid')
+  @ApiBearerAuth()
   @Patch('/profits')
   @ApiOperation({ summary: 'Update profit setting' })
   @ApiOkResponse({
@@ -78,6 +81,9 @@ export class SettingsController {
     return this.settingsService.getBannerSetting();
   }
 
+  @UseGuards(AuthorizationGuard)
+  @ApiSecurity('uid')
+  @ApiBearerAuth()
   @Patch('/banner')
   @ApiOperation({ summary: 'Udate banner setting' })
   @ApiOkResponse({
@@ -88,6 +94,9 @@ export class SettingsController {
     return this.settingsService.updateBannerSetting(body);
   }
 
+  @UseGuards(AuthorizationGuard)
+  @ApiSecurity('uid')
+  @ApiBearerAuth()
   @Patch('/banner/image')
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -101,6 +110,9 @@ export class SettingsController {
       },
     },
   })
+  @UseGuards(AuthorizationGuard)
+  @ApiSecurity('uid')
+  @ApiBearerAuth()
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({ summary: 'Upload Pop-up modal image' })
   @ApiOkResponse({
@@ -118,6 +130,9 @@ export class SettingsController {
     });
   }
 
+  @UseGuards(AuthorizationGuard)
+  @ApiSecurity('uid')
+  @ApiBearerAuth()
   @Get('/freight')
   @ApiOperation({ summary: 'Fetch vendor freight settings' })
   @ApiOkResponse({
@@ -128,6 +143,9 @@ export class SettingsController {
     return this.settingsService.fetchFreights(query);
   }
 
+  @UseGuards(AuthorizationGuard)
+  @ApiSecurity('uid')
+  @ApiBearerAuth()
   @Post('/freight')
   @ApiOperation({ summary: 'Create Vendor Freight Setting' })
   @ApiCreatedResponse({ description: 'Created freight docs', type: Freight })
@@ -135,6 +153,9 @@ export class SettingsController {
     return this.settingsService.createFreight(body);
   }
 
+  @UseGuards(AuthorizationGuard)
+  @ApiSecurity('uid')
+  @ApiBearerAuth()
   @Patch('/freight')
   @ApiOperation({ summary: 'Update Vendor Freight Setting' })
   @ApiOkResponse({ description: 'Updated freight docs ', type: [Freight] })
@@ -142,6 +163,9 @@ export class SettingsController {
     return this.settingsService.updateFreights(body);
   }
 
+  @UseGuards(AuthorizationGuard)
+  @ApiSecurity('uid')
+  @ApiBearerAuth()
   @Get('/suppliers')
   @ApiOperation({ summary: 'Fetch Suppliers' })
   @ApiOkResponse({ description: 'Suppliers fetched successfully' })
@@ -149,6 +173,9 @@ export class SettingsController {
     return this.settingsService.getSuppliers(query);
   }
 
+  @UseGuards(AuthorizationGuard)
+  @ApiSecurity('uid')
+  @ApiBearerAuth()
   @Get('/purchase-setting')
   @ApiOkResponse({
     description: 'Purchase Setting Fetched successfully',
@@ -159,6 +186,9 @@ export class SettingsController {
     return this.settingsService.getPurchaseSetting();
   }
 
+  @UseGuards(AuthorizationGuard)
+  @ApiSecurity('uid')
+  @ApiBearerAuth()
   @Patch('/purchase-setting')
   @ApiOkResponse({
     description: 'Purchase Setting Update successfully',
