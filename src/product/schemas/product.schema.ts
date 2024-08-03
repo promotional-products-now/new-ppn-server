@@ -75,7 +75,7 @@ export class Product extends Document {
   @Prop({
     type: {
       code: String,
-      name: String,
+      name: { type: String, index: true },
       details: [{ name: String, detail: String }],
       description: String,
       discontinued: Boolean,
@@ -83,7 +83,6 @@ export class Product extends Document {
       supplierLabel: { type: String, required: false },
       supplierCatalogue: { type: String, required: false },
       supplierWebsitePage: String,
-
       images: [String],
       videos: [String],
       lineArt: [String],

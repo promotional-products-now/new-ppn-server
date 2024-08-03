@@ -12,7 +12,7 @@ export class Supplier extends Document {
   @ApiProperty()
   name: string;
 
-  @Prop({ type: String })
+  @Prop({ type: String, index: true })
   @ApiProperty()
   supplierId: string;
 
