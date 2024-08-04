@@ -19,4 +19,6 @@ export enum PRODUCT_FILTER {
   EXPIRED_DISCOUNT = 'Expired Discount',
   DISCOUNTS_EXPIRING = 'Discounts Expiring',
   NON_DISCOUNTED_ITEMS = 'Non-dscounted items',
+  BUY_NOW_CANDIDATE = 'Buy now candidate',
+  ENABLE_VISIBILITY = 'Enable visibility',
 }
