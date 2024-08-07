@@ -1,5 +1,5 @@
 import { Document, HydratedDocument, Types } from 'mongoose';
-import { Schema, SchemaFactory, Prop } from '@nestjs/mongoose';
+import { Schema, SchemaFactory, Prop, raw } from '@nestjs/mongoose';
 import { BasePrice } from './baseprice.schema';
 import { Addition } from './addition.schema';
 import { Supplier } from './supplier.schema';
@@ -219,6 +219,43 @@ export class Product extends Document {
     example: STATUS_ENUM.BUY_NOW,
   })
   status: string;
+
+  @Prop({
+    type: {
+      diamondRule: {
+        total: Number,
+        reducedMarkup: Number,
+        expiryDate: Date,
+      },
+      goldRule: {
+        total: Number,
+        reducedMarkup: Number,
+        expiryDate: Date,
+      },
+      regularRule: {
+        total: Number,
+        reducedMarkup: Number,
+        expiryDate: Date,
+      },
+    },
+  })
+  discounts: {
+    diamondRule: {
+      total: number;
+      reducedMarkup: number;
+      expiryDate: Date;
+    };
+    goldRule: {
+      total: number;
+      reducedMarkup: number;
+      expiryDate: Date;
+    };
+    regularRule: {
+      total: number;
+      reducedMarkup: number;
+      expiryDate: Date;
+    };
+  };
 }
 
 export type ProductDocument = HydratedDocument<Product>;

@@ -1,6 +1,13 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsEnum } from 'class-validator';
+import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
+import {
+  IsBoolean,
+  IsDate,
+  IsEnum,
+  IsNumber,
+  ValidateNested,
+} from 'class-validator';
 import { STATUS_ENUM } from '../product.interface';
+import { Type } from 'class-transformer';
 
 export class BaseUpdateDto {
   @ApiProperty({ type: 'boolean', example: true })
@@ -16,7 +23,66 @@ export class BaseUpdateDto {
   status: STATUS_ENUM;
 }
 
-export class UpdateProductDto extends BaseUpdateDto {}
+class DiscountRule {
+  @ApiProperty({
+    description: 'The total amount required to qualify for the discount',
+    example: 100,
+  })
+  @IsNumber()
+  total: number;
+
+  @ApiProperty({
+    description: 'The reduced markup amount due to the discount',
+    example: 10,
+  })
+  @IsNumber()
+  reducedMarkup: number;
+
+  @ApiProperty({
+    description: 'The expiry date of the discount',
+    example: '2024-08-01T00:00:00Z',
+  })
+  @IsDate()
+  @Type(() => Date)
+  expiryDate: Date;
+}
+
+@ApiExtraModels(DiscountRule)
+class Discounts {
+  @ApiProperty({
+    type: DiscountRule,
+    description: 'The discount rules for the diamond tier',
+  })
+  @ValidateNested()
+  @Type(() => DiscountRule)
+  diamondRule: DiscountRule;
+
+  @ApiProperty({
+    type: DiscountRule,
+    description: 'The discount rules for the gold tier',
+  })
+  @ValidateNested()
+  @Type(() => DiscountRule)
+  goldRule: DiscountRule;
+
+  @ApiProperty({
+    type: DiscountRule,
+    description: 'The discount rules for the regular tier',
+  })
+  @ValidateNested()
+  @Type(() => DiscountRule)
+  regularRule: DiscountRule;
+}
+
+export class UpdateProductDto extends BaseUpdateDto {
+  @ApiProperty({
+    type: Discounts,
+    description: 'Discounts applied to the product',
+  })
+  @ValidateNested()
+  @Type(() => Discounts)
+  discounts: Discounts;
+}
 
 export class UpdateCategoryDto extends BaseUpdateDto {}
 
