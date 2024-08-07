@@ -400,6 +400,21 @@ export class ProductService {
           path: '$supplier',
         },
       },
+      //
+      {
+        $lookup: {
+          from: 'baseprices', // ensure this matches the actual collection name
+          localField: 'product.prices.priceGroups.basePrice',
+          foreignField: '_id',
+          as: 'basePrices',
+        },
+      },
+      {
+        $unwind: {
+          path: '$basePrice',
+        },
+      },
+      //
       {
         $lookup: {
           from: 'productcategories',
@@ -493,6 +508,7 @@ export class ProductService {
         $count: 'count',
       },
     ]);
+
     const totalPages = Math.ceil(count[0].count / limit);
 
     return {
