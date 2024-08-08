@@ -523,15 +523,47 @@ export class SupplierService {
   ) {
     const { ids, ...rest } = updateSubCategoryDto;
     const idsMap = ids.map((id) => new ObjectId(id));
-    return await this.productSubCategoryModel
-      .updateMany(
-        {
-          _id: { $in: idsMap },
-          'category.supplier': new ObjectId(supplierId),
+
+    const updatedSubCategories = await this.productSubCategoryModel.aggregate([
+      {
+        $lookup: {
+          from: 'productcategories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category',
         },
-        rest,
-        { new: true },
-      )
-      .populate('category');
+      },
+      {
+        $unwind: {
+          path: '$category',
+        },
+      },
+      {
+        $lookup: {
+          from: 'suppliers',
+          localField: 'category.supplier',
+          foreignField: '_id',
+          as: 'supplier',
+        },
+      },
+      {
+        $unwind: {
+          path: '$supplier',
+        },
+      },
+      {
+        $match: {
+          _id: { $in: [...idsMap] },
+          'supplier._id': new ObjectId(supplierId),
+        },
+      },
+      {
+        $set: {
+          ...rest,
+        },
+      },
+    ]);
+
+    return updatedSubCategories;
   }
 }
