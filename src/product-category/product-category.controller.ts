@@ -6,9 +6,13 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { UpdateCategoryDto } from '../product/dto/update-product.dto';
 import { ProductCategory } from './schemas/category.schema';
-import { UpdateSubCategoryDto } from './dto/update-product-category.dto';
+import {
+  UpdateCategoriesDto,
+  UpdateCategoryDto,
+  UpdateSubCategoriesDto,
+  UpdateSubCategoryDto,
+} from './dto/update-product-category.dto';
 import { ProductSubCategory } from './schemas/subCategory.schema';
 import {
   ClientCategoryResponse,
@@ -16,6 +20,7 @@ import {
   PaginatedSubCategoryResponse,
 } from './dto/paginated-response.dto';
 import { FetchtQueryDto } from './dto/fetch-query.dto';
+import { UpdateManyResponse } from '../types';
 
 @Controller('product-category')
 @ApiTags('product-category')
@@ -72,11 +77,25 @@ export class ProductCategoryController {
     );
   }
 
+  @Patch('/subcategory/:id')
+  @ApiParam({ name: 'id', type: 'string', required: true })
+  @ApiOperation({ summary: 'Update SubCategories' })
+  @ApiOkResponse({
+    description: 'Updated subcategories data',
+    type: ProductSubCategory,
+  })
+  async updateSubCategory(
+    @Param('id') id: string,
+    @Body() body: UpdateSubCategoryDto,
+  ) {
+    return await this.productCategoryService.updateSubCategory(id, body);
+  }
+
   @Patch('/:id')
   @ApiParam({ name: 'id', type: 'string', required: true })
-  @ApiOperation({ summary: 'Update Category' })
+  @ApiOperation({ summary: 'Update Categories' })
   @ApiOkResponse({
-    description: 'Updated category data',
+    description: 'Updated categories data',
     type: ProductCategory,
   })
   async updateCategory(
@@ -86,17 +105,23 @@ export class ProductCategoryController {
     return await this.productCategoryService.updateCategory(id, body);
   }
 
-  @Patch('/subcategory/:id')
-  @ApiParam({ name: 'id', type: 'string', required: true })
-  @ApiOperation({ summary: 'Update SubCategory' })
+  @Patch('/subcategory')
+  @ApiOperation({ summary: 'Update SubCategories' })
   @ApiOkResponse({
-    description: 'Updated subcategory data',
-    type: ProductSubCategory,
+    description: 'Updated subcategories data',
+    type: UpdateManyResponse,
   })
-  async updateSubCategory(
-    @Param('id') id: string,
-    @Body() body: UpdateSubCategoryDto,
-  ) {
-    return await this.productCategoryService.updateSubCategory(id, body);
+  async updateSubCategories(@Body() body: UpdateSubCategoriesDto) {
+    return await this.productCategoryService.updateSubCategories(body);
+  }
+
+  @Patch()
+  @ApiOperation({ summary: 'Update Categories' })
+  @ApiOkResponse({
+    description: 'Updated categories data',
+    type: UpdateManyResponse,
+  })
+  async updateCategories(@Body() body: UpdateCategoriesDto) {
+    return await this.productCategoryService.updateCategories(body);
   }
 }

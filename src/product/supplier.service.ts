@@ -9,8 +9,27 @@ import { Supplier, SupplierDocument } from './schemas/supplier.schema';
 import { Product, ProductDocument } from './schemas/product.schema';
 import { FilterProductQueryDto } from './dto/filter-product-query.dto';
 import { FetchtQueryDto } from './dto/fetch-query.dto';
-import { UdpateSupplierDto } from './dto/update-supplier.dto';
+import {
+  UdpateSupplierDto,
+  UdpateSuppliersDto,
+} from './dto/update-supplier.dto';
 import { ObjectId } from 'mongodb';
+import {
+  ProductCategory,
+  ProductCategoryDocument,
+} from '../product-category/schemas/category.schema';
+import {
+  ProductSubCategory,
+  ProductSubCategoryDocument,
+} from '../product-category/schemas/subCategory.schema';
+import {
+  UpdateCategoriesDto,
+  UpdateSubCategoriesDto,
+} from '../product-category/dto/update-product-category.dto';
+import {
+  UpdateCategoryDto,
+  UpdateSubCategoryDto,
+} from './dto/update-product.dto';
 
 @Injectable()
 export class SupplierService {
@@ -19,6 +38,10 @@ export class SupplierService {
     private readonly supplierModel: Model<SupplierDocument>,
     @InjectModel(Product.name)
     private readonly productModel: Model<ProductDocument>,
+    @InjectModel(ProductCategory.name)
+    private readonly productCategoryModel: Model<ProductCategoryDocument>,
+    @InjectModel(ProductSubCategory.name)
+    private readonly productSubCategoryModel: Model<ProductSubCategoryDocument>,
   ) {}
 
   async findSuppliers(query: FetchtQueryDto) {
@@ -274,5 +297,241 @@ export class SupplierService {
     }
 
     return supplier;
+  }
+
+  async getSubCategoriesBySupplier(id: string, query: FetchtQueryDto) {
+    const page = query.page ? Number(query.page) : 1;
+    const limit = query.limit ? Number(query.limit) : 15;
+
+    let filter: Record<string, any> = {
+      'supplier._id': new ObjectId(id),
+    };
+    const sort: Record<string, any> = { createdAt: -1 };
+
+    if (query.query) {
+      Object.assign(filter, {
+        name: { $regex: new RegExp(query.query, 'gi') },
+      });
+    }
+
+    const subCategories = await this.productSubCategoryModel.aggregate([
+      {
+        $lookup: {
+          from: 'productcategories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      {
+        $unwind: {
+          path: '$category',
+        },
+      },
+      {
+        $lookup: {
+          from: 'suppliers',
+          localField: 'category.supplier',
+          foreignField: '_id',
+          as: 'supplier',
+        },
+      },
+      {
+        $unwind: {
+          path: '$supplier',
+        },
+      },
+      {
+        $match: {
+          ...filter,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          category: 1,
+          name: 1,
+          isActive: 1,
+          status: 1,
+        },
+      },
+      {
+        $skip: limit * (page - 1),
+      },
+      {
+        $limit: limit,
+      },
+      {
+        $sort: {
+          ...sort,
+        },
+      },
+    ]);
+
+    const count = await this.productSubCategoryModel.aggregate([
+      {
+        $lookup: {
+          from: 'productcategories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      {
+        $unwind: {
+          path: '$category',
+        },
+      },
+      {
+        $lookup: {
+          from: 'suppliers',
+          localField: 'category.supplier',
+          foreignField: '_id',
+          as: 'supplier',
+        },
+      },
+      {
+        $unwind: {
+          path: '$supplier',
+        },
+      },
+      {
+        $match: {
+          ...filter,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          category: 1,
+          name: 1,
+          isActive: 1,
+          status: 1,
+        },
+      },
+      {
+        $skip: limit * (page - 1),
+      },
+      {
+        $limit: limit,
+      },
+      {
+        $sort: {
+          ...sort,
+        },
+      },
+      {
+        $count: 'count',
+      },
+    ]);
+    const totalPages = Math.ceil(count[0].count / limit);
+
+    return {
+      docs: subCategories,
+      page,
+      limit,
+      nextPage: page < totalPages ? page + 1 : null,
+      prevPage: page > 1 ? page - 1 : null,
+      totalItems: count[0].count,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrevious: page > 1,
+    };
+  }
+
+  async updateSuppliers(payload: UdpateSuppliersDto) {
+    const { ids, ...rest } = payload;
+    const idsMap = ids.map((id) => new ObjectId(id));
+    return await this.supplierModel.updateMany({ _id: { $in: idsMap } }, rest, {
+      new: true,
+    });
+  }
+
+  async updateCategory(
+    id: string,
+    supplierId: string,
+    updateCategoryDto: UpdateCategoryDto,
+  ) {
+    const category = await this.productCategoryModel.findOneAndUpdate(
+      { _id: id, supplier: new ObjectId(supplierId) },
+      updateCategoryDto,
+      { new: true },
+    );
+
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+
+    return category;
+  }
+
+  async updateSubCategory(
+    id: string,
+    supplierId: string,
+    updateSubCategoryDto: UpdateSubCategoryDto,
+  ): Promise<ProductSubCategory> {
+    const subCategory = await this.productSubCategoryModel.aggregate([
+      {
+        $lookup: {
+          from: 'productcategories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      {
+        $unwind: {
+          path: '$category',
+        },
+      },
+      {
+        $match: {
+          _id: new ObjectId(id),
+          'category.supplier': new ObjectId(supplierId),
+        },
+      },
+      {
+        $set: {
+          ...updateSubCategoryDto,
+        },
+      },
+    ]);
+
+    if (!subCategory.length) {
+      throw new NotFoundException('Subcategory not found');
+    }
+
+    return subCategory[0];
+  }
+
+  async updateCategories(
+    supplierId: string,
+    updateCategoryDto: UpdateCategoriesDto,
+  ) {
+    const { ids, ...rest } = updateCategoryDto;
+    const idsMap = ids.map((id) => new ObjectId(id));
+    return await this.productCategoryModel.updateMany(
+      { _id: { $in: idsMap }, supplier: new ObjectId(supplierId) },
+      rest,
+      { new: true },
+    );
+  }
+
+  async updateSubCategories(
+    supplierId: string,
+    updateSubCategoryDto: UpdateSubCategoriesDto,
+  ) {
+    const { ids, ...rest } = updateSubCategoryDto;
+    const idsMap = ids.map((id) => new ObjectId(id));
+    return await this.productSubCategoryModel
+      .updateMany(
+        {
+          _id: { $in: idsMap },
+          'category.supplier': new ObjectId(supplierId),
+        },
+        rest,
+        { new: true },
+      )
+      .populate('category');
   }
 }

@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import {
+  UpdateCategoriesDto,
   UpdateCategoryDto,
+  UpdateSubCategoriesDto,
   UpdateSubCategoryDto,
 } from './dto/update-product-category.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -72,7 +74,7 @@ export class ProductCategoryService {
       });
   }
 
-  async updateCategory(id: string, updateCategoryDto: UpdateCategoryDto) {
+  async updateCategory(id, updateCategoryDto: UpdateCategoryDto) {
     return await this.productCategoryModel.findByIdAndUpdate(
       id,
       updateCategoryDto,
@@ -84,9 +86,29 @@ export class ProductCategoryService {
     id: string,
     updateSubCategoryDto: UpdateSubCategoryDto,
   ) {
-    return await this.productCategoryModel.findByIdAndUpdate(
+    return await this.productSubCategoryModel.findByIdAndUpdate(
       id,
       updateSubCategoryDto,
+      { new: true },
+    );
+  }
+
+  async updateCategories(updateCategoryDto: UpdateCategoriesDto) {
+    const { ids, ...rest } = updateCategoryDto;
+    const idsMap = ids.map((id) => new ObjectId(id));
+    return await this.productCategoryModel.findByIdAndUpdate(
+      { _id: { $in: idsMap } },
+      rest,
+      { new: true },
+    );
+  }
+
+  async updateSubCategories(updateSubCategoryDto: UpdateSubCategoriesDto) {
+    const { ids, ...rest } = updateSubCategoryDto;
+    const idsMap = ids.map((id) => new ObjectId(id));
+    return await this.productSubCategoryModel.updateMany(
+      { _id: { $in: idsMap } },
+      rest,
       { new: true },
     );
   }
