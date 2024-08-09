@@ -1,7 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CreateOrderDto } from './create-order';
+import { STATUS_ENUM } from '../order.contants';
+import { IsEnum } from 'class-validator';
 
-export class UpdateOrderDto extends CreateOrderDto {
-  @ApiProperty({ example: '666d98ab565f924157e31c54' })
-  declare id: string;
+export class UpdateOrderDto {
+  @ApiProperty({ example: '66acca030eb6332b901a83fb' })
+  id?: string;
+
+  @ApiProperty({
+    type: 'string',
+    enum: STATUS_ENUM,
+    example: STATUS_ENUM.CANCELLED,
+  })
+  @IsEnum(STATUS_ENUM)
+  status: string;
 }
