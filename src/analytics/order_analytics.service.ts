@@ -11,6 +11,43 @@ export class OrderAnalyticsService {
     private readonly orderModel: Model<OrderDocument>,
   ) {}
 
+  async getOrderAnalyticsLineChart(orderAnalyticsDto: AnalyticsDto) {
+    const from = new Date(orderAnalyticsDto.startDate);
+    const to = new Date(orderAnalyticsDto.endDate);
+
+    const orderAnalytics = await this.orderModel.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: from, $lte: to },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            date: {
+              $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
+            },
+            status: '$status',
+          },
+          totalOrders: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { '_id.date': 1 },
+      },
+      {
+        $project: {
+          _id: 0,
+          createdAt: '$_id.date',
+          orderType: '$_id.status',
+          totalOrder: '$totalOrders',
+        },
+      },
+    ]);
+
+    return orderAnalytics;
+  }
+
   async getOrderAnalytics(orderAnalyticsDto: AnalyticsDto) {
     const from = new Date(orderAnalyticsDto.startDate);
     const to = new Date(orderAnalyticsDto.endDate);
@@ -83,7 +120,7 @@ export class OrderAnalyticsService {
       },
       {
         $project: {
-          date: '$_id',
+          // date: '$_id',
           success: 1,
           pending: 1,
           canceled: 1,

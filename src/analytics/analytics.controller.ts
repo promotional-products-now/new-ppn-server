@@ -34,6 +34,19 @@ export class AnalyticsController {
     return this.userAnalyticsService.userAnalytics(userAnalyticsDto);
   }
 
+  @Get('/order-analytics-line')
+  @ApiOperation({ summary: 'Retrieve orders analytics successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved orders analytics.',
+    type: UserAnalytics,
+  })
+  getOrderAnalyticsLineItems(@Query() orderAnalyticsDto: AnalyticsDto) {
+    return this.orderAnalyticsService.getOrderAnalyticsLineChart(
+      orderAnalyticsDto,
+    );
+  }
+
   @Get('/order-analytics')
   @ApiOperation({ summary: 'Retrieve orders analytics successfully' })
   @ApiResponse({
