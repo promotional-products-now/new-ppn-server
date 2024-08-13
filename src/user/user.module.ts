@@ -6,12 +6,14 @@ import { UserController } from './user.controller';
 import { JWTModule } from '../commons/services/JWTService/JWTService.module';
 import { UserDevice, UserDeviceSchema } from './schemas/userDevice.schema';
 import { UserActivityModule } from '../user_activity/user_activity.module';
+import { OrderModule } from 'src/order/order.module';
 // import { FileUploadModule } from '../commons/services/FileUploadService/file-upload.module';
 
 @Module({
   imports: [
     JWTModule,
     UserActivityModule,
+    OrderModule,
     // FileUploadModule,
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
