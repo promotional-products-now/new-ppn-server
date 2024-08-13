@@ -1,5 +1,5 @@
-import { IsDateString, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsDateString, IsOptional } from 'class-validator';
 
 export class AnalyticsDto {
   @ApiProperty({
@@ -19,4 +19,12 @@ export class AnalyticsDto {
   @IsDateString()
   @IsOptional()
   endDate: string;
+
+  @ApiProperty({
+    example: '66434fbad54cecbd2569b403',
+    description: 'The user id to filter by',
+    required: false,
+  })
+  @IsOptional()
+  userId?: string;
 }

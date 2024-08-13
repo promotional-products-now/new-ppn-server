@@ -41,6 +41,7 @@ import { AzureBlobService } from '../commons/services/FileUploadService/azure-bl
 import { CountUserResDto } from './dto/count-user.dto';
 import { FilterWithCreatedAt, FindUsers } from './dto/fetch-user.dto';
 import { PaginationDto } from '../commons/dtos/pagination.dto';
+import { Order } from 'src/order/schemas/order.schema';
 
 @ApiTags('users')
 @UseGuards(AuthorizationGuard)
@@ -160,6 +161,19 @@ export class UserController {
   })
   @ApiResponse({ status: 404, description: 'User not found.' })
   async findOne(@Param('id') id: string): Promise<UserDocument | null> {
+    return await this.userService.findOneById(new Types.ObjectId(id));
+  }
+
+  @Get(':id/orders')
+  @ApiOperation({ summary: 'Retrieves the orders of a user' })
+  @ApiParam({ name: 'id', description: 'User ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved users order.',
+    type: Order,
+  })
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  async findOrders(@Param('id') id: string): Promise<UserDocument | null> {
     return await this.userService.findOneById(new Types.ObjectId(id));
   }
 
