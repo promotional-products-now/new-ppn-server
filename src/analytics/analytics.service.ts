@@ -14,16 +14,9 @@ export class AnalyticsService {
   ) {}
 
   async getDashboardTotal() {
-    const totalProduct = await this.productModel.countDocuments({
-      isActive: true,
-      'supplier.isActive': true,
-      'category.isActive': true,
-      'subCategory.isActive': true,
-    });
+    const totalProduct = await this.productModel.countDocuments();
 
-    const totalOrders = await this.OrderModel.countDocuments({
-      status: { $nin: ['failed', 'cancelled'] },
-    });
+    const totalOrders = await this.OrderModel.countDocuments();
 
     //TODO add total earnings
     return { totalProduct, totalOrders };
