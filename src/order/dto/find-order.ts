@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsString, IsOptional } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { STATUS_ENUM } from '../../order/order.contants';
+import { Types } from 'mongoose';
 
 export class FindOrderDto {
   @ApiProperty({ example: 1 })
@@ -24,7 +25,7 @@ export class FindOrderDto {
   @ApiProperty({ example: 'optional userid to filter by', required: false })
   @IsString()
   @IsOptional()
-  userId?: string;
+  userId?: string | Types.ObjectId;
 
   /**
    * You can find find all orders a product has

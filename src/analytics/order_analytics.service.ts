@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { AnalyticsDto } from './dto/analytics.dto';
 import { Order, OrderDocument } from 'src/order/schemas/order.schema';
+import { ObjectId } from 'mongodb';
 
 @Injectable()
 export class OrderAnalyticsService {
@@ -10,6 +11,49 @@ export class OrderAnalyticsService {
     @InjectModel(Order.name)
     private readonly orderModel: Model<OrderDocument>,
   ) {}
+
+  async getOrderAnalyticsLineChart(orderAnalyticsDto: AnalyticsDto) {
+    const from = new Date(orderAnalyticsDto.startDate ?? null);
+    const to = new Date(orderAnalyticsDto.endDate ?? null);
+
+    const matchRule: Record<string, any> = {
+      createdAt: { $gte: from, $lte: to },
+    };
+
+    if (orderAnalyticsDto.userId) {
+      matchRule.userId = new ObjectId(orderAnalyticsDto.userId);
+    }
+
+    const orderAnalytics = await this.orderModel.aggregate([
+      {
+        $match: matchRule,
+      },
+      {
+        $group: {
+          _id: {
+            date: {
+              $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
+            },
+            status: '$status',
+          },
+          totalOrders: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { '_id.date': 1 },
+      },
+      {
+        $project: {
+          _id: 0,
+          createdAt: '$_id.date',
+          orderType: '$_id.status',
+          totalOrder: '$totalOrders',
+        },
+      },
+    ]);
+
+    return orderAnalytics;
+  }
 
   async getOrderAnalytics(orderAnalyticsDto: AnalyticsDto) {
     const from = orderAnalyticsDto.startDate
@@ -87,7 +131,7 @@ export class OrderAnalyticsService {
       },
       {
         $project: {
-          date: '$_id',
+          // date: '$_id',
           success: 1,
           pending: 1,
           canceled: 1,

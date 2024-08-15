@@ -32,3 +32,11 @@ export class PaginatedResponseDto<T> implements PaginatedResponse<T> {
   @ApiProperty({ example: false })
   hasPrevPage: boolean;
 }
+
+export class UpdateManyResponse {
+  acknowledged: boolean;
+  modifiedCount: number;
+  upsertedId: string | null;
+  upsertedCount: number;
+  matchedCount: number;
+}
