@@ -292,13 +292,11 @@ export class ProductService {
     const limit = query.limit ? Number(query.limit) : 15;
 
     const filterQuery: Record<string, any> = {
-      isActive: true,
+      ...(!query.isAdmin && { isActive: true }),
       'supplier.isActive': true,
       'category.isActive': true,
       'subCategory.isActive': true,
     };
-
-    const now = new Date();
 
     let sort = {};
 
@@ -357,25 +355,7 @@ export class ProductService {
               'product.details': { $exists: true, $ne: [] },
             });
             break;
-          case PRODUCT_FILTER.DISCOUNTED_PRODUCTS:
-            Object.assign(filterQuery, { discounts: { $exists: true } });
-            break;
           case PRODUCT_FILTER.ITEMS_FROM_API_SUPPLIERS:
-            Object.assign(filterQuery, {
-              'meta.datasource': 'API',
-            });
-            break;
-          case PRODUCT_FILTER.AUSTRALIAN_REGION:
-            Object.assign(filterQuery, { 'supplier.country': 'AU' });
-            break;
-          case PRODUCT_FILTER.NEW_ZEALAND_REGION:
-            Object.assign(filterQuery, { 'supplier.country': 'NZ' });
-            break;
-          case PRODUCT_FILTER.DISCOUNTED_PRODUCTS:
-            Object.assign(filterQuery, { 'product.discontinued': true });
-            break;
-          case PRODUCT_FILTER.ITEMS_WITH_STOCK_CHECK:
-            Object.assign(filterQuery, { 'meta.canCheckStock': true });
             break;
           case PRODUCT_FILTER.NEW_ITEMS_LAST_30_DAYS:
             const currentDate = new Date();
@@ -383,38 +363,6 @@ export class ProductService {
             Object.assign(filterQuery, {
               'meta.firstListedAt': { $gte: currentDate },
             });
-            break;
-          case PRODUCT_FILTER.EXPIRED_DISCOUNT:
-            Object.assign(filterQuery, {
-              'discounts.regularRule.expiryDate': { $lt: now },
-              'discounts.goldRule.expiryDaate': { $lt: now },
-              'discounts.diamondRule.expiryDate': { $lt: now },
-            });
-            break;
-          case PRODUCT_FILTER.DISCOUNTS_EXPIRING:
-            const futureDate = new Date();
-            futureDate.setDate(now.getDate() + 1);
-            Object.assign(filterQuery, {
-              'discounts.regularRule.expiryDate': {
-                $gte: now,
-                $lte: futureDate,
-              },
-              'discounts.goldRule.expiryDaate': { $gte: now, $lte: futureDate },
-              'discounts.diamondRule.expiryDate': {
-                $gte: now,
-                $lte: futureDate,
-              },
-            });
-
-            break;
-          case PRODUCT_FILTER.NON_DISCOUNTED_ITEMS:
-            Object.assign(filterQuery, { discounts: { $exists: false } });
-            break;
-          case PRODUCT_FILTER.BUY_NOW_CANDIDATE:
-            Object.assign(filterQuery, { status: STATUS_ENUM.BUY_NOW });
-            break;
-          case PRODUCT_FILTER.ENABLE_VISIBILITY:
-            Object.assign(filterQuery, { isActive: true });
             break;
           default:
             this.logger.log('not implemented');
@@ -453,21 +401,14 @@ export class ProductService {
           path: '$supplier',
         },
       },
-      //
       {
         $lookup: {
-          from: 'baseprices', // ensure this matches the actual collection name
+          from: 'baseprices',
           localField: 'product.prices.priceGroups.basePrice',
           foreignField: '_id',
-          as: 'basePrices',
+          as: 'baseprices',
         },
       },
-      {
-        $unwind: {
-          path: '$basePrice',
-        },
-      },
-      //
       {
         $lookup: {
           from: 'productcategories',
@@ -576,6 +517,7 @@ export class ProductService {
       hasPrevPage: page > 1,
     };
   }
+
 
   async findById(id: string) {
     return await this.productModel

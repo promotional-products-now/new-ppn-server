@@ -30,12 +30,12 @@ import { OrderModule } from './order/order.module';
       {
         name: 'short',
         ttl: 1000,
-        limit: 5,
+        limit: 12,
       },
       {
         name: 'long',
         ttl: 60000,
-        limit: 50, //50 request per minute
+        limit: 60, //60 request per minute
       },
     ]),
     SuspendModule,

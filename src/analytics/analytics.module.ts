@@ -7,16 +7,27 @@ import { JWTModule } from '../commons/services/JWTService/JWTService.module';
 import { AuthorizationGuard } from '../commons/guards/authorization.guard';
 import { UserModule } from '../user/user.module';
 import { OrderAnalyticsService } from './order_analytics.service';
-import { Order, OrderSchema } from 'src/order/schemas/order.schema';
+import { Order, OrderSchema } from '../order/schemas/order.schema';
+import { AnalyticsService } from './analytics.service';
+import { Product, ProductSchema } from '../product/schemas/product.schema';
 
 @Module({
   imports: [
     JWTModule,
-    MongooseModule.forFeature([{ name: Order.name, schema: OrderSchema }]),
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: Order.name, schema: OrderSchema },
+      { name: User.name, schema: UserSchema },
+      { name: Product.name, schema: ProductSchema },
+    ]),
+
     forwardRef(() => UserModule),
   ],
   controllers: [AnalyticsController],
-  providers: [UserAnalyticsService, OrderAnalyticsService, AuthorizationGuard],
+  providers: [
+    UserAnalyticsService,
+    OrderAnalyticsService,
+    AnalyticsService,
+    AuthorizationGuard,
+  ],
 })
 export class AnalyticsModule {}

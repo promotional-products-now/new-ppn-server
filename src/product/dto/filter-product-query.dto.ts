@@ -1,6 +1,12 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class FilterProductQueryDto {
   @ApiPropertyOptional({ type: [String] })
@@ -51,6 +57,11 @@ export class FilterProductQueryDto {
   @IsString()
   @IsOptional()
   category: string;
+
+  @ApiPropertyOptional({ example: true })
+  @IsBoolean()
+  @IsOptional()
+  isAdmin: boolean;
 }
 
 export class FilterProductByCategoryQueryDto {

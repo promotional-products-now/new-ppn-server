@@ -11,6 +11,7 @@ import {
 import { UserAnalytics } from './dto/user-analytics.dto';
 import { AuthorizationGuard } from '../commons/guards/authorization.guard';
 import { OrderAnalyticsService } from './order_analytics.service';
+import { AnalyticsService } from './analytics.service';
 
 @ApiTags('analytics')
 @UseGuards(AuthorizationGuard)
@@ -21,6 +22,7 @@ export class AnalyticsController {
   constructor(
     private readonly userAnalyticsService: UserAnalyticsService,
     private readonly orderAnalyticsService: OrderAnalyticsService,
+    private readonly analyticsService: AnalyticsService,
   ) {}
 
   @Get('/user-analytics')
@@ -56,5 +58,14 @@ export class AnalyticsController {
   })
   getOrderAnalytics(@Query() orderAnalyticsDto: AnalyticsDto) {
     return this.orderAnalyticsService.getOrderAnalytics(orderAnalyticsDto);
+  }
+
+  //total products, total orders, total earnings
+  @Get('/dashboard-count')
+  @ApiOperation({
+    summary: 'Retrieve total products, total orders, total earnings',
+  })
+  async getDashboardTotal() {
+    return await this.analyticsService.getDashboardTotal();
   }
 }
