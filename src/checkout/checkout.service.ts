@@ -8,6 +8,7 @@ import { OrderService } from '../order/order.service';
 import { Order } from '../order/schemas/order.schema';
 import { User } from '../user/schemas/user.schema';
 import { STATUS_ENUM } from '../order/order.contants';
+import { CartService } from 'src/order/cart.service';
 
 @Injectable()
 export class CheckoutService {
@@ -19,6 +20,7 @@ export class CheckoutService {
   constructor(
     private configService: ConfigService,
     private orderService: OrderService,
+    private cartService: CartService,
   ) {
     this.stripeConfig = this.configService.get<StripeConfig>('stripe');
     this.stripe = new Stripe(this.stripeConfig.secretKey);
@@ -27,20 +29,27 @@ export class CheckoutService {
   async processOrder(user: User, ppnCheckout: CheckoutInput) {
     let order: Order;
 
+    const cartItems = await this.cartService.findAll({
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      userId: user._id,
+      isCheckedOut: false,
+    });
+
     try {
-      const items = ppnCheckout.cartItems;
       order = await this.orderService.create({
-        cartItems: items.map((item) => ({
-          price: item.price,
-          productId: item.productId,
-          quantity: item.quantity,
+        cartItems: cartItems.map((cartItem) => ({
+          cartId: cartItem._id,
+          price: cartItem.price,
+          productId: cartItem.productId,
+          quantity: cartItem.quantity,
         })),
         status: STATUS_ENUM.PENDING,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         // fix issues with userid types
         userId: user._id || user.id,
-        totalAmount: items.reduce((acc, item) => acc + item.price, 0),
+        totalAmount: cartItems.reduce((acc, item) => acc + item.price, 0),
       });
 
       if (order) {

@@ -15,11 +15,10 @@ export class CreateOrderDto {
   @ApiProperty({ type: 'number', example: 100.99 })
   totalAmount: number;
 
-  @ApiProperty({
-    type: [{ productId: 'string', quantity: 'number' }],
-    example: [
-      { productId: '666d98ab565f924157e31c54', quantity: 4, price: 4.99 },
-    ],
-  })
-  cartItems: { productId: string; quantity: number; price: number }[];
+  /**
+   * ~ Update Sat Aug 17, 2024 ~
+   * cart items are gotten from the database
+   * so this field is optional by the client but required by the server
+   */
+  cartItems?: { productId: any; quantity: number; price: number }[];
 }
