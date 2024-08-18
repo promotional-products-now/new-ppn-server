@@ -84,3 +84,29 @@ export class FilterProductByCategoryQueryDto {
   @IsOptional()
   limit: number;
 }
+
+export class FilterShowCaseQueryDto {
+  @ApiPropertyOptional({ example: 1 })
+  @Type(() => Number)
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  @IsOptional()
+  page: number;
+
+  @ApiPropertyOptional({ example: 15 })
+  @Transform(({ value }) => Number(value))
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  limit: number;
+
+  @ApiPropertyOptional({ example: 'footwears' })
+  @IsString()
+  @IsOptional()
+  categories: string;
+
+  @ApiPropertyOptional({ example: true })
+  @IsBoolean()
+  @IsOptional()
+  isAdmin: boolean;
+}

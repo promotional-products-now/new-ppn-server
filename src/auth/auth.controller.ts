@@ -210,7 +210,6 @@ export class AuthController {
       tokenVersion: user.tokenVersion,
     });
     const href = `https://app.${this.configService.get<string>('domain')}/change-password/?token=${accessToken}`;
-    console.log({ accessToken, href });
 
     await this.emailService.sendEmailWithTemplate({
       recipientEmail: user.email.address,

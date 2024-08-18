@@ -20,6 +20,7 @@ import { ProductService } from './product.service';
 import {
   FilterProductByCategoryQueryDto,
   FilterProductQueryDto,
+  FilterShowCaseQueryDto,
 } from './dto/filter-product-query.dto';
 import { FetchtQueryDto } from './dto/fetch-query.dto';
 import { PaginatedSupplierResponse } from './dto/paginated-response.dto';
@@ -39,6 +40,12 @@ export class ProductController {
     return await this.productsService.findAll(query);
   }
 
+  @Get('/product-show-case')
+  @ApiQuery({ type: FilterShowCaseQueryDto })
+  async productShowCase(@Query() query) {
+    return await this.productsService.productShowCase(query);
+  }
+
   @Get('/categories/:categoryName')
   @ApiQuery({ type: FilterProductByCategoryQueryDto })
   @ApiParam({ name: 'categoryName', type: 'string', required: true })
@@ -46,7 +53,6 @@ export class ProductController {
     @Query() query,
     @Param('categoryName') categoryName: string,
   ) {
-    console.log({ query, categoryName });
     return await this.productsService.findProductByCategory(
       query,
       categoryName,

@@ -20,6 +20,7 @@ import { PRODUCT_FILTER } from './constants';
 import {
   FilterProductByCategoryQueryDto,
   FilterProductQueryDto,
+  FilterShowCaseQueryDto,
 } from './dto/filter-product-query.dto';
 import {
   ProductCategory,
@@ -518,7 +519,6 @@ export class ProductService {
     };
   }
 
-
   async findById(id: string) {
     return await this.productModel
       .findById(id)
@@ -528,6 +528,50 @@ export class ProductService {
       .populate('category')
       .populate('subCategory')
       .exec();
+  }
+  async productShowCase(
+    query: FilterShowCaseQueryDto,
+  ): Promise<{ [key: string]: any }> {
+    const showCase: { [key: string]: any } = {};
+
+    // Ensure default values for page and limit
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 15;
+
+    const categoryNames = query.categories ? query.categories.split(',') : [];
+
+    const promises = categoryNames.map(async (categoryName) => {
+      const category = await this.productCategoryModel
+        .findOne({ name: this.removeSnakeCase(categoryName) })
+        .select(['name', 'id'])
+        .lean();
+
+      if (!category) {
+        throw new NotFoundException(`Category ${categoryName} not found`);
+      }
+
+      const sortOptions: { [key: string]: any } = {
+        'A-Z': { 'product.name': 1 },
+        'Z-A': { 'product.name': -1 },
+        'Recently added': { 'meta.firstListedAt': -1 },
+        default: { createdAt: -1 },
+      };
+
+      const sort = sortOptions['Recently added']; // Default sort can be adjusted as needed
+
+      const products = await this.productModel
+        .find({ category: category._id })
+        .skip(limit * (page - 1))
+        .limit(limit)
+        .sort(sort)
+        .lean();
+
+      showCase[categoryName] = products;
+    });
+
+    await Promise.all(promises);
+
+    return showCase;
   }
 
   async updateProduct(id: string, updateProductDto: UpdateProductDto) {
@@ -617,8 +661,6 @@ export class ProductService {
         .findOne({ name: this.removeSnakeCase(categoryName) })
         .select(['name', 'id'])
         .lean();
-
-      console.log({ category });
 
       if (!category) {
         throw new NotFoundException('Category not found');
