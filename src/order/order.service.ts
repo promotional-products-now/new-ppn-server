@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Order, OrderDocument } from './schemas/order.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -8,6 +8,8 @@ import { FindOrderDto } from './dto/find-order';
 import { ObjectId } from 'mongodb';
 import { Product } from '../product/schemas/product.schema';
 import { Supplier } from '../product/schemas/supplier.schema';
+import { Cart, CartDocument } from './schemas/cart.schema';
+import { STATUS_ENUM } from './order.contants';
 
 @Injectable()
 export class OrderService {
@@ -16,6 +18,9 @@ export class OrderService {
   constructor(
     @InjectModel(Order.name)
     private readonly orderModel: Model<OrderDocument>,
+
+    @InjectModel(Cart.name)
+    private readonly cartModel: Model<CartDocument>,
   ) {}
 
   async create(inputs: CreateOrderDto): Promise<Order> {
@@ -166,6 +171,23 @@ export class OrderService {
 
   async update(inputs: Partial<UpdateOrderDto>): Promise<Order> {
     this.logger.verbose(`updating order with: ${JSON.stringify(inputs)}`);
+
+    const order = await this.findOne(inputs.id);
+    if (!order) {
+      throw new NotFoundException(`Order with ID ${inputs.id} not found`);
+    }
+
+    // find all the products in the cart and `mark them as complete` them once the order is successful
+    if (inputs.status && inputs.status === STATUS_ENUM.SUCCESS) {
+      const cartItemIds = order.cartItems.map((cartItem) => cartItem._id);
+      await this.cartModel.updateMany(
+        {
+          id: { $in: cartItemIds },
+        },
+        { $set: { isCheckedOut: true } },
+      );
+    }
+
     return await this.orderModel.findByIdAndUpdate(inputs.id, inputs);
   }
 
