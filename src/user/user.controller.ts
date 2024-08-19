@@ -28,6 +28,7 @@ import {
 import {
   BanMultipleUsers,
   BanMultipleUsersDto,
+  LogoutUser,
   UpdateUserDto,
 } from './dto/update-user.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -149,6 +150,16 @@ export class UserController {
   })
   async banMultipleUsers(@Body() users: BanMultipleUsersDto) {
     return await this.userService.banMultipleUserAccounts(users.usersId);
+  }
+
+  @Put('/user/logout/:id')
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully logged out user.',
+    type: LogoutUser,
+  })
+  async logoutUser(@Param('id') id: string) {
+    return await this.userService.logOutUser(id);
   }
 
   @Get(':id')

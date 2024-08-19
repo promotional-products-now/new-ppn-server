@@ -365,4 +365,20 @@ export class UserService {
     const bannedUsers = modifiedCount === userIds.length;
     return { bannedUsers };
   }
+
+  async logOutUser(userId: string) {
+    const user = await this.userModel.findOne({
+      _id: new Types.ObjectId(userId),
+    });
+
+    await this.userModel.updateOne(
+      new Types.ObjectId(userId),
+      {
+        tokenVersion: user.tokenVersion + 1,
+      },
+      { upsert: false },
+    );
+
+    return { message: 'Logout successful' };
+  }
 }
