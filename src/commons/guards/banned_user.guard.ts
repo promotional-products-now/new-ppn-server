@@ -3,6 +3,7 @@ import {
   CanActivate,
   ExecutionContext,
   ForbiddenException,
+  NotFoundException,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { UserStatus } from '../../user/enums/status.enum';
@@ -20,6 +21,10 @@ export class BannedUserGuard implements CanActivate {
     }
 
     const user = await this.usersService.findOneByEmail(email);
+    if (!user) {
+      throw new NotFoundException(`${email} does not exist`);
+    }
+
     if (user.status === UserStatus.BANNED) {
       throw new ForbiddenException(
         'You are banned from performing this action',

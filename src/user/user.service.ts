@@ -374,7 +374,7 @@ export class UserService {
     await this.userModel.updateOne(
       new Types.ObjectId(userId),
       {
-        tokenVersion: user.tokenVersion + 1,
+        token: null,
       },
       { upsert: false },
     );
