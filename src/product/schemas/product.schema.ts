@@ -265,4 +265,4 @@ export const ProductSchema = SchemaFactory.createForClass(Product).set(
   false,
 );
 
-ProductSchema.index({ 'product.name': 'text' });
+ProductSchema.index({ 'product.name': 'text', 'product.code': 'text' });

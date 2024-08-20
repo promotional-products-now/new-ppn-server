@@ -325,7 +325,10 @@ export class ProductService {
 
     if (query.search) {
       Object.assign(filterQuery, {
-        'product.name': { $regex: new RegExp(query.search, 'gi') },
+        $or: [
+          { 'product.name': { $regex: new RegExp(query.search, 'gi') } },
+          { 'product.code': { $regex: new RegExp(query.search, 'gi') } },
+        ],
       });
     }
 
@@ -385,8 +388,6 @@ export class ProductService {
       default:
         sort = { createdAt: -1 };
     }
-
-    console.log(filterQuery);
 
     const products = await this.productModel.aggregate([
       {
@@ -503,14 +504,15 @@ export class ProductService {
         $count: 'count',
       },
     ]);
-
-    const totalPages = Math.ceil(count[0].count / limit);
+    console.log({ count });
+    const totalPages =
+      count && count[0] ? Math.ceil(count[0].count / limit) : 0;
 
     return {
       docs: products,
       page: page,
       limit: limit,
-      totalItems: count[0].count,
+      totalItems: count && count[0] ? count[0].count : 0,
       totalPages,
       nextPage: page < totalPages ? page + 1 : null,
       prevPage: page > 1 ? page - 1 : null,

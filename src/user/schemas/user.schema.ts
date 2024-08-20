@@ -4,6 +4,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Email, Location } from '../user.interface';
 import { UserRole } from '../enums/role.enum';
 import { UserStatus } from '../enums/status.enum';
+import { UserType } from '../enums/userType.enum';
 
 @Schema({ versionKey: false, timestamps: true })
 export class User {
@@ -50,6 +51,19 @@ export class User {
     required: false,
   })
   status: UserStatus;
+
+  @ApiProperty({
+    description: 'User Type',
+    enum: UserType,
+    default: UserType.Non_VIP,
+  })
+  @Prop({
+    type: String,
+    enum: UserType,
+    default: UserType.Non_VIP,
+    required: false,
+  })
+  userType: UserType;
 
   @ApiProperty({
     description: 'Encrypted password',
