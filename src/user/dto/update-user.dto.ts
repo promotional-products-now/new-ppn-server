@@ -25,3 +25,8 @@ export class BanMultipleUsers {
   @IsBoolean()
   bannedUsers: boolean;
 }
+
+export class LogoutUser {
+  @ApiProperty({ example: 'Logout successful' })
+  message: string;
+}

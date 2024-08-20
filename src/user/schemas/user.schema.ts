@@ -138,8 +138,8 @@ export class User {
   @Prop()
   updatedAt: Date;
 
-  @Prop({ default: 0 })
-  tokenVersion: number;
+  @Prop()
+  token: string;
   // @Prop({ default: null })
   // refreshToken: string | null;
 }

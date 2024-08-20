@@ -207,7 +207,6 @@ export class AuthController {
       uid: user._id.toHexString(),
       r: UserRole.USER,
       action: JwtAction.authorize,
-      tokenVersion: user.tokenVersion,
     });
     const href = `https://app.${this.configService.get<string>('domain')}/change-password/?token=${accessToken}`;
 
