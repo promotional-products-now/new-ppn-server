@@ -370,11 +370,13 @@ export class UserService {
     const user = await this.userModel.findOne({
       _id: new Types.ObjectId(userId),
     });
-
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
     await this.userModel.updateOne(
-      new Types.ObjectId(userId),
+      { _id: user._id },
       {
-        token: null,
+        accessToken: null,
       },
       { upsert: false },
     );

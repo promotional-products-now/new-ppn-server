@@ -66,7 +66,7 @@ export class AuthorizationGuard implements CanActivate {
       throw new UnauthorizedException('Invalid authorization credentials');
     }
 
-    if (user.token !== accessToken) {
+    if (user.accessToken !== accessToken) {
       throw new UnauthorizedException('Invalid authorization credentials');
     }
 

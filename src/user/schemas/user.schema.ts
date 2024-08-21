@@ -139,7 +139,7 @@ export class User {
   updatedAt: Date;
 
   @Prop()
-  token: string;
+  accessToken: string;
   // @Prop({ default: null })
   // refreshToken: string | null;
 }

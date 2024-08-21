@@ -55,7 +55,7 @@ export class AuthService {
 
     await this.userService.updateOne(user._id, {
       otpSecret: user.otpSecret,
-      token: accessToken,
+      accessToken: accessToken,
     });
 
     return { ...user, accessToken, otpSecret: user.otpSecret };
@@ -71,7 +71,7 @@ export class AuthService {
     const pass = await this.hashPassword(user.password);
 
     const newUser = await this.userService.create({ ...user, password: pass });
-    // console.log({ user, existUser, newUser });
+
     const { password, ...result } = newUser.toObject(); // Convert to plain object
 
     const accessToken = await this.generateToken({
@@ -169,20 +169,20 @@ export class AuthService {
         action: 'authorize',
       });
 
-      await this.userService.updateOne(
-        user._id,
+      const _user = await this.userService.findOneAndUpdate(
+        user.email.address,
         {
           email: { address: email, isVerified: true },
-          token: accessToken,
+          accessToken: accessToken,
         },
-        false,
       );
 
-      await this.userActivityService.create(user._id.toString(), {
+      await this.userActivityService.create(_user._id.toString(), {
         activity: 'login',
       });
+      // delete user.accessToken;
 
-      return { user, accessToken };
+      return { user: _user, accessToken };
     }
 
     throw new BadRequestException('invalid otp');
@@ -210,7 +210,7 @@ export class AuthService {
     await this.userService.updateOne(
       new Types.ObjectId(userId),
       {
-        token: null,
+        accessToken: null,
       },
       false,
     );
