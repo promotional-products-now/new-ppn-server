@@ -328,44 +328,6 @@ export class UserService {
     }
   }
 
-  async banUserAccount(userId: string): Promise<UserDocument> {
-    const updatedUser = await this.userModel.findOneAndUpdate(
-      { _id: new ObjectId(userId) },
-      { $set: { status: UserStatus.BANNED } },
-      {
-        lean: true,
-        new: true,
-      },
-    );
-
-    if (!updatedUser) {
-      throw new NotFoundException(`User with id ${userId} not found`);
-    }
-    return updatedUser;
-  }
-
-  async banMultipleUserAccounts(userIds: string[]): Promise<BanMultipleUsers> {
-    const filter = {
-      _id: { $in: userIds.map((userId) => new ObjectId(userId)) },
-    };
-
-    const { modifiedCount } = await this.userModel.updateMany(
-      filter,
-      { $set: { status: UserStatus.BANNED } },
-      {
-        lean: true,
-        new: true,
-      },
-    );
-
-    if (modifiedCount < 1) {
-      throw new DatabaseException(`The operation could not be performed`);
-    }
-
-    const bannedUsers = modifiedCount === userIds.length;
-    return { bannedUsers };
-  }
-
   async logOutUser(userId: string) {
     const user = await this.userModel.findOne({
       _id: new Types.ObjectId(userId),

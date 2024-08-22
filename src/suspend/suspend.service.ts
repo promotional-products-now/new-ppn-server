@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Suspend, SuspendDocument } from './schemas/suspend.schema';
 import { CreateSuspendDto, UnSuspendDto } from './dto/create-suspend.dto';
 import { User, UserDocument } from '../user/schemas/user.schema';
@@ -16,13 +16,13 @@ export class SuspendService {
   ) {}
 
   async suspend(
-    userId: string,
+    suspendedBy: string,
     createSuspendDto: CreateSuspendDto,
   ): Promise<{
     message: string;
   }> {
     const existingBan = await this.suspendModel.findOne({
-      userId: createSuspendDto.userId,
+      userId: new Types.ObjectId(createSuspendDto.userId),
     });
 
     if (existingBan) {
@@ -33,14 +33,18 @@ export class SuspendService {
 
     const createdSuspend = await this.suspendModel.create({
       ...createSuspendDto,
-      suspendedBy: userId,
-    });
-    await this.userModel.findByIdAndUpdate(createSuspendDto.userId, {
-      status: UserStatus.SUSPENDED,
+      suspendedBy: suspendedBy,
     });
 
-    await this.userActivityService.create(userId, {
-      activity: 'suspend user',
+    const user = await this.userModel.findByIdAndUpdate(
+      createSuspendDto.userId,
+      {
+        status: UserStatus.SUSPENDED,
+      },
+    );
+
+    await this.userActivityService.create(suspendedBy, {
+      activity: `Suspended user ${user?.lastName}  ${user?.firstName}`,
       additionalData: { reason: createSuspendDto.reason },
     });
     return {
@@ -52,11 +56,11 @@ export class SuspendService {
     user: UserDocument;
     message: string;
   }> {
-    const result = await this.suspendModel.findByIdAndDelete({
+    console.log('unsuspend');
+    await this.suspendModel.deleteOne({
       userId: unSuspendDto.userId,
     });
 
-    if (!result) throw new NotFoundException('this user was never suspended');
     const user = await this.userModel.findByIdAndUpdate(unSuspendDto.userId, {
       status: UserStatus.ACTIVE,
     });

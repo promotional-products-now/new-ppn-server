@@ -25,7 +25,7 @@ export class BannedUserGuard implements CanActivate {
       throw new NotFoundException(`${email} does not exist`);
     }
 
-    if (user.status === UserStatus.BANNED) {
+    if (user.status === UserStatus.SUSPENDED) {
       throw new ForbiddenException(
         'You are banned from performing this action',
       );

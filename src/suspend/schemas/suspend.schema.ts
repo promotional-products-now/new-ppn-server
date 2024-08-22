@@ -16,7 +16,7 @@ export class Suspend {
     description: 'Reason for suspension',
     example: 'Violation of terms',
   })
-  @Prop({ required: true })
+  @Prop({ required: false })
   reason: string;
 
   @ApiProperty({

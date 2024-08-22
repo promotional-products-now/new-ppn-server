@@ -38,9 +38,15 @@ export class SuspendController {
   @ApiBody({ type: CreateSuspendDto })
   @Post()
   async create(@Body() createSuspendDto: CreateSuspendDto, @Request() req) {
-    return await this.suspendService.suspend(req.user, createSuspendDto);
+    console.log({ user: req.user });
+    const { userId } = req.user;
+
+    return await this.suspendService.suspend(userId, createSuspendDto);
   }
 
+  @ApiOperation({ summary: 'UnSuspend a user' })
+  @ApiBody({ type: UnSuspendDto })
+  @Post('/resolve')
   async unsuspend(@Body() unSuspendDto: UnSuspendDto) {
     return await this.suspendService.unsuspend(unSuspendDto);
   }

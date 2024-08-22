@@ -25,12 +25,7 @@ import {
   ApiBearerAuth,
   ApiSecurity,
 } from '@nestjs/swagger';
-import {
-  BanMultipleUsers,
-  BanMultipleUsersDto,
-  LogoutUser,
-  UpdateUserDto,
-} from './dto/update-user.dto';
+import { LogoutUser, UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../commons/guards/roles.guard';
 import { UserRole } from './enums/role.enum';
@@ -130,28 +125,13 @@ export class UserController {
     return await this.userService.findWithCreatedAt(filterQuery);
   }
 
-  @ApiOperation({ summary: 'Banned a user by ID' })
+  @ApiOperation({ summary: 'logout a user by ID' })
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiResponse({
     status: 200,
-    description: 'Successfully banned user.',
+    description: 'Successfully logged out user.',
     type: User,
   })
-  @Put('/suspend/:id')
-  async banUserAccount(@Param('id') id: string): Promise<UserDocument> {
-    return await this.userService.banUserAccount(id);
-  }
-
-  @Put('/suspend/multiple')
-  @ApiResponse({
-    status: 200,
-    description: 'Successfully banned users.',
-    type: BanMultipleUsers,
-  })
-  async banMultipleUsers(@Body() users: BanMultipleUsersDto) {
-    return await this.userService.banMultipleUserAccounts(users.usersId);
-  }
-
   @Put('/user/logout/:id')
   @ApiResponse({
     status: 200,
