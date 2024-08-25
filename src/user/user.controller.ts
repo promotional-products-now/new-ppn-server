@@ -155,19 +155,6 @@ export class UserController {
     return await this.userService.findOneById(new Types.ObjectId(id));
   }
 
-  @Get(':id/orders')
-  @ApiOperation({ summary: 'Retrieves the orders of a user' })
-  @ApiParam({ name: 'id', description: 'User ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Successfully retrieved users order.',
-    type: Order,
-  })
-  @ApiResponse({ status: 404, description: 'User not found.' })
-  async findOrders(@Param('id') id: string): Promise<UserDocument | null> {
-    return await this.userService.findOneById(new Types.ObjectId(id));
-  }
-
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a user by ID' })
   @ApiParam({ name: 'id', description: 'User ID' })
