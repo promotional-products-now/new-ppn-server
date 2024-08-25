@@ -13,8 +13,10 @@ import { UserModule } from 'src/user/user.module';
   imports: [
     JWTModule,
     forwardRef(() => UserModule),
-    MongooseModule.forFeature([{ name: Order.name, schema: OrderSchema }]),
-    MongooseModule.forFeature([{ name: Cart.name, schema: CartSchema }]),
+    MongooseModule.forFeature([
+      { name: Order.name, schema: OrderSchema },
+      { name: Cart.name, schema: CartSchema },
+    ]),
   ],
   controllers: [OrderController, CartController],
   providers: [OrderService, CartService],

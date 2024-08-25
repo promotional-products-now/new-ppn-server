@@ -21,6 +21,7 @@ import {
   FilterProductByCategoryQueryDto,
   FilterProductQueryDto,
   FilterShowCaseQueryDto,
+  TopSellingProductQuery,
 } from './dto/filter-product-query.dto';
 import {
   ProductCategory,
@@ -34,6 +35,7 @@ import { UdpateSupplierDto, UpdateProductDto } from './dto/update-product.dto';
 import { FetchtQueryDto } from './dto/fetch-query.dto';
 import { ObjectId } from 'mongodb';
 import { STATUS_ENUM } from './product.interface';
+import { Order, OrderDocument } from 'src/order/schemas/order.schema';
 
 @Injectable()
 export class ProductService {
@@ -42,18 +44,27 @@ export class ProductService {
   constructor(
     @InjectModel(Product.name)
     private readonly productModel: Model<ProductDocument>,
+
     @InjectModel(Supplier.name)
     private readonly supplierModel: Model<SupplierDocument>,
+
     @InjectModel(Addition.name)
     private readonly additionModel: Model<AdditionDocument>,
+
     @InjectModel(BasePrice.name)
     private readonly basePriceModel: Model<BasePriceDocument>,
+
     @InjectModel(ProductCategory.name)
     private readonly productCategoryModel: Model<ProductCategoryDocument>,
+
     @InjectModel(ProductSubCategory.name)
     private readonly productSubCategoryModel: Model<ProductSubCategoryDocument>,
+
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
+
+    @InjectModel(Order.name)
+    private readonly orderModel: Model<OrderDocument>,
   ) {}
 
   private async fetchProducts(page: number) {
@@ -531,6 +542,100 @@ export class ProductService {
       .populate('subCategory')
       .exec();
   }
+
+  /**
+   * returns the top selling products. eg (products with most orders)
+   *
+   * algorithm:
+   *  - find all orders that were placed in the last 30 days with status "success"
+   *  - group them by product (order document, cartItems.productId)
+   *  - sort them in descending order
+   * @param query
+   */
+  async topSellingProducts(query: TopSellingProductQuery) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 15;
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const products = await this.orderModel.aggregate([
+      {
+        $unwind: '$cartItems',
+      },
+      {
+        $match: {
+          createdAt: { $gte: thirtyDaysAgo },
+          status: 'success',
+        },
+      },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'cartItems.productId',
+          foreignField: '_id',
+          as: 'product',
+        },
+      },
+      {
+        $unwind: '$product',
+      },
+      {
+        $group: {
+          _id: '$product._id',
+          count: { $sum: 1 },
+          product: { $first: '$product' },
+        },
+      },
+      {
+        $sort: {
+          count: -1,
+        },
+      },
+      {
+        $skip: (page - 1) * limit,
+      },
+      {
+        $limit: limit,
+      },
+    ]);
+
+    const count = await this.orderModel.aggregate([
+      {
+        $unwind: '$cartItems',
+      },
+      {
+        $match: {
+          createdAt: { $gte: thirtyDaysAgo },
+          status: 'success',
+        },
+      },
+      {
+        $group: {
+          _id: '$cartItems.productId',
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $count: 'count',
+      },
+    ]);
+
+    const totalPages =
+      count && count[0] ? Math.ceil(count[0].count / limit) : 0;
+
+    return {
+      docs: products,
+      page: page,
+      limit: limit,
+      totalItems: count && count[0] ? count[0].count : 0,
+      totalPages,
+      nextPage: page < totalPages ? page + 1 : null,
+      prevPage: page > 1 ? page - 1 : null,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+    };
+  }
+
   async productShowCase(
     query: FilterShowCaseQueryDto,
   ): Promise<{ [key: string]: any }> {

@@ -110,3 +110,19 @@ export class FilterShowCaseQueryDto {
   @IsOptional()
   isAdmin: boolean;
 }
+
+export class TopSellingProductQuery {
+  @ApiPropertyOptional({ example: 1 })
+  @Type(() => Number)
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  @IsOptional()
+  page: number;
+
+  @ApiPropertyOptional({ example: 15 })
+  @Transform(({ value }) => Number(value))
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  limit: number;
+}
