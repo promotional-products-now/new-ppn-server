@@ -47,8 +47,9 @@ export class SuspendController {
   @ApiOperation({ summary: 'UnSuspend a user' })
   @ApiBody({ type: UnSuspendDto })
   @Post('/resolve')
-  async unsuspend(@Body() unSuspendDto: UnSuspendDto) {
-    return await this.suspendService.unsuspend(unSuspendDto);
+  async unsuspend(@Body() unSuspendDto: UnSuspendDto, @Request() req) {
+    const { userId } = req.user;
+    return await this.suspendService.unsuspend(unSuspendDto, userId);
   }
 
   @ApiOperation({ summary: 'Get all uspended users' })

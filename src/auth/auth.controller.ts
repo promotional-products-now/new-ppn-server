@@ -41,6 +41,7 @@ import { UserService } from '../user/user.service';
 import { MagicLoginStrategy } from '../commons/strategy/magiclogin.strategy';
 import { JwtAction } from '../commons/dtos/jwt.dto';
 import { BannedUserGuard } from '../commons/guards/banned_user.guard';
+import { UserActivityService } from 'src/user_activity/user_activity.service';
 // import { AlgoliaService } from '../commons/services/Algolia/algolia.service';
 // import { omit } from 'lodash';
 
@@ -57,6 +58,7 @@ export class AuthController {
     // private algoliaService: AlgoliaService,
     private readonly configService: ConfigService,
     private strategy: MagicLoginStrategy,
+    private readonly userActivity: UserActivityService,
   ) {}
 
   @UseGuards(AuthGuard('local'))
@@ -175,7 +177,8 @@ export class AuthController {
   }
 
   @Post('create-admin')
-  async createAdmin(@Body() payload: creatAdminDto, @Req() req: Request) {
+  async createAdmin(@Body() payload: creatAdminDto, @Req() req) {
+    const { userId } = req.user;
     // find user
     const admin = await this.userService.findOneByEmail(payload.email);
     const adminId = this.generateAdminId(payload.role, payload.lastName);
@@ -191,6 +194,11 @@ export class AuthController {
       ...payload,
       email,
       adminId,
+    });
+
+    await this.userActivity.create(userId, {
+      activity: `Add admin ${user?.lastName}  ${user?.firstName}`,
+      additionalData: { newAdminId: user._id.toString() },
     });
 
     req.body.destination = {

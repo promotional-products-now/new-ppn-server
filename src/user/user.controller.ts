@@ -138,8 +138,9 @@ export class UserController {
     description: 'Successfully logged out user.',
     type: LogoutUser,
   })
-  async logoutUser(@Param('id') id: string) {
-    return await this.userService.logOutUser(id);
+  async logoutUser(@Param('id') id: string, @Request() req) {
+    const { userId } = req.user;
+    return await this.userService.logOutUser(id, userId);
   }
 
   @Get(':id')

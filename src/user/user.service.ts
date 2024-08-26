@@ -328,7 +328,7 @@ export class UserService {
     }
   }
 
-  async logOutUser(userId: string) {
+  async logOutUser(userId: string, adminId: string) {
     const user = await this.userModel.findOne({
       _id: new Types.ObjectId(userId),
     });
@@ -343,6 +343,10 @@ export class UserService {
       { upsert: false },
     );
 
+    await this.userActivityService.create(adminId, {
+      activity: 'logout user',
+      additionalData: { loggedOutUser: user._id.toString() },
+    });
     return { message: 'Logout successful' };
   }
 }
