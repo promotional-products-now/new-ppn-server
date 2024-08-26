@@ -10,9 +10,11 @@ import {
   Request,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
 import { Order } from './schemas/order.schema';
@@ -20,13 +22,15 @@ import { AddCartItemDto, UpdateCartItemDto } from './dto/cart';
 import { CartService } from './cart.service';
 import { AuthorizationGuard } from 'src/commons/guards/authorization.guard';
 
-@Controller('cart')
 @ApiTags('cart')
+@UseGuards(AuthorizationGuard)
+@ApiSecurity('uid')
+@ApiBearerAuth()
+@Controller('cart')
 export class CartController {
   constructor(private readonly cartService: CartService) {}
 
   @Get('find-all')
-  @UseGuards(AuthorizationGuard)
   async findAll(@Request() req) {
     return this.cartService.findAll({
       isCheckedOut: false,

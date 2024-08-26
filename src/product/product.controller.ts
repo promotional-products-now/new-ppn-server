@@ -21,6 +21,7 @@ import {
   FilterProductByCategoryQueryDto,
   FilterProductQueryDto,
   FilterShowCaseQueryDto,
+  TopSellingProductQuery,
 } from './dto/filter-product-query.dto';
 import { FetchtQueryDto } from './dto/fetch-query.dto';
 import { PaginatedSupplierResponse } from './dto/paginated-response.dto';
@@ -38,6 +39,12 @@ export class ProductController {
   @ApiQuery({ type: FilterProductQueryDto })
   async findAll(@Query() query) {
     return await this.productsService.findAll(query);
+  }
+
+  @Get('/top-selling')
+  @ApiQuery({ type: TopSellingProductQuery })
+  async topSelling(@Query() query: TopSellingProductQuery) {
+    return await this.productsService.topSellingProducts(query);
   }
 
   @Get('/product-show-case')

@@ -6,20 +6,27 @@ import {
   Param,
   Patch,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import {
+  ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
 import { FindOrderDto } from './dto/find-order';
 import { Order } from './schemas/order.schema';
 import { UpdateOrderDto } from './dto/update-order';
+import { AuthorizationGuard } from 'src/commons/guards/authorization.guard';
 
-@Controller('orders')
 @ApiTags('orders')
+@Controller('orders')
+@UseGuards(AuthorizationGuard)
+@ApiSecurity('uid')
+@ApiBearerAuth()
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 

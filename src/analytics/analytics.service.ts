@@ -18,7 +18,22 @@ export class AnalyticsService {
 
     const totalOrders = await this.OrderModel.countDocuments();
 
-    //TODO add total earnings
-    return { totalProduct, totalOrders };
+    const totalEarnings = await this.OrderModel.aggregate([
+      {
+        $match: {
+          status: 'success',
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: {
+            $sum: '$totalAmount',
+          },
+        },
+      },
+    ]).then((result) => result[0]?.total || 0);
+
+    return { totalProduct, totalOrders, totalEarnings };
   }
 }
