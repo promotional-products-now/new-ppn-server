@@ -8,6 +8,7 @@ import { JWTModule } from '../commons/services/JWTService/JWTService.module';
 import { UserActivityModule } from '../user_activity/user_activity.module';
 import { AuthorizationGuard } from '../commons/guards/authorization.guard';
 import { UserModule } from '../user/user.module';
+import { EmailModule } from 'src/email/email.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { UserModule } from '../user/user.module';
       { name: User.name, schema: UserSchema },
     ]),
     forwardRef(() => UserModule),
+    EmailModule,
   ],
   controllers: [SuspendController],
   providers: [SuspendService, AuthorizationGuard],
