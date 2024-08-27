@@ -80,14 +80,42 @@ export class FilterPage {
   limit: number;
 }
 
-export class FilterProductByCategoryQueryDto extends FilterPage {
+export class FilterProductByCategoryQueryDto {
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
   sort: string;
+
+  @ApiPropertyOptional({ example: 1 })
+  @Type(() => Number)
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  @IsOptional()
+  page: number;
+
+  @ApiPropertyOptional({ example: 15 })
+  @Type(() => Number)
+  @Transform(({ value }) => Number({ value }))
+  @IsNumber()
+  @IsOptional()
+  limit: number;
 }
 
-export class FilterShowCaseQueryDto extends FilterPage {
+export class FilterShowCaseQueryDto {
+  @ApiPropertyOptional({ example: 1 })
+  @Type(() => Number)
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  @IsOptional()
+  page: number;
+
+  @ApiPropertyOptional({ example: 15 })
+  @Transform(({ value }) => Number(value))
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  limit: number;
+
   @ApiPropertyOptional({ example: 'footwears' })
   @IsString()
   @IsOptional()
@@ -99,4 +127,18 @@ export class FilterShowCaseQueryDto extends FilterPage {
   isAdmin: boolean;
 }
 
-export class TopSellingProductQuery extends FilterPage {}
+export class TopSellingProductQuery {
+  @ApiPropertyOptional({ example: 1 })
+  @Type(() => Number)
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  @IsOptional()
+  page: number;
+
+  @ApiPropertyOptional({ example: 15 })
+  @Transform(({ value }) => Number(value))
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  limit: number;
+}
