@@ -41,9 +41,6 @@ export class ProductController {
     return await this.productsService.findAll(query);
   }
 
-  @UseGuards(AuthorizationGuard)
-  @ApiSecurity('uid')
-  @ApiBearerAuth()
   @Get('/top-selling')
   @ApiQuery({ type: TopSellingProductQuery })
   async topSelling(@Query() query: TopSellingProductQuery) {
