@@ -1,25 +1,37 @@
-import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
+import {
+  ApiExtraModels,
+  ApiProperty,
+  ApiPropertyOptional,
+} from '@nestjs/swagger';
 import {
   IsBoolean,
   IsDate,
   IsEnum,
   IsNumber,
+  IsOptional,
   ValidateNested,
 } from 'class-validator';
 import { STATUS_ENUM } from '../product.interface';
 import { Type } from 'class-transformer';
 
 export class BaseUpdateDto {
-  @ApiProperty({ type: 'boolean', example: true })
+  @ApiPropertyOptional({ type: 'boolean', example: true })
   @IsBoolean()
+  @IsOptional()
   isActive: boolean;
 
-  @ApiProperty({
+  @ApiPropertyOptional({ type: 'boolean', example: false })
+  @IsBoolean()
+  @IsOptional()
+  isHot: boolean;
+
+  @ApiPropertyOptional({
     type: 'string',
     enum: STATUS_ENUM,
     example: STATUS_ENUM.BUY_NOW,
   })
   @IsEnum(STATUS_ENUM)
+  @IsOptional()
   status: STATUS_ENUM;
 }
 

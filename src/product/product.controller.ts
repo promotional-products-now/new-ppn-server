@@ -56,6 +56,18 @@ export class ProductController {
     return await this.productsService.productShowCase(query);
   }
 
+  @Get('/latest')
+  @ApiQuery({ type: FilterShowCaseQueryDto })
+  async latestProducts(@Query() query) {
+    return await this.productsService.latestProducts(query);
+  }
+
+  @Get('/hot-products')
+  @ApiQuery({ type: FilterShowCaseQueryDto })
+  async hotProducts(@Query() query) {
+    return await this.productsService.hotProducts(query);
+  }
+
   @Get('/categories/:categoryName')
   @ApiQuery({ type: FilterProductByCategoryQueryDto })
   @ApiParam({ name: 'categoryName', type: 'string', required: true })

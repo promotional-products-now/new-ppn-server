@@ -212,6 +212,13 @@ export class Product extends Document {
   @ApiProperty({ type: 'boolean', example: true })
   isActive: boolean;
 
+  @Prop({
+    type: Boolean,
+    default: true,
+  })
+  @ApiProperty({ type: 'boolean', example: true, default: false })
+  isHot: boolean;
+
   @Prop({ type: String, enum: STATUS_ENUM, default: STATUS_ENUM.BUY_NOW })
   @ApiProperty({
     type: 'string',

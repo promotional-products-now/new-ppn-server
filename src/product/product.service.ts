@@ -18,6 +18,7 @@ import { BasePrice, BasePriceDocument } from './schemas/baseprice.schema';
 import { ConfigService } from '@nestjs/config';
 import { PRODUCT_FILTER } from './constants';
 import {
+  FilterPage,
   FilterProductByCategoryQueryDto,
   FilterProductQueryDto,
   FilterShowCaseQueryDto,
@@ -681,8 +682,61 @@ export class ProductService {
     return showCase;
   }
 
-  async updateProduct(id: string, updateProductDto: UpdateProductDto) {
+  async latestProducts(query: FilterPage): Promise<{ [key: string]: any }> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
 
+    const sortOptions: { [key: string]: any } = {
+      'A-Z': { 'product.name': 1 },
+      'Z-A': { 'product.name': -1 },
+      'Recently added': { 'meta.firstListedAt': -1 },
+      default: { createdAt: -1 },
+    };
+
+    const sort = sortOptions['Recently added'];
+
+    const products = await this.productModel
+      .find()
+      .populate('supplier')
+      .populate('product.prices.priceGroups.additions')
+      .populate('product.prices.priceGroups.basePrice')
+      .populate('category')
+      .populate('subCategory')
+      .skip(limit * (page - 1))
+      .limit(limit)
+      .sort(sort)
+      .lean();
+
+    return products;
+  }
+
+  async hotProducts(query: FilterPage): Promise<{ [key: string]: any }> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+
+    const sortOptions: { [key: string]: any } = {
+      'A-Z': { 'product.name': 1 },
+      default: { updatedAt: -1 },
+    };
+
+    const sort = sortOptions['default'];
+
+    const products = await this.productModel
+      .find({ isHot: true })
+      .populate('supplier')
+      .populate('product.prices.priceGroups.additions')
+      .populate('product.prices.priceGroups.basePrice')
+      .populate('category')
+      .populate('subCategory')
+      .skip(limit * (page - 1))
+      .limit(limit)
+      .sort(sort)
+      .lean();
+
+    return products;
+  }
+
+  async updateProduct(id: string, updateProductDto: UpdateProductDto) {
     return await this.productModel.findByIdAndUpdate(id, updateProductDto, {
       new: true,
     });
