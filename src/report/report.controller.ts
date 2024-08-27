@@ -43,7 +43,7 @@ export class ReportController {
     @Body() createReportDto: CreateReportDto,
     @Request() req,
   ): Promise<{ message: string }> {
-    console.log({ user: req.user });
+
     const { userId } = req.user;
 
     return await this.reportService.create({

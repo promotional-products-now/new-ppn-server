@@ -48,7 +48,6 @@ export class User {
     type: String,
     enum: UserStatus,
     default: UserStatus.ACTIVE,
-    required: false,
   })
   status: UserStatus;
 
@@ -60,8 +59,7 @@ export class User {
   @Prop({
     type: String,
     enum: UserType,
-    default: UserType.Non_VIP,
-    required: false,
+    default: UserType.Non_VIP, // Ensure this is correctly referenced
   })
   userType: UserType;
 
@@ -123,7 +121,7 @@ export class User {
   images: string[];
 
   @ApiPropertyOptional({
-    description: 'device imformation',
+    description: 'device information',
   })
   @Prop({ type: Types.ObjectId, ref: 'UserDevice', required: false })
   userDevice: Types.ObjectId;
@@ -140,8 +138,6 @@ export class User {
 
   @Prop()
   accessToken: string;
-  // @Prop({ default: null })
-  // refreshToken: string | null;
 }
 
 export type UserDocument = HydratedDocument<User>;

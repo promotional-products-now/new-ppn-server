@@ -57,30 +57,26 @@ export class UserService {
 
   async find(paginationDto: PaginationDto): Promise<FindUsers> {
     try {
-      const data = paginationDto;
-      const page = data.page ? data.page : 1;
-      const limit = data.limit ? data.limit : 10;
+      const { page = 1, limit = 10 } = paginationDto;
       const skip = (page - 1) * limit;
 
-      const users = await this.userModel.find(
-        { status: { $ne: UserStatus.DELETED }, role: UserRole.USER },
-        { password: 0, otpSecret: 0 },
-        { skip, limit: limit + 1 },
-      );
+      const [users, total] = await Promise.all([
+        this.userModel.find(
+          { status: { $ne: UserStatus.DELETED }, role: UserRole.USER },
+          { password: 0, otpSecret: 0 },
+          { skip, limit },
+        ),
+        this.userModel.countDocuments({
+          status: { $ne: UserStatus.DELETED },
+          role: UserRole.USER,
+        }),
+      ]);
 
-      const total = await this.userModel.countDocuments({
-        status: { $ne: UserStatus.DELETED },
-        role: UserRole.USER,
-      });
-
-      const hasPrevious = skip === 0 ? false : true;
-      const hasNext = users.length > limit ? true : false;
+      const hasPrevious = page > 1;
+      const hasNext = page * limit < total;
       const nextPage = hasNext ? page + 1 : null;
       const prevPage = hasPrevious ? page - 1 : null;
 
-      if (users.length > limit) {
-        users.pop();
-      }
       return {
         users,
         hasPrevious,
@@ -169,9 +165,14 @@ export class UserService {
     updateData: Partial<UserDocument>,
     createActivity: boolean = true,
   ): Promise<any> {
-    const result = await this.userModel.updateOne({ _id: id }, updateData, {
-      lean: true,
-    });
+    const result = await this.userModel.updateOne(
+      { _id: new Types.ObjectId(id) },
+      updateData,
+      {
+        lean: true,
+      },
+    );
+
     if (result.modifiedCount === 0) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }

@@ -515,7 +515,7 @@ export class ProductService {
         $count: 'count',
       },
     ]);
-    console.log({ count });
+
     const totalPages =
       count && count[0] ? Math.ceil(count[0].count / limit) : 0;
 
@@ -682,7 +682,7 @@ export class ProductService {
   }
 
   async updateProduct(id: string, updateProductDto: UpdateProductDto) {
-    console.log(updateProductDto);
+
     return await this.productModel.findByIdAndUpdate(id, updateProductDto, {
       new: true,
     });

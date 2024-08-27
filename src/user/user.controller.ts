@@ -68,13 +68,34 @@ export class UserController {
   async update(
     @Body() updateUserDto: UpdateUserDto,
     @Request() req,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     const { userId } = req.user;
+
     const user = await this.userService.updateOne(userId, {
       ...updateUserDto,
       ...(updateUserDto.email && { email: req.user.email }),
       //  ...(optionalKey8 && { optionalKey8 }),
     });
+    return user;
+  }
+
+  @Patch('/:id')
+  @ApiOperation({ summary: 'Update a user by ID' })
+  @ApiBody({ type: UpdateUserDto, description: 'Updated user data' })
+  async updateOne(
+    @Body() updateUserDto: UpdateUserDto,
+    @Param('id') id: string,
+  ): Promise<{ message: string }> {
+    console.log({ id });
+    const user = await this.userService.updateOne(
+      new Types.ObjectId(id),
+      {
+        ...updateUserDto,
+        ...(updateUserDto.email && { email: { address: updateUserDto.email } }),
+        //  ...(optionalKey8 && { optionalKey8 }),
+      },
+      true,
+    );
     return user;
   }
 

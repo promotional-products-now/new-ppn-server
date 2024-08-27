@@ -33,7 +33,6 @@ export class EmailService {
 
     try {
       const response = await sgMail.send(msg);
-      console.log({ response });
       this.logger.log(response);
     } catch (error) {
       this.logger.error(error);
