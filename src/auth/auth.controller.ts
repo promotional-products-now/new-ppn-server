@@ -176,9 +176,13 @@ export class AuthController {
     };
   }
 
+  @UseGuards(AuthorizationGuard)
+  @ApiSecurity('uid')
+  @ApiBearerAuth()
   @Post('create-admin')
   async createAdmin(@Body() payload: creatAdminDto, @Req() req) {
     const { userId } = req.user;
+    console.log({ userId: req.user });
     // find user
     const admin = await this.userService.findOneByEmail(payload.email);
     const adminId = this.generateAdminId(payload.role, payload.lastName);
@@ -239,10 +243,12 @@ export class AuthController {
   @Post('change-password')
   async changePassword(@Body() body: ChangePasswordDto, @Req() req) {
     const { email } = req.user;
+
     const user = await this.authService.changePassword({
       ...body,
       email: email.address as string,
     });
+
     if (!user) {
       throw new NotFoundException('user not found');
     }

@@ -11,6 +11,7 @@ import { JwtAction, JwtSigningPayload } from '../dtos/jwt.dto';
 import { JWTService } from '../services/JWTService/JWTService.service';
 import { UserService } from '../../user/user.service';
 import { Types } from 'mongoose';
+import { UserRole } from 'src/user/enums/role.enum';
 
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
@@ -48,7 +49,6 @@ export class AuthorizationGuard implements CanActivate {
       throw new UnauthorizedException('Invalid authorization credentials');
     }
 
-
     if (payload.action !== JwtAction.authorize) {
       throw new UnauthorizedException('Invalid authorization credentials');
     }
@@ -64,7 +64,7 @@ export class AuthorizationGuard implements CanActivate {
       throw new UnauthorizedException('Invalid authorization credentials');
     }
 
-    if (user.accessToken !== accessToken) {
+    if (user.role === UserRole.USER && user.accessToken !== accessToken) {
       throw new UnauthorizedException('Invalid authorization credentials');
     }
 
