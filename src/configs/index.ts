@@ -107,6 +107,7 @@ export type AppConfig = {
   appEnv: Environments;
   port: number;
   appName: string;
+  PromoDataAuthToken: string;
   domain: string;
   database: DatabaseConfig;
   otp: OtpConfigs;
@@ -126,7 +127,7 @@ const env = (): AppConfig => {
     port: PORT,
     appName: `promotionalproductsnow_${NODE_ENV}`,
     domain: 'promotionalproductsnow.au',
-
+    PromoDataAuthToken: secrets.PromoDataAuthToken,
     database: {
       uri: 'mongodb+srv://production_spiderMonkey:WMaYggQeP8jtTuuP@ppn.hfq7y.mongodb.net/ppn?retryWrites=true&w=majority',
     },

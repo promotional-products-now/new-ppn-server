@@ -413,6 +413,13 @@ export class ProductService {
       {
         $unwind: {
           path: '$supplier',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $unwind: {
+          path: '$product.prices.priceGroups',
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -420,8 +427,60 @@ export class ProductService {
           from: 'baseprices',
           localField: 'product.prices.priceGroups.basePrice',
           foreignField: '_id',
-          as: 'baseprices',
+          as: 'product.prices.priceGroups.basePrice',
         },
+      },
+      {
+        $unwind: {
+          path: '$product.prices.priceGroups.basePrice',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: 'additions',
+          localField: 'product.prices.priceGroups.additions',
+          foreignField: '_id',
+          as: 'product.prices.priceGroups.additions',
+        },
+      },
+      {
+        $unwind: {
+          path: '$product.prices.priceGroups.additions',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $group: {
+          _id: {
+            productId: '$_id',
+            priceGroupId: '$product.prices.priceGroups._id',
+          },
+          doc: { $first: '$$ROOT' },
+          basePrice: { $first: '$product.prices.priceGroups.basePrice' },
+          additions: { $push: '$product.prices.priceGroups.additions' },
+        },
+      },
+      {
+        $group: {
+          _id: '$_id.productId',
+          doc: { $first: '$doc' },
+          priceGroups: {
+            $push: {
+              _id: '$_id.priceGroupId',
+              basePrice: '$basePrice',
+              additions: '$additions',
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          'doc.product.prices.priceGroups': '$priceGroups',
+        },
+      },
+      {
+        $replaceRoot: { newRoot: '$doc' },
       },
       {
         $lookup: {
@@ -434,6 +493,7 @@ export class ProductService {
       {
         $unwind: {
           path: '$category',
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -447,6 +507,7 @@ export class ProductService {
       {
         $unwind: {
           path: '$subCategory',
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -455,15 +516,15 @@ export class ProductService {
         },
       },
       {
+        $sort: {
+          ...sort,
+        },
+      },
+      {
         $skip: limit * (page - 1),
       },
       {
         $limit: limit,
-      },
-      {
-        $sort: {
-          ...sort,
-        },
       },
     ]);
 

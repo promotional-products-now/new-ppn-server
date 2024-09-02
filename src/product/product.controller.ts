@@ -16,6 +16,9 @@ import {
   ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
+import { HttpService } from '@nestjs/axios';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ProductService } from './product.service';
 import {
   FilterProductByCategoryQueryDto,
@@ -29,11 +32,17 @@ import { UdpateSupplierDto, UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './schemas/product.schema';
 import { Supplier } from './schemas/supplier.schema';
 import { AuthorizationGuard } from '../commons/guards/authorization.guard';
+import { ConfigService } from '@nestjs/config';
+import { Environments } from 'src/commons/types/environments.types';
 
 @Controller('products')
 @ApiTags('product')
 export class ProductController {
-  constructor(private readonly productsService: ProductService) {}
+  constructor(
+    private readonly productsService: ProductService,
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Get()
   @ApiQuery({ type: FilterProductQueryDto })
@@ -63,6 +72,20 @@ export class ProductController {
   @ApiQuery({ type: FilterShowCaseQueryDto })
   async hotProducts(@Query() query) {
     return await this.productsService.hotProducts(query);
+  }
+
+  @Get('/check-stock-levels/:productId')
+  @ApiParam({ name: 'productId', type: 'string', required: true })
+  checkStockLevels(@Param('productId') productId: string): Observable<any> {
+    const PromoDataAuthToken =
+      this.configService.getOrThrow<string>('PromoDataAuthToken');
+
+    return this.httpService
+      .get(
+        ` https://api.promodata.com.au/products/${productId}/check-stock-levels`,
+        { headers: { 'x-auth-token': PromoDataAuthToken } },
+      )
+      .pipe(map((response) => response.data));
   }
 
   @Get('/categories/:categoryName')
