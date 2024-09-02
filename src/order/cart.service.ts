@@ -29,7 +29,7 @@ export class CartService {
 
     const cartItems = await this.cartModel
       .find({
-        userId: new ObjectId(userId),
+        userId: new ObjectId(userId as string),
         isCheckedOut: isCheckedOut,
       })
       .populate([

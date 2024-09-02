@@ -38,6 +38,14 @@ export class CartController {
     });
   }
 
+  @Get(':id')
+  async findByUserId(@Param('id') id: string) {
+    return this.cartService.findAll({
+      isCheckedOut: false,
+      userId: id,
+    });
+  }
+
   @Delete(':id')
   @ApiParam({ name: 'id', type: 'string', required: true })
   @ApiOperation({ summary: 'deletes a cart item' })
