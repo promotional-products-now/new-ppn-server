@@ -42,7 +42,6 @@ export class MagicLoginStrategy extends PassportStrategy(Strategy) {
           },
         });
 
-
         this.logger.debug(
           `send email to ${destination.recipientEmail} with link ${href}`,
         );

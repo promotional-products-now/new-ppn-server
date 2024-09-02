@@ -38,7 +38,6 @@ export class SuspendController {
   @ApiBody({ type: CreateSuspendDto })
   @Post()
   async create(@Body() createSuspendDto: CreateSuspendDto, @Request() req) {
-
     const { userId } = req.user;
 
     return await this.suspendService.suspend(userId, createSuspendDto);
