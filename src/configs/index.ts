@@ -127,7 +127,7 @@ const env = (): AppConfig => {
     port: PORT,
     appName: `promotionalproductsnow_${NODE_ENV}`,
     domain: 'promotionalproductsnow.au',
-    PromoDataAuthToken: secrets.PromoDataAuthToken,
+    PromoDataAuthToken: secrets.PROMO_DATA_AUTHTOKEN,
     database: {
       uri: 'mongodb+srv://production_spiderMonkey:WMaYggQeP8jtTuuP@ppn.hfq7y.mongodb.net/ppn?retryWrites=true&w=majority',
     },
