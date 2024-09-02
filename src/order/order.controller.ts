@@ -24,13 +24,14 @@ import { AuthorizationGuard } from 'src/commons/guards/authorization.guard';
 
 @ApiTags('orders')
 @Controller('orders')
-@UseGuards(AuthorizationGuard)
-@ApiSecurity('uid')
-@ApiBearerAuth()
+// @UseGuards(AuthorizationGuard)
+// @ApiSecurity('uid')
+// @ApiBearerAuth()
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Get()
+  @ApiOperation({ summary: 'finds all orders' })
   async findAll(@Query() query: FindOrderDto) {
     return await this.orderService.findAll(query);
   }
