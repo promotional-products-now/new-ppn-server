@@ -44,19 +44,12 @@ describe('BillingService', () => {
         address: 'navi@gmail.com',
         isVerified: true,
       },
-      _id: new ObjectId('66434fbad54cecbd2569b403'),
+      _id: new ObjectId('669006e0915a7a315e11800f'),
     } as unknown as User;
 
     const productsRes = await productService.findAll({
+      isAdmin: true,
       limit: 10,
-      colours: [],
-      search: '',
-      sort: '',
-      filter: [],
-      vendors: [],
-      page: 0,
-      subCategory: '',
-      category: '',
     });
 
     const products = productsRes.docs.map((product) => product).slice(0, 5);
@@ -84,7 +77,8 @@ describe('BillingService', () => {
       paymentMethod: '',
     };
 
-    const { url } = await service.processOrder(user, items);
+    const { url, orderId } = await service.processOrder(user, items);
+    console.log(orderId);
     expect(url).toBeDefined();
   });
 });
