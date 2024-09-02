@@ -70,7 +70,6 @@ export class SuspendService {
     user: UserDocument;
     message: string;
   }> {
-
     await this.suspendModel.deleteOne({
       userId: unSuspendDto.userId,
     });

@@ -54,7 +54,7 @@ export class CheckoutService {
 
       if (order) {
         const data = await this.checkout(user, order, ppnCheckout);
-        return data;
+        return { ...data, orderId: order.id };
       }
     } catch (error) {
       this.logger.error(`failed to create checkout: ${error.message}`);

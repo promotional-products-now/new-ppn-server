@@ -7,7 +7,6 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Product, ProductDocument } from './schemas/product.schema';
-import { Cron } from '@nestjs/schedule';
 import { HttpService } from '@nestjs/axios';
 import { catchError, firstValueFrom } from 'rxjs';
 import { retry } from 'rxjs/operators';
@@ -35,7 +34,6 @@ import {
 import { UdpateSupplierDto, UpdateProductDto } from './dto/update-product.dto';
 import { FetchtQueryDto } from './dto/fetch-query.dto';
 import { ObjectId } from 'mongodb';
-import { STATUS_ENUM } from './product.interface';
 import { Order, OrderDocument } from 'src/order/schemas/order.schema';
 
 @Injectable()
@@ -300,7 +298,7 @@ export class ProductService {
     }
   }
 
-  async findAll(query: FilterProductQueryDto): Promise<any> {
+  async findAll(query: Partial<FilterProductQueryDto>): Promise<any> {
     const page = query.page ? Number(query.page) : 1;
     const limit = query.limit ? Number(query.limit) : 15;
 
