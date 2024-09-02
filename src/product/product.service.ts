@@ -350,7 +350,6 @@ export class ProductService {
       });
     }
 
-    // TODO: WORK ON THE REMAINING IMPLEMENTATION
     if (query && query.filter && query.filter.length > 0) {
       for (const filterValue of query.filter) {
         switch (filterValue) {
@@ -384,7 +383,6 @@ export class ProductService {
       }
     }
 
-    // TODO: WORK ON PRODUCT SORTING FOR PRICE AND QUANTITY
     switch (query.sort) {
       case 'A-Z':
         sort = { 'product.name': 1 };
@@ -399,181 +397,202 @@ export class ProductService {
         sort = { createdAt: -1 };
     }
 
-    const products = await this.productModel.aggregate([
-      {
-        $lookup: {
-          from: 'suppliers',
-          localField: 'supplier',
-          foreignField: '_id',
-          as: 'supplier',
-        },
-      },
-      {
-        $unwind: {
-          path: '$supplier',
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $unwind: {
-          path: '$product.prices.priceGroups',
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: 'baseprices',
-          localField: 'product.prices.priceGroups.basePrice',
-          foreignField: '_id',
-          as: 'product.prices.priceGroups.basePrice',
-        },
-      },
-      {
-        $unwind: {
-          path: '$product.prices.priceGroups.basePrice',
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: 'additions',
-          localField: 'product.prices.priceGroups.additions',
-          foreignField: '_id',
-          as: 'product.prices.priceGroups.additions',
-        },
-      },
-      {
-        $unwind: {
-          path: '$product.prices.priceGroups.additions',
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $group: {
-          _id: {
-            productId: '$_id',
-            priceGroupId: '$product.prices.priceGroups._id',
+    // Execute both aggregations in parallel using Promise.all
+    const [products, count] = await Promise.all([
+      this.productModel.aggregate([
+        {
+          $lookup: {
+            from: 'suppliers',
+            localField: 'supplier',
+            foreignField: '_id',
+            as: 'supplier',
           },
-          doc: { $first: '$$ROOT' },
-          basePrice: { $first: '$product.prices.priceGroups.basePrice' },
-          additions: { $push: '$product.prices.priceGroups.additions' },
         },
-      },
-      {
-        $group: {
-          _id: '$_id.productId',
-          doc: { $first: '$doc' },
-          priceGroups: {
-            $push: {
-              _id: '$_id.priceGroupId',
-              basePrice: '$basePrice',
-              additions: '$additions',
+        {
+          $unwind: {
+            path: '$supplier',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $unwind: {
+            path: '$product.prices.priceGroups',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: 'baseprices',
+            localField: 'product.prices.priceGroups.basePrice',
+            foreignField: '_id',
+            as: 'product.prices.priceGroups.basePrice',
+          },
+        },
+        {
+          $unwind: {
+            path: '$product.prices.priceGroups.basePrice',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: 'additions',
+            localField: 'product.prices.priceGroups.additions',
+            foreignField: '_id',
+            as: 'product.prices.priceGroups.additions',
+          },
+        },
+        {
+          $unwind: {
+            path: '$product.prices.priceGroups.additions',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $group: {
+            _id: {
+              productId: '$_id',
+              priceGroupId: '$product.prices.priceGroups._id',
+            },
+            doc: { $first: '$$ROOT' },
+            basePrice: { $first: '$product.prices.priceGroups.basePrice' },
+            additions: { $push: '$product.prices.priceGroups.additions' },
+          },
+        },
+        {
+          $group: {
+            _id: '$_id.productId',
+            doc: { $first: '$doc' },
+            priceGroups: {
+              $push: {
+                _id: '$_id.priceGroupId',
+                basePrice: '$basePrice',
+                additions: '$additions',
+              },
             },
           },
         },
-      },
-      {
-        $addFields: {
-          'doc.product.prices.priceGroups': '$priceGroups',
+        {
+          $addFields: {
+            'doc.product.prices.priceGroups': '$priceGroups',
+          },
         },
-      },
-      {
-        $replaceRoot: { newRoot: '$doc' },
-      },
-      {
-        $lookup: {
-          from: 'productcategories',
-          localField: 'category',
-          foreignField: '_id',
-          as: 'category',
+        {
+          $replaceRoot: { newRoot: '$doc' },
         },
-      },
-      {
-        $unwind: {
-          path: '$category',
-          preserveNullAndEmptyArrays: true,
+        {
+          $lookup: {
+            from: 'productcategories',
+            localField: 'category',
+            foreignField: '_id',
+            as: 'category',
+          },
         },
-      },
-      {
-        $lookup: {
-          from: 'productsubcategories',
-          localField: 'subCategory',
-          foreignField: '_id',
-          as: 'subCategory',
+        {
+          $unwind: {
+            path: '$category',
+            preserveNullAndEmptyArrays: true,
+          },
         },
-      },
-      {
-        $unwind: {
-          path: '$subCategory',
-          preserveNullAndEmptyArrays: true,
+        {
+          $lookup: {
+            from: 'productsubcategories',
+            localField: 'subCategory',
+            foreignField: '_id',
+            as: 'subCategory',
+          },
         },
-      },
-      {
-        $match: {
-          ...filterQuery,
+        {
+          $unwind: {
+            path: '$subCategory',
+            preserveNullAndEmptyArrays: true,
+          },
         },
-      },
-      {
-        $sort: {
-          ...sort,
+        {
+          $match: {
+            ...filterQuery,
+          },
         },
-      },
-      {
-        $skip: limit * (page - 1),
-      },
-      {
-        $limit: limit,
-      },
-    ]);
+        {
+          $sort: {
+            ...sort,
+          },
+        },
 
-    const count = await this.productModel.aggregate([
-      {
-        $lookup: {
-          from: 'suppliers',
-          localField: 'supplier',
-          foreignField: '_id',
-          as: 'supplier',
+        {
+          $skip: limit * (page - 1),
         },
-      },
-      {
-        $unwind: {
-          path: '$supplier',
+        {
+          $limit: limit,
         },
-      },
-      {
-        $lookup: {
-          from: 'productcategories',
-          localField: 'category',
-          foreignField: '_id',
-          as: 'category',
+        {
+          $project: {
+            firstListedAt: 0,
+            pricesCurrencies: 0,
+            updatedAt: 0,
+            createdAt: 0,
+            overview: { displayPrices: 0 },
+            product: { name: 0, code: 0 },
+            videos: 0,
+            categorisation: {
+              productType: { typeId: 0, typeGroupId: 0 },
+            },
+            category: { supplier: 0, isActive: 0, status: 0, totalProducts: 0 },
+            subCategory: { supplier: 0, isActive: 0, status: 0 },
+            supplier: { isActive: 0, status: 0, updatedAt: 0, createdAt: 0 },
+          },
         },
-      },
-      {
-        $unwind: {
-          path: '$category',
+      ]),
+
+      this.productModel.aggregate([
+        {
+          $lookup: {
+            from: 'suppliers',
+            localField: 'supplier',
+            foreignField: '_id',
+            as: 'supplier',
+          },
         },
-      },
-      {
-        $lookup: {
-          from: 'productsubcategories',
-          localField: 'subCategory',
-          foreignField: '_id',
-          as: 'subCategory',
+        {
+          $unwind: {
+            path: '$supplier',
+          },
         },
-      },
-      {
-        $unwind: {
-          path: '$subCategory',
+        {
+          $lookup: {
+            from: 'productcategories',
+            localField: 'category',
+            foreignField: '_id',
+            as: 'category',
+          },
         },
-      },
-      {
-        $match: {
-          ...filterQuery,
+        {
+          $unwind: {
+            path: '$category',
+          },
         },
-      },
-      {
-        $count: 'count',
-      },
+        {
+          $lookup: {
+            from: 'productsubcategories',
+            localField: 'subCategory',
+            foreignField: '_id',
+            as: 'subCategory',
+          },
+        },
+        {
+          $unwind: {
+            path: '$subCategory',
+          },
+        },
+        {
+          $match: {
+            ...filterQuery,
+          },
+        },
+        {
+          $count: 'count',
+        },
+      ]),
     ]);
 
     const totalPages =
@@ -808,7 +827,7 @@ export class ProductService {
   }
 
   async findSuppliers(query: FetchtQueryDto) {
-    const { page, limit, query: search } = query;
+    const { page, limit, query: search, isActive } = query;
 
     const payload: Record<string, any> = {};
 
@@ -817,6 +836,10 @@ export class ProductService {
       payload.name = { $regex: regex };
     }
 
+    if (isActive) {
+      payload.isActive = true;
+    }
+    
     const suppliers = await this.supplierModel
       .find(payload)
       .skip(limit * (page - 1))

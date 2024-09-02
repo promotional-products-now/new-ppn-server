@@ -62,7 +62,7 @@ export class ProductCategoryService {
 
   async findAll() {
     return await this.globalProductCategoryModel
-      .find()
+      .find({ isActive: true })
       .select(['name', 'subCategory', 'totalProduct'])
       .populate({
         path: 'subCategory',

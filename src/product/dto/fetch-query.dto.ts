@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class FetchtQueryDto {
   @ApiProperty({ example: '1' })
@@ -17,4 +17,10 @@ export class FetchtQueryDto {
   @IsString()
   @IsOptional()
   query?: string;
+
+  @ApiProperty({ example: true, required: false })
+  @IsBoolean()
+  @IsOptional()
+  @Transform(({ value }) => value === 'true')
+  isActive?: boolean;
 }

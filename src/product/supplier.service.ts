@@ -55,6 +55,10 @@ export class SupplierService {
       filter.$or = [{ name: { $regex: new RegExp(query.query, 'gi') } }];
     }
 
+    if (query.isActive) {
+      filter.isActive = true;
+    }
+
     const suppliers = await this.supplierModel.find(
       filter,
       {},
