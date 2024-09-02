@@ -24,9 +24,9 @@ import { AuthorizationGuard } from 'src/commons/guards/authorization.guard';
 
 @ApiTags('orders')
 @Controller('orders')
-// @UseGuards(AuthorizationGuard)
-// @ApiSecurity('uid')
-// @ApiBearerAuth()
+@UseGuards(AuthorizationGuard)
+@ApiSecurity('uid')
+@ApiBearerAuth()
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
