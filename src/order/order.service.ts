@@ -172,7 +172,8 @@ export class OrderService {
   async update(inputs: Partial<UpdateOrderDto>): Promise<Order> {
     this.logger.verbose(`updating order with: ${JSON.stringify(inputs)}`);
 
-    const order = await this.findOne(inputs.id);
+    const order = await this.orderModel.findById(inputs.id);
+    
     if (!order) {
       throw new NotFoundException(`Order with ID ${inputs.id} not found`);
     }
