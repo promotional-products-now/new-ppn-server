@@ -28,7 +28,11 @@ import {
 } from './dto/filter-product-query.dto';
 import { FetchtQueryDto } from './dto/fetch-query.dto';
 import { PaginatedSupplierResponse } from './dto/paginated-response.dto';
-import { UdpateSupplierDto, UpdateProductDto } from './dto/update-product.dto';
+import {
+  FilterWithCreatedAt,
+  UdpateSupplierDto,
+  UpdateProductDto,
+} from './dto/update-product.dto';
 import { Product } from './schemas/product.schema';
 import { Supplier } from './schemas/supplier.schema';
 import { AuthorizationGuard } from '../commons/guards/authorization.guard';
@@ -48,6 +52,18 @@ export class ProductController {
   @ApiQuery({ type: FilterProductQueryDto })
   async findAll(@Query() query) {
     return await this.productsService.findAll(query);
+  }
+
+  @Get('/updated')
+  @ApiQuery({ type: FilterWithCreatedAt })
+  async fetchUpdatedProducts(@Query() query: FilterWithCreatedAt) {
+    return await this.productsService.fetchUpdatedProducts(query);
+  }
+
+  @Get('/new')
+  @ApiQuery({ type: FilterWithCreatedAt })
+  async fetchNewProducts(@Query() query: FilterWithCreatedAt) {
+    return await this.productsService.fetchNewProducts(query);
   }
 
   @Get('/top-selling')
@@ -77,13 +93,13 @@ export class ProductController {
   @Get('/check-stock-levels/:productId')
   @ApiParam({ name: 'productId', type: 'string', required: true })
   checkStockLevels(@Param('productId') productId: string): Observable<any> {
-    const PromoDataAuthToken =
+    const promoDataAuthToken =
       this.configService.getOrThrow<string>('PromoDataAuthToken');
 
     return this.httpService
       .get(
-        ` https://api.promodata.com.au/products/${productId}/check-stock-levels`,
-        { headers: { 'x-auth-token': PromoDataAuthToken } },
+        `https://api.promodata.com.au/products/${productId}/check-stock-levels`,
+        { headers: { 'x-auth-token': promoDataAuthToken } },
       )
       .pipe(map((response) => response.data));
   }

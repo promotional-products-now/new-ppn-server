@@ -6,6 +6,7 @@ import {
 import {
   IsBoolean,
   IsDate,
+  IsDateString,
   IsEnum,
   IsNumber,
   IsOptional,
@@ -13,6 +14,7 @@ import {
 } from 'class-validator';
 import { STATUS_ENUM } from '../product.interface';
 import { Type } from 'class-transformer';
+import { FilterProductQueryDto } from './filter-product-query.dto';
 
 export class BaseUpdateDto {
   @ApiPropertyOptional({ type: 'boolean', example: true })
@@ -101,3 +103,15 @@ export class UpdateCategoryDto extends BaseUpdateDto {}
 export class UpdateSubCategoryDto extends BaseUpdateDto {}
 
 export class UdpateSupplierDto extends BaseUpdateDto {}
+
+export class FilterWithCreatedAt extends FilterProductQueryDto {
+  @ApiProperty({ required: false, example: '2024-07-20' })
+  @IsDateString()
+  @IsOptional()
+  startDate: string;
+
+  @ApiProperty({ required: false, example: '2024-07-20' })
+  @IsDateString()
+  @IsOptional()
+  endDate: string;
+}

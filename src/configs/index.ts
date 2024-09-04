@@ -1,5 +1,4 @@
 import { Algorithm } from 'jsonwebtoken';
-import { fetchSecrets } from './doppler';
 import * as dotenv from 'dotenv';
 import {
   EnvironmentKeys,
@@ -7,13 +6,10 @@ import {
   environments,
 } from '../commons/types/environments.types';
 
-const isAzureProduction =
-  process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'prod';
-
-if (isAzureProduction) dotenv.config();
+dotenv.config();
 
 // fetch secret from doppler
-const secrets = isAzureProduction ? process.env : fetchSecrets();
+const secrets = process.env;
 
 // console.log({ secrets: secrets.DATABASE_URI })
 
@@ -108,6 +104,7 @@ export type AppConfig = {
   port: number;
   appName: string;
   PromoDataAuthToken: string;
+  promoDataProductApi: string;
   domain: string;
   database: DatabaseConfig;
   otp: OtpConfigs;
@@ -127,6 +124,7 @@ const env = (): AppConfig => {
     port: PORT,
     appName: `promotionalproductsnow_${NODE_ENV}`,
     domain: 'promotionalproductsnow.au',
+    promoDataProductApi: secrets.PROMO_PRODUCT_API,
     PromoDataAuthToken: secrets.PROMO_DATA_AUTHTOKEN,
     database: {
       uri: 'mongodb+srv://production_spiderMonkey:WMaYggQeP8jtTuuP@ppn.hfq7y.mongodb.net/ppn?retryWrites=true&w=majority',

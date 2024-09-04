@@ -32,7 +32,7 @@ export class FilterProductQueryDto {
   @ApiPropertyOptional({ type: [String] })
   @IsArray()
   @IsOptional()
-  vendors: string[];
+  suppliers: string[];
 
   @ApiPropertyOptional({ example: 1 })
   @Type(() => Number)

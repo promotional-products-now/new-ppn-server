@@ -207,7 +207,7 @@ export class Product extends Document {
 
   @Prop({
     type: Boolean,
-    default: true,
+    default: false,
   })
   @ApiProperty({ type: 'boolean', example: true })
   isActive: boolean;

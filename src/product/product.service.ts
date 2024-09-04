@@ -31,10 +31,15 @@ import {
   ProductSubCategory,
   ProductSubCategoryDocument,
 } from '../product-category/schemas/subCategory.schema';
-import { UdpateSupplierDto, UpdateProductDto } from './dto/update-product.dto';
+import {
+  FilterWithCreatedAt,
+  UdpateSupplierDto,
+  UpdateProductDto,
+} from './dto/update-product.dto';
 import { FetchtQueryDto } from './dto/fetch-query.dto';
 import { ObjectId } from 'mongodb';
 import { Order, OrderDocument } from 'src/order/schemas/order.schema';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class ProductService {
@@ -65,27 +70,6 @@ export class ProductService {
     @InjectModel(Order.name)
     private readonly orderModel: Model<OrderDocument>,
   ) {}
-
-  private async fetchProducts(page: number) {
-    console.log('pages in fetchproducts', page);
-    return firstValueFrom(
-      this.httpService
-        .get(`${this.configService.getOrThrow('PRODUCT_API')}?page=${page}`, {
-          headers: {
-            'x-auth-token': this.configService.getOrThrow(
-              'PRODUCT_API_AUTH_CODE',
-            ),
-          },
-        })
-        .pipe(
-          retry({ count: 5, delay: 2000 }),
-          catchError((error: AxiosError) => {
-            this.logger.error(error);
-            throw 'An error happened!';
-          }),
-        ),
-    );
-  }
 
   private async createProduct(product: any) {
     const supplier = await this.supplierModel.findOneAndUpdate(
@@ -271,31 +255,54 @@ export class ProductService {
     return newProduct;
   }
 
-  // @Cron('0 0 * * 0')
-  // @Cron('*/5 * * * *')
-  async fetchThirdPartyProducts() {
-    try {
-      let page = 1;
-      let totalPage = 1000;
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
+    timeZone: 'UTC',
+  })
+  async fetchAndUpsertProducts() {
+    let page = 1;
+    let totalPages = 1;
 
-      while (page < totalPage) {
-        this.logger.log('Fetching product for page ', page);
+    do {
+      try {
+        const response = await this.fetchProductsFromApi(page);
+        const { data, total_pages } = response;
+        totalPages = total_pages;
 
-        const response = await this.fetchProducts(page);
-        const { data } = response;
-
-        // update total page from api
-        totalPage = data.total_page + 1;
-
-        for (const product of data.data) {
+        for (const product of data) {
           await this.createProduct(product);
         }
 
+        this.logger.log(`Page ${page} processed.`);
         page++;
+      } catch (error) {
+        this.logger.error('Failed to fetch or upsert products', error);
+        break;
       }
-    } catch (err) {
-      this.logger.error(err);
-    }
+    } while (page <= totalPages);
+
+    this.logger.log('Product sync completed.');
+  }
+
+  private async fetchProductsFromApi(page: number): Promise<any> {
+    const apiUrl = this.configService.getOrThrow<string>('promoDataProductApi');
+    const authToken =
+      this.configService.getOrThrow<string>('PromoDataAuthToken');
+
+    return firstValueFrom(
+      this.httpService
+        .get(`${apiUrl}?page=${page}`, {
+          headers: {
+            'x-auth-token': authToken,
+          },
+        })
+        .pipe(
+          retry({ count: 5, delay: 2000 }),
+          catchError((error: AxiosError) => {
+            this.logger.error(`Failed to fetch page ${page}: ${error.message}`);
+            throw error;
+          }),
+        ),
+    ).then((response) => response.data);
   }
 
   async findAll(query: Partial<FilterProductQueryDto>): Promise<any> {
@@ -342,10 +349,10 @@ export class ProductService {
       });
     }
 
-    if (query.vendors) {
+    if (query.suppliers) {
       Object.assign(filterQuery, {
         'supplier._id': {
-          $in: query.vendors.map((vendor) => new ObjectId(vendor)),
+          $in: query.suppliers.map((vendor) => new ObjectId(vendor)),
         },
       });
     }
@@ -622,6 +629,379 @@ export class ProductService {
       .exec();
   }
 
+  async fetchUpdatedProducts(query: Partial<FilterWithCreatedAt>) {
+    const page = query.page ? Number(query.page) : 1;
+    const limit = query.limit ? Number(query.limit) : 15;
+
+    const filterQuery: Record<string, any> = {
+      'supplier.isActive': true,
+      'category.isActive': true,
+      'subCategory.isActive': true,
+    };
+
+    if (query.category) {
+      filterQuery['category.name'] = {
+        $regex: new RegExp(query.category, 'gi'),
+      };
+    }
+
+    if (query.subCategory) {
+      filterQuery['subCategory.name'] = {
+        $regex: new RegExp(query.subCategory, 'gi'),
+      };
+    }
+
+    if (query.suppliers) {
+      filterQuery['supplier._id'] = {
+        $in: query.suppliers.map((vendor) => new ObjectId(vendor)),
+      };
+    }
+
+    const from = query.startDate ? new Date(query.startDate) : null;
+    const to = query.endDate ? new Date(query.endDate) : null;
+
+    const [products, count] = await Promise.all([
+      this.productModel.aggregate([
+        {
+          $lookup: {
+            from: 'suppliers',
+            localField: 'supplier',
+            foreignField: '_id',
+            as: 'supplier',
+          },
+        },
+        {
+          $unwind: {
+            path: '$supplier',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $unwind: {
+            path: '$product.prices.priceGroups',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: 'baseprices',
+            localField: 'product.prices.priceGroups.basePrice',
+            foreignField: '_id',
+            as: 'product.prices.priceGroups.basePrice',
+          },
+        },
+        {
+          $unwind: {
+            path: '$product.prices.priceGroups.basePrice',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $group: {
+            _id: {
+              productId: '$_id',
+              priceGroupId: '$product.prices.priceGroups._id',
+            },
+            doc: { $first: '$$ROOT' },
+            basePrice: { $first: '$product.prices.priceGroups.basePrice' },
+          },
+        },
+        {
+          $group: {
+            _id: '$_id.productId',
+            doc: { $first: '$doc' },
+            priceGroups: {
+              $push: {
+                _id: '$_id.priceGroupId',
+                basePrice: '$basePrice',
+              },
+            },
+          },
+        },
+        {
+          $addFields: {
+            'doc.product.prices.priceGroups': '$priceGroups',
+          },
+        },
+        {
+          $replaceRoot: { newRoot: '$doc' },
+        },
+        {
+          $lookup: {
+            from: 'productcategories',
+            localField: 'category',
+            foreignField: '_id',
+            as: 'category',
+          },
+        },
+        {
+          $unwind: {
+            path: '$category',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: 'productsubcategories',
+            localField: 'subCategory',
+            foreignField: '_id',
+            as: 'subCategory',
+          },
+        },
+        {
+          $unwind: {
+            path: '$subCategory',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $match: {
+            ...filterQuery,
+            updatedAt: { $gte: from, $lte: to },
+          },
+        },
+        {
+          $sort: { updatedAt: -1 },
+        },
+        {
+          $skip: limit * (page - 1),
+        },
+        {
+          $limit: limit,
+        },
+        {
+          $project: {
+            firstListedAt: 0,
+            pricesCurrencies: 0,
+            createdAt: 0,
+            overview: { displayPrices: 0 },
+            product: { name: 0, code: 0 },
+            videos: 0,
+            categorisation: {
+              productType: { typeId: 0, typeGroupId: 0 },
+            },
+            category: { supplier: 0, isActive: 0, status: 0, totalProducts: 0 },
+            subCategory: { supplier: 0, isActive: 0, status: 0 },
+            supplier: { isActive: 0, status: 0, updatedAt: 0, createdAt: 0 },
+          },
+        },
+      ]),
+
+      this.productModel.aggregate([
+        {
+          $match: {
+            ...filterQuery,
+            updatedAt: { $gte: from, $lte: to },
+          },
+        },
+        {
+          $count: 'count',
+        },
+      ]),
+    ]);
+
+    const totalItems = count && count[0] ? count[0].count : 0;
+    const totalPages = totalItems ? Math.ceil(totalItems / limit) : 0;
+
+    return {
+      docs: products,
+      page: page,
+      limit: limit,
+      totalItems,
+      totalPages,
+      nextPage: page < totalPages ? page + 1 : null,
+      prevPage: page > 1 ? page - 1 : null,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+    };
+  }
+
+  async fetchNewProducts(query: Partial<FilterWithCreatedAt>) {
+    const page = query.page ? Number(query.page) : 1;
+    const limit = query.limit ? Number(query.limit) : 15;
+
+    const filterQuery: Record<string, any> = {
+      'supplier.isActive': true,
+      'category.isActive': true,
+      'subCategory.isActive': true,
+    };
+
+    if (query.category) {
+      filterQuery['category.name'] = {
+        $regex: new RegExp(query.category, 'gi'),
+      };
+    }
+
+    if (query.subCategory) {
+      filterQuery['subCategory.name'] = {
+        $regex: new RegExp(query.subCategory, 'gi'),
+      };
+    }
+
+    if (query.suppliers) {
+      filterQuery['supplier._id'] = {
+        $in: query.suppliers.map((vendor) => new ObjectId(vendor)),
+      };
+    }
+
+    const from = query.startDate ? new Date(query.startDate) : null;
+    const to = query.endDate ? new Date(query.endDate) : null;
+
+    const [products, count] = await Promise.all([
+      this.productModel.aggregate([
+        {
+          $lookup: {
+            from: 'suppliers',
+            localField: 'supplier',
+            foreignField: '_id',
+            as: 'supplier',
+          },
+        },
+        {
+          $unwind: {
+            path: '$supplier',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $unwind: {
+            path: '$product.prices.priceGroups',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: 'baseprices',
+            localField: 'product.prices.priceGroups.basePrice',
+            foreignField: '_id',
+            as: 'product.prices.priceGroups.basePrice',
+          },
+        },
+        {
+          $unwind: {
+            path: '$product.prices.priceGroups.basePrice',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $group: {
+            _id: {
+              productId: '$_id',
+              priceGroupId: '$product.prices.priceGroups._id',
+            },
+            doc: { $first: '$$ROOT' },
+            basePrice: { $first: '$product.prices.priceGroups.basePrice' },
+          },
+        },
+        {
+          $group: {
+            _id: '$_id.productId',
+            doc: { $first: '$doc' },
+            priceGroups: {
+              $push: {
+                _id: '$_id.priceGroupId',
+                basePrice: '$basePrice',
+              },
+            },
+          },
+        },
+        {
+          $addFields: {
+            'doc.product.prices.priceGroups': '$priceGroups',
+          },
+        },
+        {
+          $replaceRoot: { newRoot: '$doc' },
+        },
+        {
+          $lookup: {
+            from: 'productcategories',
+            localField: 'category',
+            foreignField: '_id',
+            as: 'category',
+          },
+        },
+        {
+          $unwind: {
+            path: '$category',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: 'productsubcategories',
+            localField: 'subCategory',
+            foreignField: '_id',
+            as: 'subCategory',
+          },
+        },
+        {
+          $unwind: {
+            path: '$subCategory',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $match: {
+            ...filterQuery,
+            createdAt: { $gte: from, $lte: to },
+          },
+        },
+        {
+          $sort: { createdAt: -1 },
+        },
+        {
+          $skip: limit * (page - 1),
+        },
+        {
+          $limit: limit,
+        },
+        {
+          $project: {
+            firstListedAt: 0,
+            pricesCurrencies: 0,
+            updatedAt: 0,
+            overview: { displayPrices: 0 },
+            product: { name: 0, code: 0 },
+            videos: 0,
+            categorisation: {
+              productType: { typeId: 0, typeGroupId: 0 },
+            },
+            category: { supplier: 0, isActive: 0, status: 0, totalProducts: 0 },
+            subCategory: { supplier: 0, isActive: 0, status: 0 },
+            supplier: { isActive: 0, status: 0, updatedAt: 0, createdAt: 0 },
+          },
+        },
+      ]),
+
+      this.productModel.aggregate([
+        {
+          $match: {
+            ...filterQuery,
+            updatedAt: { $gte: from, $lte: to },
+          },
+        },
+        {
+          $count: 'count',
+        },
+      ]),
+    ]);
+
+    const totalItems = count && count[0] ? count[0].count : 0;
+    const totalPages = totalItems ? Math.ceil(totalItems / limit) : 0;
+
+    return {
+      docs: products,
+      page: page,
+      limit: limit,
+      totalItems,
+      totalPages,
+      nextPage: page < totalPages ? page + 1 : null,
+      prevPage: page > 1 ? page - 1 : null,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+    };
+  }
   /**
    * returns the top selling products. eg (products with most orders)
    *
@@ -839,7 +1219,7 @@ export class ProductService {
     if (isActive) {
       payload.isActive = true;
     }
-    
+
     const suppliers = await this.supplierModel
       .find(payload)
       .skip(limit * (page - 1))
