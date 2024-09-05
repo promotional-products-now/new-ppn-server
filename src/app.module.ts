@@ -19,6 +19,7 @@ import { EmailModule } from './email/email.module';
 import { UserActivityModule } from './user_activity/user_activity.module';
 import { CheckoutModule } from './checkout/checkout.module';
 import { OrderModule } from './order/order.module';
+import { CouponModule } from './coupon/coupon.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { OrderModule } from './order/order.module';
     UserActivityModule,
     CheckoutModule,
     OrderModule,
+    CouponModule,
   ],
   controllers: [AppController],
   providers: [
