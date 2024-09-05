@@ -821,6 +821,7 @@ export class ProductService {
     const limit = query.limit ? Number(query.limit) : 15;
 
     const filterQuery: Record<string, any> = {
+      isActive: false,
       'supplier.isActive': true,
       'category.isActive': true,
       'subCategory.isActive': true,
@@ -884,6 +885,20 @@ export class ProductService {
           },
         },
         {
+          $lookup: {
+            from: 'additions',
+            localField: 'product.prices.priceGroups.additions',
+            foreignField: '_id',
+            as: 'product.prices.priceGroups.additions',
+          },
+        },
+        {
+          $unwind: {
+            path: '$product.prices.priceGroups.additions',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
           $group: {
             _id: {
               productId: '$_id',
@@ -891,6 +906,7 @@ export class ProductService {
             },
             doc: { $first: '$$ROOT' },
             basePrice: { $first: '$product.prices.priceGroups.basePrice' },
+            additions: { $push: '$product.prices.priceGroups.additions' },
           },
         },
         {
@@ -901,6 +917,7 @@ export class ProductService {
               $push: {
                 _id: '$_id.priceGroupId',
                 basePrice: '$basePrice',
+                additions: '$additions',
               },
             },
           },

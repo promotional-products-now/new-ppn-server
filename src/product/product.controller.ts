@@ -56,19 +56,19 @@ export class ProductController {
 
   @Get('/updated')
   @ApiQuery({ type: FilterWithCreatedAt })
-  async fetchUpdatedProducts(@Query() query: FilterWithCreatedAt) {
+  async fetchUpdatedProducts(@Query() query) {
     return await this.productsService.fetchUpdatedProducts(query);
   }
 
   @Get('/new')
   @ApiQuery({ type: FilterWithCreatedAt })
-  async fetchNewProducts(@Query() query: FilterWithCreatedAt) {
+  async fetchNewProducts(@Query() query) {
     return await this.productsService.fetchNewProducts(query);
   }
 
   @Get('/top-selling')
   @ApiQuery({ type: TopSellingProductQuery })
-  async topSelling(@Query() query: TopSellingProductQuery) {
+  async topSelling(@Query() query) {
     return await this.productsService.topSellingProducts(query);
   }
 
