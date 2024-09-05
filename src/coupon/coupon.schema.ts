@@ -24,7 +24,7 @@ export class Coupon extends Document {
 
   @ApiProperty({
     type: 'string',
-    example: 'NELXDS',
+    example: 'PPN-wHZC',
   })
   @Prop({ type: String })
   code: string;
@@ -48,7 +48,7 @@ export class Coupon extends Document {
     description: 'Discount in percentage',
     example: 10,
   })
-  @Prop({ type: Number })
+  @Prop({ type: Number, default: 5 })
   discount: number;
 }
 

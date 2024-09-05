@@ -30,10 +30,21 @@ describe('CouponService', () => {
     const coupon: Partial<Coupon> = {
       name: 'testCoupon',
       description: 'coupon for laptop',
+      discount: 10,
       expiresAt: new Date(Date.now() + 1000 * 60 * 60),
     };
     const result = await service.create(coupon);
     expect(result).toBeDefined();
+  });
+
+  it('should be apply coupon', async () => {
+    const { discount, isExpired } = await service.checkCoupon(
+      'PPN-wHZC',
+      19000,
+      new Date(),
+    );
+
+    console.log({ discount, isExpired });
   });
 
   it('should return an array of coupons', async () => {

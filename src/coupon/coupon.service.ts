@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Coupon, CouponDocument } from './coupon.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -27,6 +27,25 @@ export class CouponService {
 
   async findAll(): Promise<Coupon[]> {
     return await this.couponModel.find();
+  }
+
+  async checkCoupon(
+    code: string,
+    totalPrice: number,
+    date = new Date(),
+  ): Promise<{ discount: number; isExpired: boolean }> {
+    const coupon = await this.couponModel.findOne({ code: code });
+    if (!coupon) {
+      throw new NotFoundException('Coupon not found');
+    }
+
+    const isExpired = date > coupon.expiresAt;
+    if (isExpired) {
+      return { discount: 0, isExpired: true };
+    }
+
+    const discount = (totalPrice * coupon.discount) / 100;
+    return { discount, isExpired: false };
   }
 
   async findOne(id: string): Promise<Coupon> {
