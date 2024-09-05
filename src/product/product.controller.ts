@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
@@ -30,6 +31,7 @@ import { FetchtQueryDto } from './dto/fetch-query.dto';
 import { PaginatedSupplierResponse } from './dto/paginated-response.dto';
 import {
   FilterWithCreatedAt,
+  MultiUpdateProductDto,
   UdpateSupplierDto,
   UpdateProductDto,
 } from './dto/update-product.dto';
@@ -97,13 +99,15 @@ export class ProductController {
       this.configService.getOrThrow<string>('PromoDataAuthToken');
 
     return this.httpService
-      .get(
+      .post(
         `https://api.promodata.com.au/products/${productId}/check-stock-levels`,
-        { headers: { 'x-auth-token': promoDataAuthToken } },
+        {},
+        {
+          headers: { 'x-auth-token': promoDataAuthToken },
+        },
       )
       .pipe(map((response) => response.data));
   }
-
   @Get('/categories/:categoryName')
   @ApiQuery({ type: FilterProductByCategoryQueryDto })
   @ApiParam({ name: 'categoryName', type: 'string', required: true })
@@ -134,6 +138,17 @@ export class ProductController {
   @ApiParam({ name: 'id', type: 'string', required: true })
   async findById(@Param('id') id: string) {
     return await this.productsService.findById(id);
+  }
+
+  @UseGuards(AuthorizationGuard)
+  @ApiSecurity('uid')
+  @ApiBearerAuth()
+  @Patch('/update-many')
+  @ApiBody({ type: MultiUpdateProductDto })
+  @ApiOperation({ summary: 'Update Product' })
+  @ApiOkResponse({ description: 'Updated product data', type: Product })
+  async updateManyProduct(@Body() body) {
+    return await this.productsService.updateManyProduct(body.ids, body.payload);
   }
 
   @UseGuards(AuthorizationGuard)

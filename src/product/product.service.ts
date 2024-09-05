@@ -1211,6 +1211,14 @@ export class ProductService {
     return products;
   }
 
+  async updateManyProduct(ids: string[], payload) {
+    const result = await this.productModel.updateMany(
+      { _id: { $in: ids } },
+      { $set: payload },
+    );
+    return result;
+  }
+
   async updateProduct(id: string, updateProductDto: UpdateProductDto) {
     return await this.productModel.findByIdAndUpdate(id, updateProductDto, {
       new: true,

@@ -98,6 +98,14 @@ export class UpdateProductDto extends BaseUpdateDto {
   discounts: Discounts;
 }
 
+export class MultiUpdateProductDto {
+  @ApiProperty({ type: Array<String>, description: 'An Array of product Ids' })
+  ids: Array<string>;
+
+  @ValidateNested()
+  payload: UpdateProductDto;
+}
+
 export class UpdateCategoryDto extends BaseUpdateDto {}
 
 export class UpdateSubCategoryDto extends BaseUpdateDto {}
