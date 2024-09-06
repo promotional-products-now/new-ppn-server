@@ -16,7 +16,7 @@ export class Freight extends Document {
   @ApiProperty({
     description: 'vendor details',
   })
-  vendor: Types.ObjectId;
+  supplier: Types.ObjectId;
 
   @Prop({
     type: String,
