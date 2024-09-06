@@ -11,7 +11,7 @@ import { DestinationType, FreightType } from '../settings.interface';
 
 export class CreateFreightDto {
   @ApiProperty()
-  vender: string;
+  vendor: string;
 
   @ApiProperty({ enum: FreightType, default: FreightType.FIX })
   @IsEnum(FreightType)
