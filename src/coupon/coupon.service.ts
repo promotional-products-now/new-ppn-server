@@ -3,13 +3,24 @@ import { Coupon, CouponDocument } from './coupon.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as voucherCodes from 'voucher-code-generator';
+import { ConfigService } from '@nestjs/config';
+import { StripeConfig } from 'src/configs';
+import Stripe from 'stripe';
 
 @Injectable()
 export class CouponService {
+  private stripe: Stripe;
+  private stripeConfig: StripeConfig;
+
   constructor(
+    private configService: ConfigService,
+
     @InjectModel(Coupon.name)
     private readonly couponModel: Model<CouponDocument>,
-  ) {}
+  ) {
+    this.stripeConfig = this.configService.get<StripeConfig>('stripe');
+    this.stripe = new Stripe(this.stripeConfig.secretKey);
+  }
 
   async create(inputs: Partial<Coupon>): Promise<Coupon> {
     const codes = voucherCodes.generate({
@@ -18,11 +29,21 @@ export class CouponService {
       count: 1,
     });
 
-    const createdCoupon = this.couponModel.create({
-      ...inputs,
-      code: codes[0],
+    const couponCode = codes[0];
+
+    const coupon = await this.stripe.coupons.create({
+      duration: 'forever',
+      id: couponCode,
+      percent_off: inputs.discount,
     });
-    return await createdCoupon;
+
+    const createdCoupon = await this.couponModel.create({
+      ...inputs,
+      stripeId: coupon.id,
+      code: couponCode,
+    });
+
+    return createdCoupon;
   }
 
   async findAll(): Promise<Coupon[]> {
@@ -57,6 +78,13 @@ export class CouponService {
   }
 
   async remove(id: string): Promise<void> {
+    const coupon = await this.couponModel.findById(id);
+    if (!coupon) {
+      throw new NotFoundException('Coupon not found');
+    }
+
+    await this.stripe.coupons.del(coupon.stripeId);
+
     await this.couponModel.findByIdAndDelete(id);
   }
 }

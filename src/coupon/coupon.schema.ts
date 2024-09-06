@@ -50,6 +50,9 @@ export class Coupon extends Document {
   })
   @Prop({ type: Number, default: 5 })
   discount: number;
+
+  @Prop({ type: String })
+  stripeId?: string;
 }
 
 export type CouponDocument = HydratedDocument<Coupon>;

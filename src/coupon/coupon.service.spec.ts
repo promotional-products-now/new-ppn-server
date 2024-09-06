@@ -40,7 +40,7 @@ describe('CouponService', () => {
   it('should be apply coupon', async () => {
     const { discount, isExpired } = await service.checkCoupon(
       'PPN-wHZC',
-      19000,
+      6500,
       new Date(),
     );
 
