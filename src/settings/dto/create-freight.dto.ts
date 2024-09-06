@@ -5,13 +5,15 @@ import {
   IsEnum,
   IsNotEmpty,
   IsNumber,
+  IsString,
   ValidateIf,
 } from 'class-validator';
 import { DestinationType, FreightType } from '../settings.interface';
 
 export class CreateFreightDto {
   @ApiProperty()
-  vendor: string;
+  @IsString()
+  supplier: string;
 
   @ApiProperty({ enum: FreightType, default: FreightType.FIX })
   @IsEnum(FreightType)
