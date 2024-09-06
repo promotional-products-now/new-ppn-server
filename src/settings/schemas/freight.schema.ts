@@ -3,6 +3,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { DestinationType, FreightType } from '../settings.interface';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../user/schemas/user.schema';
+import { Supplier } from '../../product/schemas/supplier.schema';
 
 @Schema({
   timestamps: true,
@@ -10,7 +11,7 @@ import { User } from '../../user/schemas/user.schema';
 export class Freight extends Document {
   @Prop({
     type: Types.ObjectId,
-    ref: User.name,
+    ref: Supplier.name,
   })
   @ApiProperty({
     description: 'vendor details',
