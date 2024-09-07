@@ -20,6 +20,7 @@ import { UserActivityModule } from './user_activity/user_activity.module';
 import { CheckoutModule } from './checkout/checkout.module';
 import { OrderModule } from './order/order.module';
 import { AdvertModule } from './advert/advert.module';
+import { CouponModule } from './coupon/coupon.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { AdvertModule } from './advert/advert.module';
     CheckoutModule,
     OrderModule,
     AdvertModule,
+    CouponModule,
   ],
   controllers: [AppController],
   providers: [
