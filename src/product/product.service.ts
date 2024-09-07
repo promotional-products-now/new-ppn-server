@@ -307,7 +307,7 @@ export class ProductService {
 
   async findAll(query: Partial<FilterProductQueryDto>): Promise<any> {
     const page = query.page ? Number(query.page) : 1;
-    const limit = query.limit ? Number(query.limit) : 15;
+    const limit = query.limit ? Number(query.limit) : 10;
 
     const filterQuery: Record<string, any> = {
       ...(!query.isAdmin && { isActive: true }),
