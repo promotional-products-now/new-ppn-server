@@ -3,7 +3,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { DatabaseConfig } from '../../configs';
 
-
 @Module({
   imports: [
     MongooseModule.forRootAsync({
