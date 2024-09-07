@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -32,6 +33,8 @@ import { PaginatedSupplierResponse } from './dto/paginated-response.dto';
 import {
   FilterWithCreatedAt,
   MultiUpdateProductDto,
+  ProductLabelDto,
+  ProductUpdateDto,
   UdpateSupplierDto,
   UpdateProductDto,
 } from './dto/update-product.dto';
@@ -174,5 +177,37 @@ export class ProductController {
     @Body() body: UdpateSupplierDto,
   ) {
     return await this.productsService.updateSupplier(id, body);
+  }
+
+  @UseGuards(AuthorizationGuard)
+  @ApiSecurity('uid')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update Label' })
+  @ApiOkResponse({
+    description: 'Update product label',
+    type: ProductUpdateDto,
+  })
+  @Patch('/label')
+  async addProductField(@Body() data: ProductLabelDto) {
+    return await this.productsService.addProductLabel(
+      data.productId,
+      data.label,
+    );
+  }
+
+  @UseGuards(AuthorizationGuard)
+  @ApiSecurity('uid')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete Label' })
+  @ApiOkResponse({
+    description: 'Delete product label',
+    type: ProductUpdateDto,
+  })
+  @Delete('/label')
+  async removeProductField(@Body() data: ProductLabelDto) {
+    return await this.productsService.addProductLabel(
+      data.productId,
+      data.label,
+    );
   }
 }

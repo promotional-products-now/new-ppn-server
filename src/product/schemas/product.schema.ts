@@ -8,6 +8,9 @@ import { ProductCategory } from '../../product-category/schemas/category.schema'
 import { ProductSubCategory } from '../../product-category/schemas/subCategory.schema';
 import { STATUS_ENUM } from '../product.interface';
 
+enum ProductLabel {
+  bestSelling = 'best selling',
+}
 @Schema({
   timestamps: true,
 })
@@ -263,6 +266,9 @@ export class Product extends Document {
       expiryDate: Date;
     };
   };
+
+  @Prop([String])
+  labels: string[];
 }
 
 export type ProductDocument = HydratedDocument<Product>;

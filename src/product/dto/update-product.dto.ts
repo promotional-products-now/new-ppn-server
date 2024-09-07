@@ -10,6 +10,8 @@ import {
   IsEnum,
   IsNumber,
   IsOptional,
+  IsString,
+  Matches,
   ValidateNested,
 } from 'class-validator';
 import { STATUS_ENUM } from '../product.interface';
@@ -122,4 +124,20 @@ export class FilterWithCreatedAt extends FilterProductQueryDto {
   @IsDateString()
   @IsOptional()
   endDate: string;
+}
+
+export class ProductLabelDto {
+  @ApiProperty({ required: true, example: 'some product id' })
+  @IsString()
+  productId: string;
+
+  @ApiProperty({ required: true, example: 'best selling' })
+  @Matches('^[a-z]+( [a-z]+)*$')
+  label: string;
+}
+
+export class ProductUpdateDto {
+  @ApiProperty({ example: true })
+  @IsBoolean()
+  updated: boolean;
 }

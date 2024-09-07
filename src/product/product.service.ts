@@ -1,11 +1,12 @@
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Product, ProductDocument } from './schemas/product.schema';
 import { HttpService } from '@nestjs/axios';
 import { catchError, firstValueFrom } from 'rxjs';
@@ -1646,5 +1647,55 @@ export class ProductService {
       .split('_')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
+  }
+
+  async addProductLabel(productId: string, label: string) {
+    const product = await this.productModel.findOne({
+      _id: new Types.ObjectId(productId),
+    });
+
+    if (!product) {
+      throw new NotFoundException('This product does not exist');
+    }
+
+    if (product.labels) {
+      const { modifiedCount } = await this.productModel.updateOne(
+        { _id: new Types.ObjectId(productId) },
+        { $push: { labels: label } },
+      );
+
+      return { updated: modifiedCount > 0 };
+    }
+
+    const { modifiedCount } = await this.productModel.updateOne(
+      { _id: new Types.ObjectId(productId) },
+      { $set: { labels: [label] } },
+    );
+
+    return { updated: modifiedCount > 0 };
+  }
+
+  async removeProductLabel(productId: string, label: string) {
+    const product = await this.productModel.findOne({
+      _id: new Types.ObjectId(productId),
+
+      labels: { $elemMatch: { $eq: label } },
+    });
+
+    if (!product) {
+      throw new NotFoundException(
+        'This product does not exist with this label',
+      );
+    }
+
+    const labels = product.labels;
+    const labelIndex = labels.indexOf(label);
+    labels.splice(labelIndex, 1);
+
+    const { modifiedCount } = await this.productModel.updateOne(
+      { _id: new Types.ObjectId(productId) },
+      { $set: { labels } },
+    );
+    return { updated: modifiedCount > 0 };
   }
 }
