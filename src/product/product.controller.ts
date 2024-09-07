@@ -205,7 +205,7 @@ export class ProductController {
   })
   @Delete('/label')
   async removeProductField(@Body() data: ProductLabelDto) {
-    return await this.productsService.addProductLabel(
+    return await this.productsService.removeProductLabel(
       data.productId,
       data.label,
     );
