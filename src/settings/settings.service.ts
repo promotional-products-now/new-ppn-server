@@ -135,7 +135,7 @@ export class SettingsService {
       .find(payload)
       .skip(limit * (page - 1))
       .limit(limit)
-      .populate(['vendor'])
+      .populate(['supplier'])
       .sort({ createdAt: -1 });
 
     const count = await this.freightModel.countDocuments(payload);
