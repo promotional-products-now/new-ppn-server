@@ -629,6 +629,13 @@ export class ProductService {
       .exec();
   }
 
+  async findByProductCode(productCode: string) {
+    return await this.productModel
+      .findOne({ 'overview.code': productCode })
+      .populate('product.prices.priceGroups.basePrice')
+      .exec();
+  }
+
   async fetchUpdatedProducts(query: Partial<FilterWithCreatedAt>) {
     const page = query.page ? Number(query.page) : 1;
     const limit = query.limit ? Number(query.limit) : 15;

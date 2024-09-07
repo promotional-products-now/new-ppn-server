@@ -134,6 +134,12 @@ export class ProductController {
     return await this.productsService.findSuppliers(query);
   }
 
+  @Get('/product-code/:productCode')
+  @ApiParam({ name: 'productCode', type: 'string', required: true })
+  async findByProductCode(@Param('productCode') productCode: string) {
+    return await this.productsService.findByProductCode(productCode);
+  }
+
   @Get('/:id')
   @ApiParam({ name: 'id', type: 'string', required: true })
   async findById(@Param('id') id: string) {
