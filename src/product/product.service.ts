@@ -1045,8 +1045,8 @@ export class ProductService {
    * @param query
    */
   async topSellingProducts(query: TopSellingProductQuery) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 15;
+    const page = Number(query.page) ?? 1;
+    const limit = Number(query.limit) ?? 15;
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -1134,8 +1134,8 @@ export class ProductService {
     const showCase: { [key: string]: any } = {};
 
     // Ensure default values for page and limit
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 15;
+    const page = Number(query.page) ?? 1;
+    const limit = Number(query.limit) ?? 15;
 
     const categoryNames = query.categories ? query.categories.split(',') : [];
 
@@ -1174,8 +1174,8 @@ export class ProductService {
   }
 
   async latestProducts(query: FilterPage): Promise<{ [key: string]: any }> {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const page = Number(query.page) ?? 1;
+    const limit = Number(query.limit) ?? 10;
 
     const sortOptions: { [key: string]: any } = {
       'A-Z': { 'product.name': 1 },
@@ -1202,8 +1202,8 @@ export class ProductService {
   }
 
   async hotProducts(query: FilterPage): Promise<{ [key: string]: any }> {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const page = Number(query.page) ?? 1;
+    const limit = Number(query.limit) ?? 10;
 
     const sortOptions: { [key: string]: any } = {
       'A-Z': { 'product.name': 1 },
@@ -1341,8 +1341,8 @@ export class ProductService {
 
       const products = await this.productModel
         .find({ category: category._id })
-        .skip(query.limit * (query.page - 1))
-        .limit(query.limit)
+        .skip(Number(query.limit) * (Number(query.page) - 1))
+        .limit(Number(query.limit))
         .sort(sort)
         .lean();
 

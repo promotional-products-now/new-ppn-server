@@ -127,7 +127,7 @@ const env = (): AppConfig => {
     promoDataProductApi: secrets.PROMO_PRODUCT_API,
     PromoDataAuthToken: secrets.PROMO_DATA_AUTHTOKEN,
     database: {
-      uri: 'mongodb+srv://production_spiderMonkey:ZldLi0VKCrJZFMdO@ppn.hfq7y.mongodb.net/ppn?retryWrites=true&w=majorityy',
+      uri: 'mongodb+srv://production_spiderMonkey:ZldLi0VKCrJZFMdO@ppn.hfq7y.mongodb.net/ppn?retryWrites=true&w=majority',
     },
     otp: {
       secret: secrets.OTP_SECRET,
