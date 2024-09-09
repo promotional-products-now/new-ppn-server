@@ -74,6 +74,34 @@ class Discounts {
   regularRule: DiscountRule;
 }
 
+class AdvancedMarkupTier {
+  @ApiProperty({ type: Number, description: 'Profit markup percentage' })
+  profitMarkup: number;
+
+  @ApiProperty({ type: Date, description: 'Expiry date for the markup' })
+  markupExpiryDate: Date;
+
+  @ApiProperty({ type: String, description: 'Sales pitch for this tier' })
+  salesPitch: string;
+}
+
+class AdvancedMarkup {
+  @ApiProperty({ type: AdvancedMarkupTier, description: 'Regular tier markup' })
+  @ValidateNested()
+  @Type(() => AdvancedMarkupTier)
+  regular: AdvancedMarkupTier;
+
+  @ApiProperty({ type: AdvancedMarkupTier, description: 'Gold tier markup' })
+  @ValidateNested()
+  @Type(() => AdvancedMarkupTier)
+  gold: AdvancedMarkupTier;
+
+  @ApiProperty({ type: AdvancedMarkupTier, description: 'Diamond tier markup' })
+  @ValidateNested()
+  @Type(() => AdvancedMarkupTier)
+  diamond: AdvancedMarkupTier;
+}
+
 export class UpdateProductDto extends BaseUpdateDto {
   @ApiProperty({
     type: Discounts,
@@ -82,6 +110,15 @@ export class UpdateProductDto extends BaseUpdateDto {
   @ValidateNested()
   @Type(() => Discounts)
   discounts: Discounts;
+
+  @ApiProperty({
+    type: AdvancedMarkup,
+    description: 'Advanced markup settings for different tiers',
+  })
+  @ValidateNested()
+  @Type(() => AdvancedMarkup)
+  @IsOptional()
+  advancedMarkup?: AdvancedMarkup;
 }
 
 export class UpdateCategoryDto extends BaseUpdateDto {}
@@ -89,3 +126,7 @@ export class UpdateCategoryDto extends BaseUpdateDto {}
 export class UpdateSubCategoryDto extends BaseUpdateDto {}
 
 export class UdpateSupplierDto extends BaseUpdateDto {}
+function IsOptional(): (target: UpdateProductDto, propertyKey: "advancedMarkup") => void {
+  throw new Error('Function not implemented.');
+}
+
