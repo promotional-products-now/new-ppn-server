@@ -5,6 +5,7 @@ import {
   IsEnum,
   IsNumber,
   ValidateNested,
+  IsOptional,
 } from 'class-validator';
 import { STATUS_ENUM } from '../product.interface';
 import { Type } from 'class-transformer';
@@ -126,7 +127,3 @@ export class UpdateCategoryDto extends BaseUpdateDto {}
 export class UpdateSubCategoryDto extends BaseUpdateDto {}
 
 export class UdpateSupplierDto extends BaseUpdateDto {}
-function IsOptional(): (target: UpdateProductDto, propertyKey: "advancedMarkup") => void {
-  throw new Error('Function not implemented.');
-}
-
