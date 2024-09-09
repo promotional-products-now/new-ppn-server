@@ -9,7 +9,6 @@ import {
   IsDateString,
   IsEnum,
   IsNumber,
-  IsOptional,
   ValidateNested,
   IsOptional,
 } from 'class-validator';
