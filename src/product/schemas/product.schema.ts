@@ -212,6 +212,13 @@ export class Product extends Document {
   @ApiProperty({ type: 'boolean', example: true })
   isActive: boolean;
 
+  @ApiProperty({ type: 'string', example: 'product-title' })
+  @Prop({
+    type: String,
+    default: null,
+  })
+  slug: string;
+
   @Prop({
     type: Boolean,
     default: true,

@@ -140,10 +140,10 @@ export class ProductController {
     return await this.productsService.findByProductCode(productCode);
   }
 
-  @Get('/:id')
-  @ApiParam({ name: 'id', type: 'string', required: true })
-  async findById(@Param('id') id: string) {
-    return await this.productsService.findById(id);
+  @Get('/:slug')
+  @ApiParam({ name: 'slug', type: 'string', required: true })
+  async findBySlug(@Param('slug') slug: string) {
+    return await this.productsService.findBySlug(slug);
   }
 
   @UseGuards(AuthorizationGuard)

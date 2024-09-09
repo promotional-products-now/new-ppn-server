@@ -40,6 +40,7 @@ import { FetchtQueryDto } from './dto/fetch-query.dto';
 import { ObjectId } from 'mongodb';
 import { Order, OrderDocument } from 'src/order/schemas/order.schema';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { toKebabCase } from '../utils';
 
 @Injectable()
 export class ProductService {
@@ -72,6 +73,8 @@ export class ProductService {
   ) {}
 
   private async createProduct(product: any) {
+    const slug = `${toKebabCase(product?.overview?.name)}-${product?.overview?.code}-${product?.meta?.id}`;
+
     const supplier = await this.supplierModel.findOneAndUpdate(
       {
         name: product.supplier.supplier,
@@ -238,6 +241,7 @@ export class ProductService {
           currencyOptions: product.product.prices.currency_options,
         },
       },
+      slug: slug,
       subCategory: subCategory._id,
       category: category._id,
     };
@@ -288,12 +292,17 @@ export class ProductService {
     const authToken =
       this.configService.getOrThrow<string>('PromoDataAuthToken');
 
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const sinceDate = twoDaysAgo.toISOString().split('T')[0];
+
     return firstValueFrom(
       this.httpService
         .get(`${apiUrl}?page=${page}`, {
           headers: {
             'x-auth-token': authToken,
           },
+          data: { since: sinceDate },
         })
         .pipe(
           retry({ count: 5, delay: 2000 }),
@@ -618,9 +627,9 @@ export class ProductService {
     };
   }
 
-  async findById(id: string) {
+  async findBySlug(slug: string) {
     return await this.productModel
-      .findById(id)
+      .findOne({ slug })
       .populate('supplier')
       .populate('product.prices.priceGroups.additions')
       .populate('product.prices.priceGroups.basePrice')
@@ -638,7 +647,7 @@ export class ProductService {
 
   async fetchUpdatedProducts(query: Partial<FilterWithCreatedAt>) {
     const page = query.page ? Number(query.page) : 1;
-    const limit = query.limit ? Number(query.limit) : 15;
+    const limit = query.limit ? Number(query.limit) : 10;
 
     const filterQuery: Record<string, any> = {
       'supplier.isActive': true,
@@ -1348,306 +1357,6 @@ export class ProductService {
     }
   }
 
-  async populateDatabase() {
-    const products = [
-      {
-        meta: {
-          id: 1,
-          country: 'AU',
-          data_source: 'API',
-          discontinued: true,
-          can_check_stock: false,
-          discontinued_at: '2024-05-07 02:42:35 +0000',
-          first_listed_at: '2020-07-25 09:22:30 +0000',
-          last_changed_at: '2024-05-07 02:42:35 +0000',
-          price_currencies: ['AUD'],
-          prices_changed_at: '2020-07-25 09:22:30 +0000',
-          discontinued_reason: 'No longer in API',
-          source_data_changed_at: '2020-07-25 09:22:30 +0000',
-          verified_last_3_months: true,
-          changed_comparison_timestamp: '2024-05-07 02:42:35 +0000',
-        },
-        supplier: {
-          supplier: 'PromoCollection',
-          supplier_id: 1,
-          supplier_country: 'AU',
-          supplier_appa_member_number: 'S005217',
-        },
-        overview: {
-          name: '',
-          code: '22',
-          supplier: 'PromoCollection',
-          hero_image: null,
-          min_qty: 0,
-          display_prices: {},
-        },
-        product: {
-          code: '22',
-          name: '',
-          details: [
-            {
-              name: 'additional info',
-              detail:
-                'Lead time is from confirmation of artwork approval. Lead time refers to dispatch, final delivery time will depend on location and type of courier used.  Stock availability: Order fulfillment is dependent on stock availability, and delivery timeframe, of the factories which we work with. Please confirm availability with us before placing your order.  Upon request, we can provide certification documents for the factories that we source our products from. If you have a certain requirement, please mention at the time of quoting, so we can ensure to source from the appropriate factory before commencing the order. If we are required to switch a factory that we source from, to meet a certain requirement, there may be variations in price applicable.',
-            },
-          ],
-          description: '',
-          discontinued: true,
-          supplier_brand: null,
-          supplier_label: null,
-          supplier_catalogue: null,
-          supplier_website_page: 'https://promocollection.com.au/product/',
-          images: [],
-          prices: {
-            addons: [],
-            price_tags: {},
-            price_groups: [],
-            currency_options: 'AUD|NZD',
-          },
-          videos: [],
-          line_art: [],
-          colours: {
-            list: [],
-            supplier_text: [],
-          },
-          categorisation: {
-            product_type: {
-              type_id: null,
-              type_name: null,
-              type_group_id: null,
-              type_name_text: '',
-              type_group_name: null,
-            },
-            appa_attributes: {},
-            appa_product_type: {},
-            supplier_category: null,
-            promodata_attributes: [],
-            supplier_subcategory: null,
-            promodata_product_type: {
-              type_id: null,
-              type_name: null,
-              type_group_id: null,
-              type_name_text: '',
-              type_group_name: null,
-            },
-          },
-        },
-      },
-      {
-        meta: {
-          id: 2,
-          country: 'AU',
-          data_source: 'API',
-          discontinued: false,
-          can_check_stock: false,
-          discontinued_at: null,
-          first_listed_at: '2020-07-25 09:22:30 +0000',
-          last_changed_at: '2024-05-30 13:44:57 +0000',
-          price_currencies: ['AUD'],
-          prices_changed_at: '2024-04-21 13:19:55 +0000',
-          discontinued_reason: null,
-          source_data_changed_at: '2024-05-15 13:28:59 +0000',
-          verified_last_3_months: true,
-          changed_comparison_timestamp: '2024-05-30 13:44:57 +0000',
-        },
-        supplier: {
-          supplier: 'PromoCollection',
-          supplier_id: 1,
-          supplier_country: 'AU',
-          supplier_appa_member_number: 'S005217',
-        },
-        overview: {
-          name: 'Dispenser Stand',
-          code: 'PCA041',
-          supplier: 'PromoCollection',
-          hero_image:
-            'https://res.cloudinary.com/promodata/promoc/6d14c4fe7dd9668cf1450b82e3449adf23fcad2a.jpg',
-          min_qty: 0,
-          display_prices: {},
-        },
-        product: {
-          code: 'PCA041',
-          name: 'Dispenser Stand',
-          details: [
-            {
-              name: 'product size',
-              detail: '91.4x183cm',
-            },
-            {
-              name: 'product material',
-              detail: 'Aluminium alloy and elastic cloth',
-            },
-            {
-              name: 'included packaging',
-              detail: 'Standard Box',
-            },
-            {
-              name: 'product dimensions',
-              detail:
-                'Single weight: 9kg \nG/N Weight: 10kg/9kg \nMeas: 965x280x85mm \nPacking: 1pc/ctn',
-            },
-            {
-              name: 'additional info',
-              detail:
-                'Lead time is from confirmation of artwork approval. Lead time refers to dispatch, final delivery time will depend on location and type of courier used.  Stock availability: Order fulfillment is dependent on stock availability, and delivery timeframe, of the factories which we work with. Please confirm availability with us before placing your order.  Upon request, we can provide certification documents for the factories that we source our products from. If you have a certain requirement, please mention at the time of quoting, so we can ensure to source from the appropriate factory before commencing the order. If we are required to switch a factory that we source from, to meet a certain requirement, there may be variations in price applicable.',
-            },
-          ],
-          description:
-            'The Dispenser Stand is a great way to display your branding, and keep safe. The cover of the stand is fully customisable with a full colour print design. The stand of the dispenser can fixed at a position about 1 meter above the ground, and can be placed and moved at will, without being restricted by space and layout. Made of aluminium alloy and elastic cloth, it is stable and firm and a great branding option.',
-          discontinued: false,
-          supplier_brand: null,
-          supplier_label: null,
-          supplier_catalogue: null,
-          supplier_website_page:
-            'https://promocollection.com.au/product/PCA041',
-          images: [
-            'https://res.cloudinary.com/promodata/promoc/6d14c4fe7dd9668cf1450b82e3449adf23fcad2a.jpg',
-            'https://res.cloudinary.com/promodata/promoc/a304f66ff1913acd462cb1e61ff6eeb8b5f7dfd8.jpg',
-            'https://res.cloudinary.com/promodata/promoc/55570a61c4cf2002915e7e033e0de7d17321faff.jpg',
-            'https://res.cloudinary.com/promodata/promoc/affb11e3b4d0fc4d51e76d723fe312e1dcaf3910.jpg',
-            'https://res.cloudinary.com/promodata/promoc/c8bf8477602ce9638cd713f1c5048d89f1ff6572.jpg',
-            'https://res.cloudinary.com/promodata/promoc/b5d14f62afb2feb044afae3b52f1a0974e70cac0.jpg',
-            'https://res.cloudinary.com/promodata/promoc/b7eba55038851797259eb03d92d73a4cf95bd7cb.jpg',
-          ],
-          prices: {
-            addons: [],
-            price_tags: {},
-            price_groups: [
-              {
-                additions: [],
-                base_price: {
-                  key: '859303c1fe9c92c2478a7d4febba6a77',
-                  tags: [],
-                  type: 'Digital Print',
-                  setup: 0,
-                  indent: false,
-                  currency: 'AUD',
-                  lead_time: '1 -2week',
-                  description:
-                    '1 -2week, Single Sides Print, Digital Print, 1 design',
-                  undecorated: false,
-                  price_breaks: [
-                    {
-                      qty: 1,
-                      price: 151.69,
-                    },
-                    {
-                      qty: 5,
-                      price: 149.19,
-                    },
-                    {
-                      qty: 10,
-                      price: 146.69,
-                    },
-                    {
-                      qty: 25,
-                      price: 144.49,
-                    },
-                    {
-                      qty: 50,
-                      price: 142.19,
-                    },
-                  ],
-                },
-                promodata_decoration: 'Direct Print: Digital Print',
-              },
-              {
-                additions: [],
-                base_price: {
-                  key: 'd68a38641c336c31ade84f010ae0cee4',
-                  tags: [],
-                  type: 'Digital Print',
-                  setup: 0,
-                  indent: false,
-                  currency: 'AUD',
-                  lead_time: '1 -2week',
-                  description:
-                    '1 -2week, Double Sides Print, Digital Print, 1 design',
-                  undecorated: false,
-                  price_breaks: [
-                    {
-                      qty: 1,
-                      price: 154.89,
-                    },
-                    {
-                      qty: 5,
-                      price: 152.59,
-                    },
-                    {
-                      qty: 10,
-                      price: 150.29,
-                    },
-                    {
-                      qty: 25,
-                      price: 147.59,
-                    },
-                    {
-                      qty: 50,
-                      price: 144.89,
-                    },
-                  ],
-                },
-                promodata_decoration: 'Direct Print: Digital Print',
-              },
-            ],
-            currency_options: 'AUD|NZD',
-          },
-          videos: [],
-          line_art: [],
-          colours: {
-            list: [
-              {
-                for: 'Frame',
-                name: 'silver Fabric:PMS',
-                image: null,
-                swatch: [],
-                colours: ['silver Fabric:PMS'],
-                appa_colours: [],
-              },
-            ],
-            supplier_text: [
-              {
-                name: 'colors notes',
-                detail: 'Frame:silver Fabric:PMS',
-              },
-            ],
-          },
-          categorisation: {
-            product_type: {
-              type_id: 'H-04',
-              type_name: 'Face Masks',
-              type_group_id: 'H',
-              type_name_text: 'Health & Personal > Face Masks',
-              type_group_name: 'Health & Personal',
-            },
-            appa_attributes: {},
-            appa_product_type: {
-              'Health & Personal': ['Face Masks'],
-            },
-            supplier_category: 'Health & Personal',
-            promodata_attributes: ['Features: Antibacterial'],
-            supplier_subcategory: 'Face Masks',
-            promodata_product_type: {
-              type_id: 'PL-02',
-              type_name: 'Face Masks',
-              type_group_id: 'PL',
-              type_name_text: 'Health & Personal > Face Masks',
-              type_group_name: 'Health & Personal',
-            },
-          },
-        },
-      },
-    ];
-    const docs = await Promise.all(
-      products.map(async (product) => {
-        const data: ProductDocument = await this.createProduct(product);
-
-        return await this.findById(data._id as string);
-      }),
-    );
-
-    return { docs };
-  }
   removeSnakeCase(str: string): string {
     return str
       .split('_')
