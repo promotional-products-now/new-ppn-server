@@ -270,6 +270,52 @@ export class Product extends Document {
       expiryDate: Date;
     };
   };
+
+  @Prop({
+    type: {
+      regular: {
+        profitMarkup: {
+          type: Number,
+          default: 10,
+        },
+        markupExpiryDate: Date,
+        salesPitch: String,
+      },
+      gold: {
+        profitMarkup: {
+          type: Number,
+          default: 0,
+        },
+        markupExpiryDate: Date,
+        salesPitch: String,
+      },
+      diamond: {
+        profitMarkup: {
+          type: Number,
+          default: 0,
+        },
+        markupExpiryDate: Date,
+        salesPitch: String,
+      },
+    },
+  })
+  advancedMarkup: {
+    regular: {
+      profitMarkup: number;
+      markupExpiryDate: Date;
+      salesPitch: string;
+    };
+    gold: {
+      profitMarkup: number;
+      markupExpiryDate: Date;
+      salesPitch: string;
+    };
+    diamond: {
+      profitMarkup: number;
+      markupExpiryDate: Date;
+      salesPitch: string;
+    };
+  };
 }
 
 export type ProductDocument = HydratedDocument<Product>;
