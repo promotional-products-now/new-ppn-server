@@ -629,7 +629,7 @@ export class ProductService {
 
   async findBySlug(slug: string) {
     return await this.productModel
-      .findOne({ slug })
+      .findOne({ _id: '66a9b69ee208ea3a330b26be' })
       .populate('supplier')
       .populate('product.prices.priceGroups.additions')
       .populate('product.prices.priceGroups.basePrice')

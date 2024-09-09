@@ -143,7 +143,9 @@ export class ProductController {
   @Get('/:slug')
   @ApiParam({ name: 'slug', type: 'string', required: true })
   async findBySlug(@Param('slug') slug: string) {
-    return await this.productsService.findBySlug(slug);
+    const ty = await this.productsService.findBySlug(slug);
+    console.log({ slug, ty });
+    return ty;
   }
 
   @UseGuards(AuthorizationGuard)
