@@ -37,7 +37,7 @@ import { CouponModule } from './coupon/coupon.module';
       {
         name: 'long',
         ttl: 60000,
-        limit: 60, //60 request per minute
+        limit: 50, //60 request per minute
       },
     ]),
     SuspendModule,
