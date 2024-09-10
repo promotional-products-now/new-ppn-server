@@ -318,6 +318,8 @@ export class ProductService {
     const page = query.page ? Number(query.page) : 1;
     const limit = query.limit ? Number(query.limit) : 10;
 
+    const currentDate = new Date();
+
     const filterQuery: Record<string, any> = {
       ...(!query.isAdmin && { isActive: true }),
       'supplier.isActive': true,
@@ -369,9 +371,9 @@ export class ProductService {
     if (query && query.filter && query.filter.length > 0) {
       for (const filterValue of query.filter) {
         switch (filterValue) {
-          case PRODUCT_FILTER.ITEMS_WITH_IMAGE:
+          case PRODUCT_FILTER.ITEMS_WITH_DETAILS:
             Object.assign(filterQuery, {
-              'product.images': { $exists: true, $ne: [] },
+              'product.details': { $exists: true, $ne: [] },
             });
             break;
           case PRODUCT_FILTER.ITEMS_WITH_DESCRIPTION:
@@ -379,19 +381,83 @@ export class ProductService {
               'product.description': { $exists: true, $ne: '' },
             });
             break;
-          case PRODUCT_FILTER.ITEMS_WITH_DETAILS:
+          case PRODUCT_FILTER.DISCOUNTED_PRODUCTS:
             Object.assign(filterQuery, {
-              'product.details': { $exists: true, $ne: [] },
+              $or: [
+                { 'discounts.diamondRule.reducedMarkup': { $gt: 0 } },
+                { 'discounts.goldRule.reducedMarkup': { $gt: 0 } },
+                { 'discounts.regularRule.reducedMarkup': { $gt: 0 } },
+              ],
             });
             break;
-          case PRODUCT_FILTER.ITEMS_FROM_API_SUPPLIERS:
+          case PRODUCT_FILTER.NEW_ZEALAND_REGION:
+            Object.assign(filterQuery, { 'meta.country': 'NZ' });
             break;
+          case PRODUCT_FILTER.AUSTRALIAN_REGION:
+            Object.assign(filterQuery, { 'meta.country': 'AU' });
+            break;
+
+          case PRODUCT_FILTER.ITEMS_WITH_IMAGE:
+            Object.assign(filterQuery, {
+              'product.images': { $exists: true, $ne: [] },
+            });
+            break;
+          case PRODUCT_FILTER.ITEMS_WITH_STOCK_CHECK:
+            Object.assign(filterQuery, { 'meta.canCheckStock': true });
+            break;
+          case PRODUCT_FILTER.ITEMS_FROM_API_SUPPLIERS:
+            Object.assign(filterQuery, { 'meta.dataSource': 'API' });
+            break;
+
           case PRODUCT_FILTER.NEW_ITEMS_LAST_30_DAYS:
-            const currentDate = new Date();
             currentDate.setDate(currentDate.getDate() - 30);
             Object.assign(filterQuery, {
               'meta.firstListedAt': { $gte: currentDate },
             });
+            break;
+          case PRODUCT_FILTER.DISCOUNTS_EXPIRING:
+            const start = new Date();
+            start.setUTCHours(0, 0, 0, 0);
+
+            const end = new Date();
+            end.setUTCHours(23, 59, 59, 999);
+            Object.assign(filterQuery, {
+              $or: [
+                {
+                  'discounts.diamondRule.expiryDate': {
+                    $gte: start,
+                    $lte: end,
+                  },
+                },
+                {
+                  'discounts.goldRule.expiryDate': {
+                    $gte: start,
+                    $lte: end,
+                  },
+                },
+                {
+                  'discounts.regularRule.expiryDate': {
+                    $gte: start,
+                    $lte: end,
+                  },
+                },
+              ],
+            });
+            break;
+          case PRODUCT_FILTER.NON_DISCOUNTED_ITEMS:
+            Object.assign(filterQuery, {
+              $and: [
+                { 'discounts.diamondRule.reducedMarkup': 0 },
+                { 'discounts.goldRule.reducedMarkup': 0 },
+                { 'discounts.regularRule.reducedMarkup': 0 },
+              ],
+            });
+            break;
+          case PRODUCT_FILTER.BUY_NOW_CANDIDATE:
+            Object.assign(filterQuery, { status: STATUS_ENUM.BUY_NOW });
+            break;
+          case PRODUCT_FILTER.ENABLE_VISIBILITY:
+            Object.assign(filterQuery, { isActive: true });
             break;
           default:
             this.logger.log('not implemented');
