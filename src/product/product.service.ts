@@ -41,6 +41,7 @@ import { ObjectId } from 'mongodb';
 import { Order, OrderDocument } from 'src/order/schemas/order.schema';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { toKebabCase } from '../utils';
+import { STATUS_ENUM } from './product.interface';
 
 @Injectable()
 export class ProductService {
