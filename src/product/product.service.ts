@@ -319,8 +319,6 @@ export class ProductService {
     const page = query.page ? Number(query.page) : 1;
     const limit = query.limit ? Number(query.limit) : 10;
 
-    const currentDate = new Date();
-
     const filterQuery: Record<string, any> = {
       ...(!query.isAdmin && { isActive: true }),
       'supplier.isActive': true,
@@ -328,364 +326,89 @@ export class ProductService {
       'subCategory.isActive': true,
     };
 
-    let sort = {};
-
     if (query.category) {
-      Object.assign(filterQuery, {
-        'category.name': { $regex: new RegExp(query.category, 'gi') },
-      });
+      filterQuery['category.name'] = new RegExp(query.category, 'i');
     }
 
     if (query.subCategory) {
-      Object.assign(filterQuery, {
-        'subCategory.name': { $regex: new RegExp(query.subCategory, 'gi') },
-      });
+      filterQuery['subCategory.name'] = new RegExp(query.subCategory, 'i');
     }
 
     if (query.colours && query.colours.length > 0) {
-      Object.assign(filterQuery, {
-        'product.colours.list': {
-          $elemMatch: {
-            colours: { $in: query.colours },
-          },
-        },
-      });
+      filterQuery['product.colours.list.colours'] = { $in: query.colours };
     }
 
     if (query.search) {
-      Object.assign(filterQuery, {
-        $or: [
-          { 'product.name': { $regex: new RegExp(query.search, 'gi') } },
-          { 'product.code': { $regex: new RegExp(query.search, 'gi') } },
-        ],
-      });
+      filterQuery.$or = [
+        { 'product.name': new RegExp(query.search, 'i') },
+        { 'product.code': new RegExp(query.search, 'i') },
+      ];
     }
 
     if (query.suppliers) {
-      Object.assign(filterQuery, {
-        'supplier._id': {
-          $in: query.suppliers.map((vendor) => new ObjectId(vendor)),
-        },
-      });
+      filterQuery['supplier._id'] = {
+        $in: query.suppliers.map((vendor) => new ObjectId(vendor)),
+      };
     }
 
-    if (query && query.filter && query.filter.length > 0) {
-      for (const filterValue of query.filter) {
-        switch (filterValue) {
-          case PRODUCT_FILTER.ITEMS_WITH_DETAILS:
-            Object.assign(filterQuery, {
-              'product.details': { $exists: true, $ne: [] },
-            });
-            break;
-          case PRODUCT_FILTER.ITEMS_WITH_DESCRIPTION:
-            Object.assign(filterQuery, {
-              'product.description': { $exists: true, $ne: '' },
-            });
-            break;
-          case PRODUCT_FILTER.DISCOUNTED_PRODUCTS:
-            Object.assign(filterQuery, {
-              $or: [
-                { 'discounts.diamondRule.reducedMarkup': { $gt: 0 } },
-                { 'discounts.goldRule.reducedMarkup': { $gt: 0 } },
-                { 'discounts.regularRule.reducedMarkup': { $gt: 0 } },
-              ],
-            });
-            break;
-          case PRODUCT_FILTER.NEW_ZEALAND_REGION:
-            Object.assign(filterQuery, { 'meta.country': 'NZ' });
-            break;
-          case PRODUCT_FILTER.AUSTRALIAN_REGION:
-            Object.assign(filterQuery, { 'meta.country': 'AU' });
-            break;
+    const sortOptions = {
+      'A-Z': { 'product.name': 1 },
+      'Z-A': { 'product.name': -1 },
+      'Recently added': { 'meta.firstListedAt': -1 },
+      default: { createdAt: -1 },
+    };
 
-          case PRODUCT_FILTER.ITEMS_WITH_IMAGE:
-            Object.assign(filterQuery, {
-              'product.images': { $exists: true, $ne: [] },
-            });
-            break;
-          case PRODUCT_FILTER.ITEMS_WITH_STOCK_CHECK:
-            Object.assign(filterQuery, { 'meta.canCheckStock': true });
-            break;
-          case PRODUCT_FILTER.ITEMS_FROM_API_SUPPLIERS:
-            Object.assign(filterQuery, { 'meta.dataSource': 'API' });
-            break;
+    const sort = sortOptions[query.sort] || sortOptions.default;
 
-          case PRODUCT_FILTER.NEW_ITEMS_LAST_30_DAYS:
-            currentDate.setDate(currentDate.getDate() - 30);
-            Object.assign(filterQuery, {
-              'meta.firstListedAt': { $gte: currentDate },
-            });
-            break;
-          case PRODUCT_FILTER.DISCOUNTS_EXPIRING:
-            const start = new Date();
-            start.setUTCHours(0, 0, 0, 0);
+    const pipeline = [
+      {
+        $lookup: {
+          from: 'suppliers',
+          localField: 'supplier',
+          foreignField: '_id',
+          as: 'supplier',
+        },
+      },
+      { $unwind: '$supplier' },
+      {
+        $lookup: {
+          from: 'productcategories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      { $unwind: '$category' },
+      {
+        $lookup: {
+          from: 'productsubcategories',
+          localField: 'subCategory',
+          foreignField: '_id',
+          as: 'subCategory',
+        },
+      },
+      { $unwind: '$subCategory' },
+      { $match: filterQuery },
+      { $sort: sort },
+      {
+        $facet: {
+          metadata: [{ $count: 'total' }],
+          data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+        },
+      },
+    ];
 
-            const end = new Date();
-            end.setUTCHours(23, 59, 59, 999);
-            Object.assign(filterQuery, {
-              $or: [
-                {
-                  'discounts.diamondRule.expiryDate': {
-                    $gte: start,
-                    $lte: end,
-                  },
-                },
-                {
-                  'discounts.goldRule.expiryDate': {
-                    $gte: start,
-                    $lte: end,
-                  },
-                },
-                {
-                  'discounts.regularRule.expiryDate': {
-                    $gte: start,
-                    $lte: end,
-                  },
-                },
-              ],
-            });
-            break;
-          case PRODUCT_FILTER.NON_DISCOUNTED_ITEMS:
-            Object.assign(filterQuery, {
-              $and: [
-                { 'discounts.diamondRule.reducedMarkup': 0 },
-                { 'discounts.goldRule.reducedMarkup': 0 },
-                { 'discounts.regularRule.reducedMarkup': 0 },
-              ],
-            });
-            break;
-          case PRODUCT_FILTER.BUY_NOW_CANDIDATE:
-            Object.assign(filterQuery, { status: STATUS_ENUM.BUY_NOW });
-            break;
-          case PRODUCT_FILTER.ENABLE_VISIBILITY:
-            Object.assign(filterQuery, { isActive: true });
-            break;
-          default:
-            this.logger.log('not implemented');
-        }
-      }
-    }
+    const [result] = await this.productModel.aggregate(pipeline);
 
-    switch (query.sort) {
-      case 'A-Z':
-        sort = { 'product.name': 1 };
-        break;
-      case 'Z-A':
-        sort = { 'product.name': -1 };
-        break;
-      case 'Recently added':
-        sort = { 'meta.firstListedAt': -1 };
-        break;
-      default:
-        sort = { createdAt: -1 };
-    }
-
-    // Execute both aggregations in parallel using Promise.all
-    const [products, count] = await Promise.all([
-      this.productModel.aggregate([
-        {
-          $lookup: {
-            from: 'suppliers',
-            localField: 'supplier',
-            foreignField: '_id',
-            as: 'supplier',
-          },
-        },
-        {
-          $unwind: {
-            path: '$supplier',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $unwind: {
-            path: '$product.prices.priceGroups',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $lookup: {
-            from: 'baseprices',
-            localField: 'product.prices.priceGroups.basePrice',
-            foreignField: '_id',
-            as: 'product.prices.priceGroups.basePrice',
-          },
-        },
-        {
-          $unwind: {
-            path: '$product.prices.priceGroups.basePrice',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $lookup: {
-            from: 'additions',
-            localField: 'product.prices.priceGroups.additions',
-            foreignField: '_id',
-            as: 'product.prices.priceGroups.additions',
-          },
-        },
-        {
-          $unwind: {
-            path: '$product.prices.priceGroups.additions',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $group: {
-            _id: {
-              productId: '$_id',
-              priceGroupId: '$product.prices.priceGroups._id',
-            },
-            doc: { $first: '$$ROOT' },
-            basePrice: { $first: '$product.prices.priceGroups.basePrice' },
-            additions: { $push: '$product.prices.priceGroups.additions' },
-          },
-        },
-        {
-          $group: {
-            _id: '$_id.productId',
-            doc: { $first: '$doc' },
-            priceGroups: {
-              $push: {
-                _id: '$_id.priceGroupId',
-                basePrice: '$basePrice',
-                additions: '$additions',
-              },
-            },
-          },
-        },
-        {
-          $addFields: {
-            'doc.product.prices.priceGroups': '$priceGroups',
-          },
-        },
-        {
-          $replaceRoot: { newRoot: '$doc' },
-        },
-        {
-          $lookup: {
-            from: 'productcategories',
-            localField: 'category',
-            foreignField: '_id',
-            as: 'category',
-          },
-        },
-        {
-          $unwind: {
-            path: '$category',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $lookup: {
-            from: 'productsubcategories',
-            localField: 'subCategory',
-            foreignField: '_id',
-            as: 'subCategory',
-          },
-        },
-        {
-          $unwind: {
-            path: '$subCategory',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $match: {
-            ...filterQuery,
-          },
-        },
-        {
-          $sort: {
-            ...sort,
-          },
-        },
-
-        {
-          $skip: limit * (page - 1),
-        },
-        {
-          $limit: limit,
-        },
-        {
-          $project: {
-            firstListedAt: 0,
-            pricesCurrencies: 0,
-            updatedAt: 0,
-            createdAt: 0,
-            overview: { displayPrices: 0 },
-            product: { name: 0, code: 0 },
-            videos: 0,
-            categorisation: {
-              productType: { typeId: 0, typeGroupId: 0 },
-            },
-            category: { supplier: 0, isActive: 0, status: 0, totalProducts: 0 },
-            subCategory: { supplier: 0, isActive: 0, status: 0 },
-            supplier: { isActive: 0, status: 0, updatedAt: 0, createdAt: 0 },
-          },
-        },
-      ]),
-
-      this.productModel.aggregate([
-        {
-          $lookup: {
-            from: 'suppliers',
-            localField: 'supplier',
-            foreignField: '_id',
-            as: 'supplier',
-          },
-        },
-        {
-          $unwind: {
-            path: '$supplier',
-          },
-        },
-        {
-          $lookup: {
-            from: 'productcategories',
-            localField: 'category',
-            foreignField: '_id',
-            as: 'category',
-          },
-        },
-        {
-          $unwind: {
-            path: '$category',
-          },
-        },
-        {
-          $lookup: {
-            from: 'productsubcategories',
-            localField: 'subCategory',
-            foreignField: '_id',
-            as: 'subCategory',
-          },
-        },
-        {
-          $unwind: {
-            path: '$subCategory',
-          },
-        },
-        {
-          $match: {
-            ...filterQuery,
-          },
-        },
-        {
-          $count: 'count',
-        },
-      ]),
-    ]);
-
-    const totalPages =
-      count && count[0] ? Math.ceil(count[0].count / limit) : 0;
+    const products = result.data;
+    const totalItems = result.metadata[0]?.total || 0;
+    const totalPages = Math.ceil(totalItems / limit);
 
     return {
       docs: products,
-      page: page,
-      limit: limit,
-      totalItems: count && count[0] ? count[0].count : 0,
+      page,
+      limit,
+      totalItems,
       totalPages,
       nextPage: page < totalPages ? page + 1 : null,
       prevPage: page > 1 ? page - 1 : null,
@@ -695,21 +418,72 @@ export class ProductService {
   }
 
   async findBySlug(slug: string) {
-    return await this.productModel
-      .findOne({ slug })
-      .populate('supplier')
-      .populate('product.prices.priceGroups.additions')
-      .populate('product.prices.priceGroups.basePrice')
-      .populate('category')
-      .populate('subCategory')
-      .exec();
+    const [product] = await this.productModel.aggregate([
+      { $match: { slug } },
+      {
+        $lookup: {
+          from: 'suppliers',
+          localField: 'supplier',
+          foreignField: '_id',
+          as: 'supplier',
+        },
+      },
+      { $unwind: '$supplier' },
+      {
+        $lookup: {
+          from: 'additions',
+          localField: 'product.prices.priceGroups.additions',
+          foreignField: '_id',
+          as: 'product.prices.priceGroups.additions',
+        },
+      },
+      {
+        $lookup: {
+          from: 'baseprices',
+          localField: 'product.prices.priceGroups.basePrice',
+          foreignField: '_id',
+          as: 'product.prices.priceGroups.basePrice',
+        },
+      },
+      { $unwind: '$product.prices.priceGroups.basePrice' },
+      {
+        $lookup: {
+          from: 'productcategories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      { $unwind: '$category' },
+      {
+        $lookup: {
+          from: 'productsubcategories',
+          localField: 'subCategory',
+          foreignField: '_id',
+          as: 'subCategory',
+        },
+      },
+      { $unwind: '$subCategory' },
+    ]);
+
+    return product;
   }
 
   async findByProductCode(productCode: string) {
-    return await this.productModel
-      .findOne({ 'overview.code': productCode })
-      .populate('product.prices.priceGroups.basePrice')
-      .exec();
+    const [product] = await this.productModel.aggregate([
+      { $match: { 'overview.code': productCode } },
+      {
+        $lookup: {
+          from: 'baseprices',
+          localField: 'product.prices.priceGroups.basePrice',
+          foreignField: '_id',
+          as: 'product.prices.priceGroups.basePrice',
+        },
+      },
+      { $unwind: '$product.prices.priceGroups.basePrice' },
+    ]);
+
+    return product;
   }
 
   async fetchUpdatedProducts(query: Partial<FilterWithCreatedAt>) {
