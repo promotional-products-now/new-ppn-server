@@ -1,6 +1,15 @@
-import { Controller, Delete, Get, Param, Post, Query } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Query,
+  Body,
+} from '@nestjs/common';
 import { CouponService } from './coupon.service';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { CreateCouponDto } from './dto/create-coupon.dto';
 
 @ApiTags('coupon')
 @Controller('coupon')
@@ -29,8 +38,15 @@ export class CouponController {
   async getOrderById(@Param('id') id: string) {
     return await this.couponService.findOne(id);
   }
+
   @Delete(':id')
   async deleteOrder(@Param('id') id: string) {
     return await this.couponService.remove(id);
+  }
+
+  @Post()
+  @ApiOperation({ summary: 'creates a new coupon' })
+  async createCoupon(@Body() createCouponDto: CreateCouponDto) {
+    return await this.couponService.create(createCouponDto);
   }
 }

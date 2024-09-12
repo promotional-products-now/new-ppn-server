@@ -6,6 +6,7 @@ import * as voucherCodes from 'voucher-code-generator';
 import { ConfigService } from '@nestjs/config';
 import { StripeConfig } from 'src/configs';
 import Stripe from 'stripe';
+import { CreateCouponDto } from './dto/create-coupon.dto';
 
 @Injectable()
 export class CouponService {
@@ -22,7 +23,7 @@ export class CouponService {
     this.stripe = new Stripe(this.stripeConfig.secretKey);
   }
 
-  async create(inputs: Partial<Coupon>): Promise<Coupon> {
+  async create(inputs: Partial<CreateCouponDto>): Promise<Coupon> {
     const codes = voucherCodes.generate({
       prefix: 'PPN-',
       length: 4,
