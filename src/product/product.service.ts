@@ -335,26 +335,30 @@ export class ProductService {
     }
 
     if (query.colours && query.colours.length > 0) {
-      filterQuery['product.colours.list.colours'] = { $in: query.colours };
+      filterQuery['product.colours.list.colours'] = {
+        $in: [...query.colours].map((colour) => new RegExp(colour, 'i')),
+      };
     }
 
     if (query.search) {
       filterQuery.$or = [
-        { 'product.name': new RegExp(query.search, 'i') },
-        { 'product.code': new RegExp(query.search, 'i') },
+        { 'overview.name': new RegExp(query.search, 'i') },
+        { 'overview.code': new RegExp(query.search, 'i') },
       ];
     }
 
     if (query.suppliers) {
       filterQuery['supplier._id'] = {
-        $in: query.suppliers.map((vendor) => new ObjectId(vendor)),
+        $in: Array.isArray(query.suppliers)
+          ? query.suppliers.map((supplier) => new ObjectId(supplier))
+          : [new ObjectId(query.suppliers as string)],
       };
     }
 
     const sortOptions = {
-      'A-Z': { 'product.name': 1 },
-      'Z-A': { 'product.name': -1 },
-      'Recently added': { 'meta.firstListedAt': -1 },
+      'A-Z': { 'overview.name': 1 },
+      'Z-A': { 'overview.name': -1 },
+      'recently added': { 'meta.firstListedAt': -1 },
       default: { createdAt: -1 },
     };
 

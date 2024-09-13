@@ -38,6 +38,8 @@ export type DatabaseConfig = {
   uri: string;
 };
 
+
+
 export type OtpConfigs = {
   secret: string;
   size: number;
@@ -81,9 +83,7 @@ export type AzureBlobStorage = {
 
 export type AlgoliaConfig = {
   appId: string;
-  adminKey: string;
-  searchKey: string;
-  indexName: string;
+  apiKey: string;
 };
 
 export type CloudinaryConfig = {
@@ -172,9 +172,7 @@ const env = (): AppConfig => {
     },
     algolia: {
       appId: secrets.ALGOLIA_APP_ID,
-      adminKey: secrets.ALGOLIA_ADMIN_KEY,
-      searchKey: secrets.ALGOLIA_SEARCH_KEY,
-      indexName: secrets.ALGOLIA_INDEX_NAME,
+      apiKey: secrets.ALGOLIA_ADMIN_KEY,
     },
     cloudinary: {
       apiKey: secrets.CLOUDINARY_API_KEY,

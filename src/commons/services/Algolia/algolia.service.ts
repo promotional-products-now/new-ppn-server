@@ -13,8 +13,8 @@ export class AlgoliaService implements OnModuleInit {
   onModuleInit() {
     const algoliaConfig = this.configService.get<AlgoliaConfig>('algolia');
     if (algoliaConfig) {
-      this.client = algoliasearch(algoliaConfig.appId, algoliaConfig.adminKey);
-      this.index = this.client.initIndex(algoliaConfig.indexName);
+      this.client = algoliasearch(algoliaConfig.appId, algoliaConfig.apiKey);
+      this.index = this.client.initIndex('products');
     } else {
       throw new Error('Algolia configuration not found');
     }

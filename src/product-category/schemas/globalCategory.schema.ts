@@ -22,6 +22,9 @@ export class GlobalProductCategory extends Document {
 
   @Prop({ type: Number, default: null })
   totalProduct: number;
+
+  @Prop({ type: Boolean, default: true })
+  isActive: boolean;
 }
 
 export type GlobalProductCategoryDocument =
