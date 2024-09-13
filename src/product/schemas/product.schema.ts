@@ -198,11 +198,11 @@ export class Product extends Document {
   };
 
   @ApiProperty({ type: 'string', example: '666d98ab565f924157e31c54' })
-  @Prop({ type: { type: Types.ObjectId, ref: ProductCategory.name } })
+  @Prop({ type: Types.ObjectId, ref: ProductCategory.name })
   category: Types.ObjectId;
 
   @ApiProperty({ type: 'string', example: '666d98ab565f924157e31c54' })
-  @Prop({ type: { type: Types.ObjectId, ref: ProductSubCategory.name } })
+  @Prop({ type: Types.ObjectId, ref: ProductSubCategory.name })
   subCategory: Types.ObjectId;
 
   @Prop({
@@ -326,3 +326,4 @@ export const ProductSchema = SchemaFactory.createForClass(Product).set(
 );
 
 ProductSchema.index({ 'product.name': 'text', 'product.code': 'text' });
+ProductSchema.index({ 'product.colours.list.colours': 1 });

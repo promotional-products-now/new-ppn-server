@@ -21,6 +21,7 @@ import {
   FilterProductByCategoryQueryDto,
   FilterProductQueryDto,
   FilterShowCaseQueryDto,
+  ProductTextSearchQueryDto,
   TopSellingProductQuery,
 } from './dto/filter-product-query.dto';
 import {
@@ -342,8 +343,8 @@ export class ProductService {
 
     if (query.search) {
       filterQuery.$or = [
-        { 'overview.name': new RegExp(query.search, 'i') },
-        { 'overview.code': new RegExp(query.search, 'i') },
+        { 'product.name': new RegExp(query.search, 'i') },
+        { 'product.code': new RegExp(query.search, 'i') },
       ];
     }
 
@@ -356,8 +357,8 @@ export class ProductService {
     }
 
     const sortOptions = {
-      'A-Z': { 'overview.name': 1 },
-      'Z-A': { 'overview.name': -1 },
+      'A-Z': { 'product.name': 1 },
+      'Z-A': { 'product.name': -1 },
       'recently added': { 'meta.firstListedAt': -1 },
       default: { createdAt: -1 },
     };
@@ -422,53 +423,14 @@ export class ProductService {
   }
 
   async findBySlug(slug: string) {
-    const [product] = await this.productModel.aggregate([
-      { $match: { slug } },
-      {
-        $lookup: {
-          from: 'suppliers',
-          localField: 'supplier',
-          foreignField: '_id',
-          as: 'supplier',
-        },
-      },
-      { $unwind: '$supplier' },
-      {
-        $lookup: {
-          from: 'additions',
-          localField: 'product.prices.priceGroups.additions',
-          foreignField: '_id',
-          as: 'product.prices.priceGroups.additions',
-        },
-      },
-      {
-        $lookup: {
-          from: 'baseprices',
-          localField: 'product.prices.priceGroups.basePrice',
-          foreignField: '_id',
-          as: 'product.prices.priceGroups.basePrice',
-        },
-      },
-      { $unwind: '$product.prices.priceGroups.basePrice' },
-      {
-        $lookup: {
-          from: 'productcategories',
-          localField: 'category',
-          foreignField: '_id',
-          as: 'category',
-        },
-      },
-      { $unwind: '$category' },
-      {
-        $lookup: {
-          from: 'productsubcategories',
-          localField: 'subCategory',
-          foreignField: '_id',
-          as: 'subCategory',
-        },
-      },
-      { $unwind: '$subCategory' },
-    ]);
+    const product = await this.productModel
+      .findOne({ slug })
+      .populate('category')
+      .populate('supplier')
+      .populate('product.prices.priceGroups.additions')
+      .populate('product.prices.priceGroups.basePrice')
+      .populate('subCategory')
+      .lean();
 
     return product;
   }
@@ -1126,41 +1088,6 @@ export class ProductService {
     };
   }
 
-  // async findAllProductCategory(): Promise<any[]> {
-  //   const category = await this.productCategoryModel.find({});
-
-  //   const res = await Promise.all(
-  //     category.map(async (obj, i) => {
-  //       let totalProducts = obj.totalProducts;
-
-  //       if (totalProducts === null) {
-  //         const count = await this.productModel.countDocuments({
-  //           category: obj._id,
-  //         });
-  //         await this.productCategoryModel.updateOne(
-  //           { _id: obj._id },
-  //           { totalProducts: count },
-  //         );
-  //         totalProducts = count;
-  //       }
-
-  //       // Convert the Mongoose document to a plain JavaScript object
-  //       const plainObj = obj.toObject();
-  //       delete plainObj.subCategory;
-
-  //       return {
-  //         name: plainObj.name,
-  //         id: plainObj.id,
-  //         _id: plainObj._id,
-  //         totalProducts,
-  //       };
-  //     }),
-  //   );
-
-  //   // console.log(res);
-  //   return res;
-  // }
-
   async findProductByCategory(
     query: FilterProductByCategoryQueryDto,
     categoryName: string,
@@ -1199,6 +1126,37 @@ export class ProductService {
       throw new InternalServerErrorException(
         'An error occurred while fetching products',
       );
+    }
+  }
+
+  async productTextSearch(query: Partial<ProductTextSearchQueryDto>) {
+    try {
+      const filterQuery: any = {};
+
+      if (query.search) {
+        filterQuery.$text = { $search: query.search };
+      }
+
+      if (query.colours && query.colours.length > 0) {
+        filterQuery['product.colours.list.colours'] = {
+          $in: query.colours.map((colour: string) => new RegExp(colour, 'i')),
+        };
+      }
+
+      const results = await this.productModel
+        .find(filterQuery, { score: { $meta: 'textScore' } })
+        .select('overview category slug')
+        .populate('category')
+        // .populate({ path: 'category', model: 'productcategories' })
+        // .populate({ path: 'category', model: ProductCategory.name })
+        .limit(10)
+        .sort({ score: { $meta: 'textScore' } })
+        .exec();
+
+      return results;
+    } catch (error) {
+      console.error('Error performing search:', error);
+      throw error;
     }
   }
 

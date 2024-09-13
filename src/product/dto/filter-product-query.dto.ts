@@ -8,6 +8,17 @@ import {
   IsString,
 } from 'class-validator';
 
+export class ProductTextSearchQueryDto {
+  @ApiPropertyOptional({ type: [String] })
+  @IsArray()
+  @IsOptional()
+  colours: string[];
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  search: string;
+}
 export class FilterProductQueryDto {
   @ApiPropertyOptional({ type: [String] })
   @IsArray()

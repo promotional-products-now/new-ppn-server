@@ -25,6 +25,7 @@ import {
   FilterProductByCategoryQueryDto,
   FilterProductQueryDto,
   FilterShowCaseQueryDto,
+  ProductTextSearchQueryDto,
   TopSellingProductQuery,
 } from './dto/filter-product-query.dto';
 import { FetchtQueryDto } from './dto/fetch-query.dto';
@@ -53,6 +54,12 @@ export class ProductController {
   @ApiQuery({ type: FilterProductQueryDto })
   async findAll(@Query() query) {
     return await this.productsService.findAll(query);
+  }
+
+  @Get('/product-search')
+  @ApiQuery({ type: ProductTextSearchQueryDto })
+  async productTextSearch(@Query() query) {
+    return await this.productsService.productTextSearch(query);
   }
 
   @Get('/updated')
@@ -142,9 +149,9 @@ export class ProductController {
   @Get('/:slug')
   @ApiParam({ name: 'slug', type: 'string', required: true })
   async findBySlug(@Param('slug') slug: string) {
-    const ty = await this.productsService.findBySlug(slug);
-    console.log({ slug, ty });
-    return ty;
+    const product = await this.productsService.findBySlug(slug);
+
+    return product;
   }
 
   @UseGuards(AuthorizationGuard)
