@@ -81,11 +81,6 @@ export type AzureBlobStorage = {
   azure_container_name: string;
 };
 
-export type AlgoliaConfig = {
-  appId: string;
-  apiKey: string;
-};
-
 export type CloudinaryConfig = {
   apiKey: string;
   apiSecret: string;
@@ -113,7 +108,6 @@ export type AppConfig = {
   refreshToken: refreshToken;
   sendGrid: sendGrid;
   storage: AzureBlobStorage;
-  algolia: AlgoliaConfig;
   cloudinary: CloudinaryConfig;
   stripe: StripeConfig;
 };
@@ -169,10 +163,6 @@ const env = (): AppConfig => {
           secrets.SENDGRID_NEW_ADMIN_TEMPLATE ||
           'd-439b352f30184254aa038ffc382d9204',
       },
-    },
-    algolia: {
-      appId: secrets.ALGOLIA_APP_ID,
-      apiKey: secrets.ALGOLIA_ADMIN_KEY,
     },
     cloudinary: {
       apiKey: secrets.CLOUDINARY_API_KEY,

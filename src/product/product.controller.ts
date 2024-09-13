@@ -39,7 +39,6 @@ import { Product } from './schemas/product.schema';
 import { Supplier } from './schemas/supplier.schema';
 import { AuthorizationGuard } from '../commons/guards/authorization.guard';
 import { ConfigService } from '@nestjs/config';
-import { Environments } from 'src/commons/types/environments.types';
 
 @Controller('products')
 @ApiTags('product')
