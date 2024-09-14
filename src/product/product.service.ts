@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Product, ProductDocument } from './schemas/product.schema';
 import { HttpService } from '@nestjs/axios';
 import { catchError, firstValueFrom } from 'rxjs';
@@ -468,16 +468,12 @@ export class ProductService {
       };
     }
 
-    if (query.subCategory) {
-      filterQuery['subCategory.name'] = {
-        $regex: new RegExp(query.subCategory, 'gi'),
-      };
+    if (query.category) {
+      filterQuery['category.name'] = new RegExp(query.category, 'i');
     }
 
-    if (query.suppliers) {
-      filterQuery['supplier._id'] = {
-        $in: query.suppliers.map((vendor) => new ObjectId(vendor)),
-      };
+    if (query.subCategory) {
+      filterQuery['subCategory.name'] = new RegExp(query.subCategory, 'i');
     }
 
     const from = query.startDate ? new Date(query.startDate) : null;
@@ -499,56 +495,7 @@ export class ProductService {
             preserveNullAndEmptyArrays: true,
           },
         },
-        {
-          $unwind: {
-            path: '$product.prices.priceGroups',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $lookup: {
-            from: 'baseprices',
-            localField: 'product.prices.priceGroups.basePrice',
-            foreignField: '_id',
-            as: 'product.prices.priceGroups.basePrice',
-          },
-        },
-        {
-          $unwind: {
-            path: '$product.prices.priceGroups.basePrice',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $group: {
-            _id: {
-              productId: '$_id',
-              priceGroupId: '$product.prices.priceGroups._id',
-            },
-            doc: { $first: '$$ROOT' },
-            basePrice: { $first: '$product.prices.priceGroups.basePrice' },
-          },
-        },
-        {
-          $group: {
-            _id: '$_id.productId',
-            doc: { $first: '$doc' },
-            priceGroups: {
-              $push: {
-                _id: '$_id.priceGroupId',
-                basePrice: '$basePrice',
-              },
-            },
-          },
-        },
-        {
-          $addFields: {
-            'doc.product.prices.priceGroups': '$priceGroups',
-          },
-        },
-        {
-          $replaceRoot: { newRoot: '$doc' },
-        },
+
         {
           $lookup: {
             from: 'productcategories',
@@ -651,20 +598,18 @@ export class ProductService {
     };
 
     if (query.category) {
-      filterQuery['category.name'] = {
-        $regex: new RegExp(query.category, 'gi'),
-      };
+      filterQuery['category.name'] = new RegExp(query.category, 'i');
     }
 
     if (query.subCategory) {
-      filterQuery['subCategory.name'] = {
-        $regex: new RegExp(query.subCategory, 'gi'),
-      };
+      filterQuery['subCategory.name'] = new RegExp(query.subCategory, 'i');
     }
 
     if (query.suppliers) {
       filterQuery['supplier._id'] = {
-        $in: query.suppliers.map((vendor) => new ObjectId(vendor)),
+        $in: Array.isArray(query.suppliers)
+          ? query.suppliers.map((supplier) => new ObjectId(supplier))
+          : [new ObjectId(query.suppliers as string)],
       };
     }
 
@@ -687,72 +632,7 @@ export class ProductService {
             preserveNullAndEmptyArrays: true,
           },
         },
-        {
-          $unwind: {
-            path: '$product.prices.priceGroups',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $lookup: {
-            from: 'baseprices',
-            localField: 'product.prices.priceGroups.basePrice',
-            foreignField: '_id',
-            as: 'product.prices.priceGroups.basePrice',
-          },
-        },
-        {
-          $unwind: {
-            path: '$product.prices.priceGroups.basePrice',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $lookup: {
-            from: 'additions',
-            localField: 'product.prices.priceGroups.additions',
-            foreignField: '_id',
-            as: 'product.prices.priceGroups.additions',
-          },
-        },
-        {
-          $unwind: {
-            path: '$product.prices.priceGroups.additions',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $group: {
-            _id: {
-              productId: '$_id',
-              priceGroupId: '$product.prices.priceGroups._id',
-            },
-            doc: { $first: '$$ROOT' },
-            basePrice: { $first: '$product.prices.priceGroups.basePrice' },
-            additions: { $push: '$product.prices.priceGroups.additions' },
-          },
-        },
-        {
-          $group: {
-            _id: '$_id.productId',
-            doc: { $first: '$doc' },
-            priceGroups: {
-              $push: {
-                _id: '$_id.priceGroupId',
-                basePrice: '$basePrice',
-                additions: '$additions',
-              },
-            },
-          },
-        },
-        {
-          $addFields: {
-            'doc.product.prices.priceGroups': '$priceGroups',
-          },
-        },
-        {
-          $replaceRoot: { newRoot: '$doc' },
-        },
+
         {
           $lookup: {
             from: 'productcategories',
@@ -1070,6 +950,9 @@ export class ProductService {
 
     const suppliers = await this.supplierModel
       .find(payload)
+      .select(
+        'name status suppliderId totalProducts isActive country appaMemberNumber',
+      )
       .skip(limit * (page - 1))
       .limit(limit)
       .sort({ createdAt: -1 });
@@ -1158,6 +1041,30 @@ export class ProductService {
       console.error('Error performing search:', error);
       throw error;
     }
+  }
+
+  async productPricingDetails(productId: string) {
+    const product = await this.productModel
+      .findById(productId)
+      .populate('product.prices.priceGroups.additions')
+      .populate('product.prices.priceGroups.basePrice')
+      .select('product.prices');
+
+    // const basePrices = await this.basePriceModel.find({
+    //   _id: { $in: basePriceIds.map((id) => new Types.ObjectId(id)) },
+    // });
+
+    // const additions = await this.additionModel.find({
+    //   _id: { $in: additionsIds },
+    // });
+
+    // // Creating a result array where each basePrice has a corresponding additions array
+    // const result = basePrices.map((basePrice) => ({
+    //   basePrice,
+    //   additions,
+    // }));
+
+    return product;
   }
 
   removeSnakeCase(str: string): string {

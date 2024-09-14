@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Patch,
+  Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -28,7 +29,7 @@ import {
   ProductTextSearchQueryDto,
   TopSellingProductQuery,
 } from './dto/filter-product-query.dto';
-import { FetchtQueryDto } from './dto/fetch-query.dto';
+import { FetchtQueryDto, PricingDetailsDto } from './dto/fetch-query.dto';
 import { PaginatedSupplierResponse } from './dto/paginated-response.dto';
 import {
   FilterWithCreatedAt,
@@ -96,6 +97,12 @@ export class ProductController {
   @ApiQuery({ type: FilterShowCaseQueryDto })
   async hotProducts(@Query() query) {
     return await this.productsService.hotProducts(query);
+  }
+
+  @Get('/pricing-details/:productId')
+  @ApiParam({ name: 'productId', type: 'string', required: true })
+  async productPricingDetails(@Param('productId') productId: string) {
+    return await this.productsService.productPricingDetails(productId);
   }
 
   @Get('/check-stock-levels/:productId')
