@@ -21,6 +21,7 @@ import { CheckoutModule } from './checkout/checkout.module';
 import { OrderModule } from './order/order.module';
 import { AdvertModule } from './advert/advert.module';
 import { CouponModule } from './coupon/coupon.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { CouponModule } from './coupon/coupon.module';
     MongoModule,
     UserModule,
     AuthModule,
+    ScheduleModule.forRoot(),
     ThrottlerModule.forRoot([
       {
         name: 'short',

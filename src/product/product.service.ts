@@ -41,7 +41,7 @@ import { FetchtQueryDto } from './dto/fetch-query.dto';
 import { ObjectId } from 'mongodb';
 import { Order, OrderDocument } from 'src/order/schemas/order.schema';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { toKebabCase } from '../utils';
+import { cleanText, toKebabCase } from '../utils';
 import { STATUS_ENUM } from './product.interface';
 
 @Injectable()
@@ -77,6 +77,20 @@ export class ProductService {
   private async createProduct(product: any) {
     const slug = `${toKebabCase(product?.overview?.name)}-${product?.overview?.code}-${product?.meta?.id}`;
 
+    const categoryName = product?.product?.categorisation?.product_type
+      ?.type_group_name
+      ? cleanText(
+          product?.product?.categorisation?.product_type?.type_group_name,
+        )
+      : product?.product?.categorisation?.supplier_category
+        ? cleanText(product?.product?.categorisation?.supplier_category)
+        : 'uncategorized';
+
+    const subCategoryName =
+      product?.product?.categorisation?.product_type?.type_name ||
+      product?.product?.categorisation?.supplier_subcategory ||
+      'uncategorized';
+
     const supplier = await this.supplierModel.findOneAndUpdate(
       {
         name: product.supplier.supplier,
@@ -93,23 +107,23 @@ export class ProductService {
 
     const category = await this.productCategoryModel.findOneAndUpdate(
       {
-        name: product.product.categorisation.supplier_category,
+        name: categoryName,
         supplier: supplier._id,
       },
       {
-        name: product.product.categorisation.supplier_category,
+        name: categoryName,
         supplier: supplier._id,
       },
-      { upseert: true, new: true },
+      { upsert: true, new: true },
     );
 
     const subCategory = await this.productSubCategoryModel.findOneAndUpdate(
       {
-        name: product.product.categorisation.supplier_subcategory,
+        name: subCategoryName,
         category: category._id,
       },
       {
-        name: product.product.categorisation.supplier_subcategory,
+        name: subCategoryName,
         category: category._id,
       },
       {
@@ -120,88 +134,86 @@ export class ProductService {
 
     const payload = {
       meta: {
-        id: product.meta.id,
-        country: product.meta.country,
-        dataSource: product.meta.data_source,
-        discontinued: product.meta.discontinued,
-        discontinuedAt: product.meta.discontinued_at
-          ? new Date(product.meta.discontinued_at).toISOString()
-          : null,
-        firstListedAt: new Date(product.meta.first_listed_at).toISOString(),
-        lastChangedAt: new Date(product.meta.last_changed_at).toISOString(),
-        priceCurrencies: product.meta.price_currencies,
-        pricesChangedAt: new Date(product.meta.prices_changed_at).toISOString(),
-        discontinuedReason: product.meta.discontinued_reason,
-        canCheckStock: product.meta.can_check_stock,
-        sourceDataChangedAt: new Date(
-          product.meta.source_data_changed_at,
-        ).toISOString(),
+        id: product?.meta?.id,
+        country: product?.meta?.country,
+        dataSource: product?.meta?.data_source,
+        discontinued: product?.meta?.discontinued,
+        discontinuedAt: product?.meta?.discontinued_at || null,
+        firstListedAt: product?.meta?.first_listed_at,
+        lastChangedAt: product?.meta?.last_changed_at,
+        priceCurrencies: product?.meta?.price_currencies,
+        pricesChangedAt: product?.meta?.prices_changed_at,
+        discontinuedReason: product?.meta?.discontinued_reason,
+        canCheckStock: product?.meta?.can_check_stock,
+        sourceSataChangedAt: product?.meta?.source_data_changed_at,
+        verifiedLast3Months: product?.meta?.verified_last_3_months,
+        changedComparisonTimestamp: product?.meta?.changed_comparison_timestamp,
       },
       overview: {
-        name: product.overview.name,
-        code: product.overview.code,
+        name: product?.overview?.name,
+        code: product?.overview?.code,
         suppllier: supplier._id,
-        heroImage: product.overview.hero_image,
-        minQty: product.overview.min_qty,
-        displayPrices: product.overview.display_prices,
+        heroImage: product?.overview?.hero_image,
+        minQty: product?.overview?.min_qty,
+        displayPrices: product?.overview?.display_prices,
       },
       supplier: supplier._id,
       product: {
-        code: product.product.code,
-        name: product.product.name,
-        details: product.product.details,
-        description: product.product.description,
-        discontinued: product.product.discontinued,
-        supplierBrand: product.product.supplier_brand,
-        supplierLabel: product.product.supplier_label,
-        supplierCatalogue: product.product.supplier_catalogue,
-        supplierWebsitePage: product.product.supplier_website_page,
-        images: product.product.images ?? [],
-        videos: product.product.videos ?? [],
-        lineArt: product.product.line_art ?? [],
+        code: product?.product?.code,
+        name: product?.product?.name,
+        details: product?.product?.details,
+        description: product?.product?.description,
+        discontinued: product?.product?.discontinued,
+        supplierBrand: product?.product?.supplier_brand,
+        supplierLabel: product?.product?.supplier_label,
+        supplierCatalogue: product?.product?.supplier_catalogue,
+        supplierWebsitePage: product?.product?.supplier_website_page,
+        images: product?.product?.images ?? [],
+        videos: product?.product?.videos ?? [],
+        lineArt: product?.product?.line_art ?? [],
         colours: {
-          list: product.product.colours.list.map((v: any) => ({
-            for: v.for,
-            name: v.name,
-            image: v.image,
-            swatch: v.swatch,
-            colours: v.colours,
-            appColours: v.app_colours,
+          list: product?.product?.colours?.list?.map((v: any) => ({
+            for: v?.for,
+            name: v?.name,
+            image: v?.image,
+            swatch: v?.swatch,
+            colours: v?.colours,
+            appColours: v?.app_colours,
           })),
-          supplierText: product.product.colours.supplier_text,
+          supplierText: product?.product?.colours.supplier_text,
         },
         categorisation: {
           productType: {
-            typeId: product.product.categorisation.product_type.type_id,
-            typeName: product.product.categorisation.product_type.type_name,
+            typeId: product?.product?.categorisation?.product_type?.type_id,
+            typeName: product?.product?.categorisation?.product_type?.type_name,
             typeGroupId:
-              product.product.categorisation.product_type.type_group_id,
+              product?.product?.categorisation?.product_type?.type_group_id,
             typeNameText:
-              product.product.categorisation.product_type.type_name_text,
+              product?.product?.categorisation?.product_type?.type_name_text,
             typeGroupName:
-              product.product.categorisation.product_type.type_group_name,
+              product?.product?.categorisation?.product_type?.type_group_name,
           },
-          appaAttributes: product.product.categorisation.appa_attributes,
+          appaAttributes: product?.product?.categorisation?.appa_attributes,
           appaProductType: {
             healthAndPersonal:
-              product.product.categorisation.appa_product_type[
+              product?.product?.categorisation?.appa_product_type[
                 'Health & Personal'
               ] ?? [],
           },
-          supplierCategory: product.product.categorisation.supplier_category,
+          supplierCategory: product?.product?.categorisation?.supplier_category,
           supplierSubcategory:
-            product.product.categorisation.supplier_subcategory,
+            product?.product?.categorisation?.supplier_subcategory,
         },
         prices: {
-          addons: product.product.prices.addons ?? [],
+          addons: product?.product?.prices.addons ?? [],
           priceTags: {
-            leadTime: product.product.prices.price_tags.lead_time ?? [],
-            decoration: product.product.prices.price_tags.decoration ?? [],
+            leadTime: product?.product?.prices.price_tags?.lead_time ?? [],
+            decoration: product?.product?.prices.price_tags?.decoration ?? [],
           },
           priceGroups: await Promise.all(
-            product.product.prices.price_groups.map(async (v: any) => {
+            product?.product?.prices.price_groups.map(async (v: any) => {
               const additions = await Promise.all(
-                v.additions.map(async (addition: any) => {
+                v?.additions?.map(async (addition: any) => {
                   const data = await this.additionModel.findOneAndUpdate(
                     { key: addition.key },
                     {
@@ -220,17 +232,17 @@ export class ProductService {
                 }),
               );
               const basePriceData = await this.basePriceModel.findOneAndUpdate(
-                { key: v.base_price.key },
+                { key: v?.base_price.key },
                 {
-                  key: v.base_price.key,
-                  type: v.base_price.type,
-                  setup: v.base_price.setup,
-                  indent: v.base_price.indent,
-                  currency: v.base_price.currency,
-                  leadTime: v.base_price.lead_time,
-                  description: v.base_price.description,
-                  undecorated: v.base_price.undecorated,
-                  priceBreaks: v.base_price.price_breaks,
+                  key: v?.base_price?.key,
+                  type: v?.base_price?.type,
+                  setup: v?.base_price?.setup,
+                  indent: v?.base_price?.indent,
+                  currency: v?.base_price?.currency,
+                  leadTime: v?.base_price?.lead_time,
+                  description: v?.base_price?.description,
+                  undecorated: v?.base_price?.undecorated,
+                  priceBreaks: v?.base_price?.price_breaks,
                 },
                 { upsert: true, new: true },
               );
@@ -240,7 +252,7 @@ export class ProductService {
               };
             }),
           ),
-          currencyOptions: product.product.prices.currency_options,
+          currencyOptions: product?.product?.prices?.currency_options,
         },
       },
       slug: slug,
@@ -250,12 +262,14 @@ export class ProductService {
 
     const newProduct = await this.productModel.findOneAndUpdate(
       {
-        'product.code': product.product.code,
-        'product.name': product.product.name,
+        'meta.id': product?.meta.id,
+        'meta.country': product?.meta?.country,
+        'overview.code': product.overview.code,
       },
       { ...payload },
       { upsert: true, new: true },
     );
+    console.log(payload);
 
     this.logger.log(`Product ${newProduct._id} creatd successfully`);
     return newProduct;
@@ -273,7 +287,6 @@ export class ProductService {
         const response = await this.fetchProductsFromApi(page);
         const { data, total_pages } = response;
         totalPages = total_pages;
-
         for (const product of data) {
           await this.createProduct(product);
         }
@@ -295,7 +308,7 @@ export class ProductService {
       this.configService.getOrThrow<string>('PromoDataAuthToken');
 
     const twoDaysAgo = new Date();
-    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 1);
     const sinceDate = twoDaysAgo.toISOString().split('T')[0];
 
     return firstValueFrom(
@@ -374,6 +387,7 @@ export class ProductService {
               'product.description': { $exists: true, $ne: '' },
             });
             break;
+          //TODO: remove discounted product to Non-Discontinued Products
           case PRODUCT_FILTER.DISCOUNTED_PRODUCTS:
             Object.assign(filterQuery, {
               $or: [

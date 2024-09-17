@@ -3,7 +3,6 @@ import { Document, HydratedDocument, Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Schema({
-  timestamps: false,
   collection: 'globalproductcategories',
 })
 export class GlobalProductCategory extends Document {

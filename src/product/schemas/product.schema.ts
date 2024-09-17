@@ -37,14 +37,17 @@ export class Product extends Document {
     country: string;
     dataSource: string;
     discontinued: boolean;
-    discontinuedAt: string;
+    discontinuedAt: Date;
     canCheckStock: boolean;
     firstListedAt: Date;
     lastChangedAt: Date;
     priceCurrencies: string[];
     priceChangedAt: Date;
     discontinuedReason: string;
-    sourceDateChangedAt: Date;
+    sourceSataChangedAt: Date;
+    verifiedLast3Months: boolean;
+    changedComparisonTimestamp: Date;
+    pricesChangedAt: Date;
   };
 
   @Prop({
