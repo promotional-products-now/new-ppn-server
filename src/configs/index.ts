@@ -38,8 +38,6 @@ export type DatabaseConfig = {
   uri: string;
 };
 
-
-
 export type OtpConfigs = {
   secret: string;
   size: number;
