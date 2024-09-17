@@ -275,13 +275,16 @@ export class ProductService {
     return newProduct;
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
+  // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
+  //   timeZone: 'UTC',
+  // })
+  @Cron(CronExpression.EVERY_5_SECONDS, {
     timeZone: 'UTC',
   })
   async fetchAndUpsertProducts() {
     let page = 1;
     let totalPages = 1;
-
+    console.log('start:', page);
     do {
       try {
         const response = await this.fetchProductsFromApi(page);
@@ -387,30 +390,26 @@ export class ProductService {
               'product.description': { $exists: true, $ne: '' },
             });
             break;
-          //TODO: remove discounted product to Non-Discontinued Products
-          case PRODUCT_FILTER.DISCOUNTED_PRODUCTS:
+          case PRODUCT_FILTER.NON_DISCOUNTED_PRODUCTS:
             Object.assign(filterQuery, {
-              $or: [
-                { 'discounts.diamondRule.reducedMarkup': { $gt: 0 } },
-                { 'discounts.goldRule.reducedMarkup': { $gt: 0 } },
-                { 'discounts.regularRule.reducedMarkup': { $gt: 0 } },
+              $and: [
+                { 'discounts.diamondRule.reducedMarkup': 0 },
+                { 'discounts.goldRule.reducedMarkup': 0 },
+                { 'discounts.regularRule.reducedMarkup': 0 },
               ],
             });
             break;
           case PRODUCT_FILTER.NEW_ZEALAND_REGION:
             Object.assign(filterQuery, { 'meta.country': 'NZ' });
             break;
-          case PRODUCT_FILTER.AUSTRALIAN_REGION:
-            Object.assign(filterQuery, { 'meta.country': 'AU' });
-            break;
 
           case PRODUCT_FILTER.ITEMS_WITH_IMAGE:
             Object.assign(filterQuery, {
-              'product.images': { $exists: true, $ne: [] },
+              'overview.heroImage': { $ne: null },
             });
             break;
-          case PRODUCT_FILTER.ITEMS_WITH_STOCK_CHECK:
-            Object.assign(filterQuery, { 'meta.canCheckStock': true });
+          case PRODUCT_FILTER.ITEMS_WITH_OUT_STOCK_CHECK:
+            Object.assign(filterQuery, { 'meta.canCheckStock': false });
             break;
           case PRODUCT_FILTER.ITEMS_FROM_API_SUPPLIERS:
             Object.assign(filterQuery, { 'meta.dataSource': 'API' });
@@ -422,43 +421,37 @@ export class ProductService {
               'meta.firstListedAt': { $gte: currentDate },
             });
             break;
-          case PRODUCT_FILTER.DISCOUNTS_EXPIRING:
+          case PRODUCT_FILTER.NON_DISCOUNTS_EXPIRING:
             const start = new Date();
             start.setUTCHours(0, 0, 0, 0);
 
-            const end = new Date();
+            // Create a new end date that is 3 days after the start date
+            const end = new Date(start);
+            end.setUTCDate(start.getUTCDate() + 3);
             end.setUTCHours(23, 59, 59, 999);
+
             Object.assign(filterQuery, {
               $or: [
                 {
                   'discounts.diamondRule.expiryDate': {
-                    $gte: start,
-                    $lte: end,
+                    // $gte: start,
+                    // $lte: end,
+                    $gte: end,
                   },
                 },
                 {
                   'discounts.goldRule.expiryDate': {
-                    $gte: start,
-                    $lte: end,
+                    $gte: end,
                   },
                 },
                 {
                   'discounts.regularRule.expiryDate': {
-                    $gte: start,
-                    $lte: end,
+                    $gte: end,
                   },
                 },
               ],
             });
-            break;
-          case PRODUCT_FILTER.NON_DISCOUNTED_ITEMS:
-            Object.assign(filterQuery, {
-              $and: [
-                { 'discounts.diamondRule.reducedMarkup': 0 },
-                { 'discounts.goldRule.reducedMarkup': 0 },
-                { 'discounts.regularRule.reducedMarkup': 0 },
-              ],
-            });
+
             break;
           case PRODUCT_FILTER.BUY_NOW_CANDIDATE:
             Object.assign(filterQuery, { status: STATUS_ENUM.BUY_NOW });

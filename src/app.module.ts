@@ -23,13 +23,14 @@ import { AdvertModule } from './advert/advert.module';
 import { CouponModule } from './coupon/coupon.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
+console.log({ ty: process.env.NODE_ENV });
 @Module({
   imports: [
     ConfigInitModule,
     MongoModule,
     UserModule,
     AuthModule,
-    ScheduleModule.forRoot(),
+    ...(process.env.NODE_ENV !== 'dev' ? [ScheduleModule.forRoot()] : []),
     ThrottlerModule.forRoot([
       {
         name: 'short',
