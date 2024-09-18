@@ -956,6 +956,7 @@ export class ProductService {
 
       const products = await this.productModel
         .find({ category: category._id })
+        .populate({ path: 'category', select: ['name'] })
         .skip(limit * (page - 1))
         .limit(limit)
         .sort(sort)
