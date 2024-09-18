@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNumber, IsDate, IsOptional } from 'class-validator';
+import { UserRole } from 'src/user/enums/role.enum';
 
 export class CreateCouponDto {
   @ApiProperty({
@@ -26,6 +27,13 @@ export class CreateCouponDto {
   @IsOptional()
   @IsString()
   name?: string;
+
+  @ApiProperty({
+    description: 'User role',
+    enum: UserRole,
+    default: UserRole.USER,
+  })
+  role: UserRole;
 
   @ApiProperty({
     type: 'string',

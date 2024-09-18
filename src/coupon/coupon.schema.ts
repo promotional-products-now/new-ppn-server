@@ -1,6 +1,7 @@
 import { Document, HydratedDocument } from 'mongoose';
 import { Schema, SchemaFactory, Prop } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
+import { UserRole } from 'src/user/enums/role.enum';
 
 @Schema({
   timestamps: true,
@@ -50,6 +51,14 @@ export class Coupon extends Document {
   })
   @Prop({ type: Number, default: 5 })
   discount: number;
+
+  @ApiProperty({
+    description: 'User role',
+    enum: UserRole,
+    default: UserRole.USER,
+  })
+  @Prop({ type: String, enum: UserRole, default: UserRole.USER })
+  role: UserRole;
 
   @Prop({ type: String })
   stripeId?: string;

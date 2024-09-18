@@ -3,6 +3,8 @@ import { CouponService } from './coupon.service';
 import { Coupon, CouponSchema } from './coupon.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppModule } from 'src/app.module';
+import { CreateCouponDto } from './dto/create-coupon.dto';
+import { UserRole } from 'src/user/enums/role.enum';
 
 describe('CouponService', () => {
   let service: CouponService;
@@ -27,10 +29,11 @@ describe('CouponService', () => {
   });
 
   it('should create a coupon', async () => {
-    const coupon: Partial<Coupon> = {
+    const coupon: Partial<CreateCouponDto> = {
       name: 'testCoupon',
       description: 'coupon for laptop',
       discount: 10,
+      role: UserRole.USER,
       expiresAt: new Date(Date.now() + 1000 * 60 * 60),
     };
     const result = await service.create(coupon);
