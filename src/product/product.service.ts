@@ -275,10 +275,7 @@ export class ProductService {
     return newProduct;
   }
 
-  // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
-  //   timeZone: 'UTC',
-  // })
-  @Cron(CronExpression.EVERY_5_SECONDS, {
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
     timeZone: 'UTC',
   })
   async fetchAndUpsertProducts() {
@@ -403,9 +400,14 @@ export class ProductService {
             Object.assign(filterQuery, { 'meta.country': 'NZ' });
             break;
 
-          case PRODUCT_FILTER.ITEMS_WITH_IMAGE:
+          case PRODUCT_FILTER.ITEMS_WITHOUTOUT_IMAGE:
             Object.assign(filterQuery, {
-              'overview.heroImage': { $ne: null },
+              'overview.heroImage': null,
+            });
+            break;
+          case PRODUCT_FILTER.ITEM_WITHOUT_CATEGORIES:
+            Object.assign(filterQuery, {
+              'category.name': 'uncategorized',
             });
             break;
           case PRODUCT_FILTER.ITEMS_WITH_OUT_STOCK_CHECK:
