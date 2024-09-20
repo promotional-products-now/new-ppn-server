@@ -6,10 +6,18 @@ import {
   Post,
   Query,
   Body,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { CouponService } from './coupon.service';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiSecurity,
+  ApiTags,
+} from '@nestjs/swagger';
 import { CreateCouponDto } from './dto/create-coupon.dto';
+import { AuthorizationGuard } from 'src/commons/guards/authorization.guard';
 
 @ApiTags('coupon')
 @Controller('coupon')
@@ -24,13 +32,23 @@ export class CouponController {
     return await this.couponService.findAll();
   }
 
+  @UseGuards(AuthorizationGuard)
+  @ApiSecurity('uid')
+  @ApiBearerAuth()
   @Post('/check')
   @ApiOperation({ summary: 'checks a coupon by code' })
   async checkCoupon(
     @Query('code') code: string,
     @Query('totalPrice') totalPrice: number,
+    @Req() req,
   ) {
-    return await this.couponService.checkCoupon(code, Number(totalPrice));
+    const { userType } = req.user;
+
+    return await this.couponService.checkCoupon(
+      code,
+      Number(totalPrice),
+      userType,
+    );
   }
 
   @Get(':id')

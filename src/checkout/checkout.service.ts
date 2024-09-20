@@ -45,6 +45,7 @@ export class CheckoutService {
       const { discount, isExpired } = await this.couponService.checkCoupon(
         ppnCheckout.couponCode,
         totalAmount,
+        user.userType,
       );
 
       if (isExpired) {

@@ -72,6 +72,7 @@ export class AuthorizationGuard implements CanActivate {
       email: payload.email,
       userId: payload.uid,
       role: payload.r,
+      userType: user.userType,
       deviceHash: payload.did,
     };
 

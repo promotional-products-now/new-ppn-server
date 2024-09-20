@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { StripeConfig } from 'src/configs';
 import Stripe from 'stripe';
 import { CreateCouponDto } from './dto/create-coupon.dto';
+import { UserType } from 'src/user/enums/userType.enum';
 
 @Injectable()
 export class CouponService {
@@ -54,6 +55,7 @@ export class CouponService {
   async checkCoupon(
     code: string,
     totalPrice: number,
+    userType: UserType,
     date = new Date(),
   ): Promise<{ discount: number; isExpired: boolean }> {
     const coupon = await this.couponModel.findOne({ code: code });
@@ -64,6 +66,12 @@ export class CouponService {
     const isExpired = date > coupon.expiresAt;
     if (isExpired) {
       return { discount: 0, isExpired: true };
+    }
+
+    if (coupon.userType != userType) {
+      throw new NotFoundException(
+        `Invalid UserType for coupon - coupon is only valid for ${coupon.userType} users`,
+      );
     }
 
     const discount = (totalPrice * coupon.discount) / 100;
