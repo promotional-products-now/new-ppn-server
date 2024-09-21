@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
   IsArray,
@@ -9,6 +9,11 @@ import {
 } from 'class-validator';
 
 export class FetchtQueryDto {
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  sort: string;
+
   @ApiProperty({ example: '1' })
   @Transform(({ value }) => Number(value))
   @IsNumber()

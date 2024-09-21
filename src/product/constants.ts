@@ -13,6 +13,7 @@ export enum PRODUCT_FILTER {
   NON_DISCOUNTS_EXPIRING = 'Non-Expiring Discounts',
   BUY_NOW_CANDIDATE = 'Buy now candidate',
   ENABLE_VISIBILITY = 'Enable visibility',
+  INACTIVE_ITEMS = 'Inactive products',
   ITEM_WITHOUT_CATEGORIES = 'items without categories only',
   HOURS_DISPATCH_PRICING_24 = '24-hours dispatch pricing',
   DAY_DISPATCH_PRICING_3 = '3-day dispatch pricing',

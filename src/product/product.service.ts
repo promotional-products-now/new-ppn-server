@@ -269,7 +269,7 @@ export class ProductService {
       { ...payload },
       { upsert: true, new: true },
     );
-    console.log(payload);
+    // console.log(payload);
 
     this.logger.log(`Product ${newProduct._id} creatd successfully`);
     return newProduct;
@@ -460,6 +460,9 @@ export class ProductService {
             break;
           case PRODUCT_FILTER.ENABLE_VISIBILITY:
             Object.assign(filterQuery, { isActive: true });
+            break;
+          case PRODUCT_FILTER.INACTIVE_ITEMS:
+            Object.assign(filterQuery, { isActive: false });
             break;
           default:
             this.logger.log('not implemented');
@@ -1060,6 +1063,14 @@ export class ProductService {
       payload.isActive = true;
     }
 
+    const sortOptions: { [key: string]: any } = {
+      'A-Z': { name: 1 },
+      'Z-A': { name: -1 },
+      default: { createdAt: -1 },
+    };
+
+    const sort = sortOptions[query.sort] || sortOptions.default;
+
     const suppliers = await this.supplierModel
       .find(payload)
       .select(
@@ -1067,7 +1078,8 @@ export class ProductService {
       )
       .skip(limit * (page - 1))
       .limit(limit)
-      .sort({ createdAt: -1 });
+      .sort(sort)
+      .lean();
 
     const count = await this.supplierModel.countDocuments(payload);
     const totalPages = Math.ceil(count / limit);
@@ -1142,10 +1154,9 @@ export class ProductService {
         .find(filterQuery, { score: { $meta: 'textScore' } })
         .select('overview category slug')
         .populate('category')
-        // .populate({ path: 'category', model: 'productcategories' })
-        // .populate({ path: 'category', model: ProductCategory.name })
         .limit(10)
         .sort({ score: { $meta: 'textScore' } })
+        .lean()
         .exec();
 
       return results;
@@ -1161,20 +1172,6 @@ export class ProductService {
       .populate('product.prices.priceGroups.additions')
       .populate('product.prices.priceGroups.basePrice')
       .select('product.prices');
-
-    // const basePrices = await this.basePriceModel.find({
-    //   _id: { $in: basePriceIds.map((id) => new Types.ObjectId(id)) },
-    // });
-
-    // const additions = await this.additionModel.find({
-    //   _id: { $in: additionsIds },
-    // });
-
-    // // Creating a result array where each basePrice has a corresponding additions array
-    // const result = basePrices.map((basePrice) => ({
-    //   basePrice,
-    //   additions,
-    // }));
 
     return product;
   }

@@ -237,6 +237,18 @@ export class Product extends Document {
   })
   status: string;
 
+  @Prop({ type: { min: Number, max: Number } })
+  price: {
+    min: number;
+    max: number;
+  };
+
+  @Prop({ type: { min: Number, max: Number } })
+  quantity: {
+    min: number;
+    max: number;
+  };
+
   @Prop({
     type: {
       diamondRule: {
