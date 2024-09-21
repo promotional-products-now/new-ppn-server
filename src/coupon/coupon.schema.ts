@@ -1,6 +1,8 @@
 import { Document, HydratedDocument } from 'mongoose';
 import { Schema, SchemaFactory, Prop } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsOptional } from 'class-validator';
+import { UserType } from 'src/user/enums/userType.enum';
 
 @Schema({
   timestamps: true,
@@ -53,6 +55,14 @@ export class Coupon extends Document {
 
   @Prop({ type: String })
   stripeId?: string;
+
+  @ApiProperty({
+    type: UserType,
+    description: 'different user tiers',
+  })
+  @IsOptional()
+  @Prop({ type: String })
+  userType: UserType;
 }
 
 export type CouponDocument = HydratedDocument<Coupon>;

@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNumber, IsDate, IsOptional } from 'class-validator';
+import { UserType } from 'src/user/enums/userType.enum';
 
 export class CreateCouponDto {
   @ApiProperty({
@@ -35,4 +36,10 @@ export class CreateCouponDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @ApiProperty({
+    enum: UserType,
+    description: 'different user tiers',
+  })
+  userType: UserType;
 }
