@@ -369,12 +369,10 @@ export class ProductService {
       }
 
       if (query.minPrice && query.maxPrice) {
-        filterQuery.$and.push({
-          $and: [
-            { 'price.min': { $gte: Number(query.minPrice || 0) } },
-            { 'price.max': { $lte: Number(query.maxPrice || 100000) } },
-          ],
-        });
+        filterQuery.$and.push(
+          { 'price.min': { $gte: Number(query.minPrice || 0) } },
+          { 'price.max': { $lte: Number(query.maxPrice || 100000) } },
+        );
       }
     }
 
@@ -400,6 +398,11 @@ export class ProductService {
           case PRODUCT_FILTER.ITEMS_WITH_DESCRIPTION:
             Object.assign(filterQuery, {
               'product.description': { $exists: true, $ne: '' },
+            });
+            break;
+          case PRODUCT_FILTER.NON_DISCONTINUED_PRODUCTS:
+            Object.assign(filterQuery, {
+              'meta.discontinued': false,
             });
             break;
           case PRODUCT_FILTER.NON_DISCOUNTED_PRODUCTS:
@@ -492,6 +495,8 @@ export class ProductService {
       'A-Z': { 'product.name': 1 },
       'Z-A': { 'product.name': -1 },
       'recently added': { 'meta.firstListedAt': -1 },
+      'lowest-price': { 'price.min': -1 },
+      'higest-price': { 'price.max': -1 },
       default: { createdAt: -1 },
     };
 

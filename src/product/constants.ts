@@ -3,7 +3,8 @@ export const AXIOS_INSTANCE_TOKEN = 'AXIOS_INSTANCE_TOKEN';
 export enum PRODUCT_FILTER {
   ITEMS_WITH_DETAILS = 'Items with details',
   ITEMS_WITH_DESCRIPTION = 'Items with description',
-  NON_DISCOUNTED_PRODUCTS = 'Non-Discontinued Products',
+  NON_DISCOUNTED_PRODUCTS = 'Non-Discounted Products',
+  NON_DISCONTINUED_PRODUCTS = 'Non-Discontinued Products',
   NEW_ZEALAND_REGION = 'New Zealand Region',
   ITEMS_WITHOUTOUT_IMAGE = 'item without images only',
   ITEMS_WITH_OUT_STOCK_CHECK = 'Products without Stock Check',
