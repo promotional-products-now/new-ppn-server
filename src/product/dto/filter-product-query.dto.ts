@@ -73,6 +73,16 @@ export class FilterProductQueryDto {
   @IsBoolean()
   @IsOptional()
   isAdmin: boolean;
+
+  @ApiPropertyOptional({ example: '1.25' })
+  @IsString()
+  @IsOptional()
+  minPrice: number;
+
+  @ApiPropertyOptional({ example: '5.45' })
+  @IsString()
+  @IsOptional()
+  maxPrice: number;
 }
 
 export class FilterPage {

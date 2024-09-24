@@ -356,11 +356,26 @@ export class ProductService {
       };
     }
 
-    if (query.search) {
-      filterQuery.$or = [
-        { 'product.name': new RegExp(query.search, 'i') },
-        { 'product.code': new RegExp(query.search, 'i') },
-      ];
+    if (query.search || (query.minPrice && query.maxPrice)) {
+      filterQuery.$and = [];
+
+      if (query.search) {
+        filterQuery.$and.push({
+          $or: [
+            { 'product.name': new RegExp(query.search, 'i') },
+            { 'product.code': new RegExp(query.search, 'i') },
+          ],
+        });
+      }
+
+      if (query.minPrice && query.maxPrice) {
+        filterQuery.$and.push({
+          $and: [
+            { 'price.min': { $gte: Number(query.minPrice || 0) } },
+            { 'price.max': { $lte: Number(query.maxPrice || 100000) } },
+          ],
+        });
+      }
     }
 
     if (query.suppliers) {
