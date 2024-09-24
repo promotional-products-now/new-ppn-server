@@ -479,6 +479,9 @@ export class ProductService {
           case PRODUCT_FILTER.INACTIVE_ITEMS:
             Object.assign(filterQuery, { isActive: false });
             break;
+          case PRODUCT_FILTER.ITEM_WITHOUT_PRICES:
+            Object.assign(filterQuery, { price: { $exists: false } });
+            break;
           default:
             this.logger.log('not implemented');
         }

@@ -20,6 +20,6 @@ export enum PRODUCT_FILTER {
   DAY_DISPATCH_PRICING_5 = '5-day dispatch pricing',
   DAY_DISPATCH_PRICING_7 = '7-day dispatch pricing',
   CUSTOM_ITEMS = 'Custom items',
-  ITEM_WITH_PRICES = 'Item without prizes only',
+  ITEM_WITHOUT_PRICES = 'Item without prizes only',
 }
 
