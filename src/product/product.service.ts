@@ -400,9 +400,9 @@ export class ProductService {
               'product.description': { $exists: true, $ne: '' },
             });
             break;
-          case PRODUCT_FILTER.NON_DISCONTINUED_PRODUCTS:
+          case PRODUCT_FILTER.DISCONTINUED_PRODUCTS:
             Object.assign(filterQuery, {
-              'meta.discontinued': false,
+              'meta.discontinued': true,
             });
             break;
           case PRODUCT_FILTER.NON_DISCOUNTED_PRODUCTS:
