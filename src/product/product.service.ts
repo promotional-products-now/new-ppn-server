@@ -983,7 +983,7 @@ export class ProductService {
       const sort = sortOptions['Recently added']; // Default sort can be adjusted as needed
 
       const products = await this.productModel
-        .find({ category: category._id })
+        .find({ category: category._id, isActive: true })
         .populate({ path: 'category', select: ['name'] })
         .skip(limit * (page - 1))
         .limit(limit)
