@@ -1,12 +1,12 @@
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { ConsoleLogger, ValidationPipe, VersioningType } from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { TrimPipe } from './commons/pipes/trimmer.pipe';
 // import { AllExceptionsFilter } from './commons/filters/all-exceptions.filter';
 import * as cookieParser from 'cookie-parser';
-import { AppConfig, sendGrid, sessionKey } from './configs';
+import { sessionKey } from './configs';
 import * as compression from 'compression';
 import helmet from 'helmet';
 const ip = require('ip');
@@ -38,6 +38,7 @@ async function bootstrap() {
       'http://promotionalproductsnow.au',
       'https://app.promotionalproductsnow.au',
       'http://app.promotionalproductsnow.au',
+      'http://vendor.promotionalproductsnow.au',
       'http://localhost:5178',
       'http://localhost:1338',
       // appEnv === 'development' && 'http://localhost:5173',

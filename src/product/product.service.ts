@@ -350,12 +350,14 @@ export class ProductService {
       filterQuery['subCategory.name'] = new RegExp(query.subCategory, 'i');
     }
 
-    if (query.colours && query.colours.length > 0) {
+    if (query.colours) {
       filterQuery['product.colours.list.colours'] = {
-        $in: [...query.colours].map((colour) => new RegExp(colour, 'i')),
+        $in: Array.isArray(query.colours)
+          ? [...query.colours].map((colour) => new RegExp(colour, 'i'))
+          : [query.colours],
       };
     }
-
+    console.log({ filterQuery });
     if (query.search || (query.minPrice && query.maxPrice)) {
       filterQuery.$and = [];
 
@@ -984,6 +986,9 @@ export class ProductService {
 
       const products = await this.productModel
         .find({ category: category._id, isActive: true })
+        .select(
+          'meta.id overview.name overview.heroImage overview.code product.description product.images price quantity slug category',
+        )
         .populate({ path: 'category', select: ['name'] })
         .skip(limit * (page - 1))
         .limit(limit)
@@ -1039,11 +1044,8 @@ export class ProductService {
 
     const products = await this.productModel
       .find({ isHot: true })
-      .populate('supplier')
-      .populate('product.prices.priceGroups.additions')
-      .populate('product.prices.priceGroups.basePrice')
+      .select('overview slug price quantity product.description')
       .populate('category')
-      .populate('subCategory')
       .skip(limit * (page - 1))
       .limit(limit)
       .sort(sort)
