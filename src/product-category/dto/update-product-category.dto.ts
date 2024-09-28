@@ -1,8 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { BaseUpdateDto } from '../../product/dto/update-product.dto';
-import { IsArray } from 'class-validator';
+import {
+  AdvancedMarkup,
+  BaseUpdateDto,
+} from '../../product/dto/update-product.dto';
+import { IsArray, IsOptional, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 
-export class UpdateCategoryDto extends BaseUpdateDto {}
+export class UpdateCategoryDto extends BaseUpdateDto {
+  @ValidateNested()
+  @Type(() => AdvancedMarkup)
+  @IsOptional()
+  advancedMarkup?: AdvancedMarkup;
+}
 
 export class UpdateSubCategoryDto extends BaseUpdateDto {}
 
