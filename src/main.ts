@@ -41,6 +41,7 @@ async function bootstrap() {
       'http://vendor.promotionalproductsnow.au',
       'http://localhost:5178',
       'http://localhost:1338',
+      'https://534e-105-120-130-215.ngrok-free.app',
       // appEnv === 'development' && 'http://localhost:5173',
       // appEnv === 'development' && 'http://localhost:3000',
     ],
