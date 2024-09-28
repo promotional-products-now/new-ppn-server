@@ -985,7 +985,11 @@ export class ProductService {
       const sort = sortOptions['Recently added']; // Default sort can be adjusted as needed
 
       const products = await this.productModel
-        .find({ category: category._id, isActive: true })
+        .find({
+          category: category._id,
+          isActive: true,
+          price: { $exists: true },
+        })
         .select(
           'meta.id overview.name overview.heroImage overview.code product.description product.images price quantity slug category',
         )
@@ -1043,7 +1047,7 @@ export class ProductService {
     const sort = sortOptions['default'];
 
     const products = await this.productModel
-      .find({ isHot: true })
+      .find({ isHot: true, isActive: true })
       .select('overview slug price quantity product.description')
       .populate('category')
       .skip(limit * (page - 1))
