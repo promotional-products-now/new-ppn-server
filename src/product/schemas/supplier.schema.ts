@@ -110,6 +110,52 @@ export class Supplier extends Document {
   @Prop({ type: Boolean, default: false })
   @ApiProperty({ type: 'boolean', example: false })
   removedFromPromodata: boolean;
+
+  @Prop({
+    type: {
+      regular: {
+        profitMarkup: {
+          type: Number,
+          default: 10,
+        },
+        markupExpiryDate: Date,
+        salesPitch: String,
+      },
+      gold: {
+        profitMarkup: {
+          type: Number,
+          default: 0,
+        },
+        markupExpiryDate: Date,
+        salesPitch: String,
+      },
+      diamond: {
+        profitMarkup: {
+          type: Number,
+          default: 0,
+        },
+        markupExpiryDate: Date,
+        salesPitch: String,
+      },
+    },
+  })
+  advancedMarkup: {
+    regular: {
+      profitMarkup: number;
+      markupExpiryDate: Date;
+      salesPitch: string;
+    };
+    gold: {
+      profitMarkup: number;
+      markupExpiryDate: Date;
+      salesPitch: string;
+    };
+    diamond: {
+      profitMarkup: number;
+      markupExpiryDate: Date;
+      salesPitch: string;
+    };
+  };
 }
 
 export type SupplierDocument = HydratedDocument<Supplier>;

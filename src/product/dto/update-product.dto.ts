@@ -99,7 +99,7 @@ class AdvancedMarkupTier {
   salesPitch: string;
 }
 
-class AdvancedMarkup {
+export class AdvancedMarkup {
   @ApiProperty({ type: AdvancedMarkupTier, description: 'Regular tier markup' })
   @ValidateNested()
   @Type(() => AdvancedMarkupTier)
