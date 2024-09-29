@@ -6,7 +6,7 @@ export enum PRODUCT_FILTER {
   NON_DISCOUNTED_PRODUCTS = 'Non-Discounted Products',
   DISCONTINUED_PRODUCTS = 'Discontinued Products',
   NEW_ZEALAND_REGION = 'New Zealand Region',
-  ITEMS_WITHOUTOUT_IMAGE = 'item without images only',
+  ITEMS_WITHOUT_IMAGE = 'item without images only',
   ITEMS_WITH_OUT_STOCK_CHECK = 'Products without Stock Check',
   ITEMS_FROM_API_SUPPLIERS = 'Items from API suppliers',
   NEW_ITEMS_LAST_30_DAYS = 'New items (Last 30 days)',

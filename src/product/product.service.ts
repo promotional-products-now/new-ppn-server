@@ -334,30 +334,19 @@ export class ProductService {
     const limit = query.limit ? Number(query.limit) : 10;
 
     const currentDate = new Date();
-
     const filterQuery: Record<string, any> = {
       ...(!query.isAdmin && { isActive: true }),
-      'supplier.isActive': true,
-      'category.isActive': true,
-      'subCategory.isActive': true,
+      // We'll handle isActive checks with a 3-step process
     };
-
-    if (query.category) {
-      filterQuery['category.name'] = new RegExp(query.category, 'i');
-    }
-
-    if (query.subCategory) {
-      filterQuery['subCategory.name'] = new RegExp(query.subCategory, 'i');
-    }
 
     if (query.colours) {
       filterQuery['product.colours.list.colours'] = {
         $in: Array.isArray(query.colours)
-          ? [...query.colours].map((colour) => new RegExp(colour, 'i'))
-          : [query.colours],
+          ? query.colours.map((colour) => new RegExp(colour, 'i'))
+          : [new RegExp(query.colours, 'i')],
       };
     }
-    console.log({ filterQuery });
+
     if (query.search || (query.minPrice && query.maxPrice)) {
       filterQuery.$and = [];
 
@@ -372,20 +361,11 @@ export class ProductService {
 
       if (query.minPrice && query.maxPrice) {
         filterQuery.$and.push(
-          { 'price.min': { $gte: Number(query.minPrice || 0) } },
-          { 'price.max': { $lte: Number(query.maxPrice || 100000) } },
+          { 'price.min': { $gte: Number(query.minPrice) } },
+          { 'price.max': { $lte: Number(query.maxPrice) } },
         );
       }
     }
-
-    if (query.suppliers) {
-      filterQuery['supplier._id'] = {
-        $in: Array.isArray(query.suppliers)
-          ? query.suppliers.map((supplier) => new ObjectId(supplier))
-          : [new ObjectId(query.suppliers as string)],
-      };
-    }
-
     // TODO: WORK ON THE REMAINING IMPLEMENTATION
     if (query && query.filter) {
       for (const filterValue of Array.isArray(query.filter)
@@ -420,7 +400,7 @@ export class ProductService {
             Object.assign(filterQuery, { 'meta.country': 'NZ' });
             break;
 
-          case PRODUCT_FILTER.ITEMS_WITHOUTOUT_IMAGE:
+          case PRODUCT_FILTER.ITEMS_WITHOUT_IMAGE:
             Object.assign(filterQuery, {
               'overview.heroImage': null,
             });
@@ -498,54 +478,84 @@ export class ProductService {
       'Z-A': { 'product.name': -1 },
       'recently added': { 'meta.firstListedAt': -1 },
       'lowest-price': { 'price.min': -1 },
-      'higest-price': { 'price.max': -1 },
+      'highest-price': { 'price.max': -1 },
       default: { createdAt: -1 },
     };
 
     const sort = sortOptions[query.sort] || sortOptions.default;
 
-    const pipeline = [
-      {
-        $lookup: {
-          from: 'suppliers',
-          localField: 'supplier',
-          foreignField: '_id',
-          as: 'supplier',
-        },
-      },
-      { $unwind: '$supplier' },
-      {
-        $lookup: {
-          from: 'productcategories',
-          localField: 'category',
-          foreignField: '_id',
-          as: 'category',
-        },
-      },
-      { $unwind: '$category' },
-      {
-        $lookup: {
-          from: 'productsubcategories',
-          localField: 'subCategory',
-          foreignField: '_id',
-          as: 'subCategory',
-        },
-      },
-      { $unwind: '$subCategory' },
-      { $match: filterQuery },
-      { $sort: sort },
-      {
-        $facet: {
-          metadata: [{ $count: 'total' }],
-          data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
-        },
-      },
-    ];
+    //  Fetch active categories
+    const activeCategories = await this.productCategoryModel
+      .find({
+        isActive: true,
+        ...(query.category && { name: new RegExp(query.category, 'i') }),
+      })
+      .lean()
+      .select('_id')
+      .exec();
 
-    const [result] = await this.productModel.aggregate(pipeline);
+    // Fetch active subcategories
+    const activeSubCategories = await this.productSubCategoryModel
+      .find({
+        isActive: true,
+        ...(query.subCategory && { name: new RegExp(query.subCategory, 'i') }),
+      })
+      .lean()
+      .select('_id')
+      .exec();
 
-    const products = result.data;
-    const totalItems = result.metadata[0]?.total || 0;
+    // Step 3: Fetch active suppliers
+    const activeSuppliers = await this.supplierModel
+      .find({
+        isActive: true,
+        ...(query.suppliers && {
+          _id: {
+            $in: Array.isArray(query.suppliers)
+              ? query.suppliers.map((supplier) => new ObjectId(supplier))
+              : [new ObjectId(query.suppliers as string)],
+          },
+        }),
+      })
+      .lean()
+      .select('_id')
+      .exec();
+
+    // Modify filterQuery to include the active IDs
+    filterQuery.category = { $in: activeCategories.map((cat) => cat._id) };
+    filterQuery.subCategory = {
+      $in: activeSubCategories.map((sub) => sub._id),
+    };
+    filterQuery.supplier = { $in: activeSuppliers.map((sup) => sup._id) };
+
+    const [products, totalItems] = await Promise.all([
+      this.productModel
+        .find(filterQuery)
+        .select(
+          '-discounts -advancedMarkup -product.supplierBrand -product.supplierWebsitePage -product.supplierCatalogue -product.supplierLabel -overview.minQty -overview.displayPrices -overview.supplier',
+        )
+        .populate({
+          path: 'category',
+          model: ProductCategory.name,
+          select: 'name',
+          options: { lean: true },
+        })
+        .populate({
+          path: 'subCategory',
+          select: 'name',
+          options: { lean: true },
+        })
+        .populate({
+          path: 'supplier',
+          options: { lean: true },
+        })
+        .lean()
+        .sort(sort)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .exec(),
+      this.productModel.countDocuments(filterQuery),
+    ]);
+
     const totalPages = Math.ceil(totalItems / limit);
 
     return {
