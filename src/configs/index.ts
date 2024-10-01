@@ -79,13 +79,6 @@ export type AzureBlobStorage = {
   azure_container_name: string;
 };
 
-export type AlgoliaConfig = {
-  appId: string;
-  adminKey: string;
-  searchKey: string;
-  indexName: string;
-};
-
 export type CloudinaryConfig = {
   apiKey: string;
   apiSecret: string;
@@ -113,7 +106,6 @@ export type AppConfig = {
   refreshToken: refreshToken;
   sendGrid: sendGrid;
   storage: AzureBlobStorage;
-  algolia: AlgoliaConfig;
   cloudinary: CloudinaryConfig;
   stripe: StripeConfig;
 };
@@ -127,7 +119,7 @@ const env = (): AppConfig => {
     promoDataProductApi: secrets.PROMO_PRODUCT_API,
     PromoDataAuthToken: secrets.PROMO_DATA_AUTHTOKEN,
     database: {
-      uri: 'mongodb+srv://production_spiderMonkey:WMaYggQeP8jtTuuP@ppn.hfq7y.mongodb.net/ppn?retryWrites=true&w=majority',
+      uri: 'mongodb+srv://production_spiderMonkey:ZldLi0VKCrJZFMdO@ppn.hfq7y.mongodb.net/ppn?retryWrites=true&w=majority',
     },
     otp: {
       secret: secrets.OTP_SECRET,
@@ -169,12 +161,6 @@ const env = (): AppConfig => {
           secrets.SENDGRID_NEW_ADMIN_TEMPLATE ||
           'd-439b352f30184254aa038ffc382d9204',
       },
-    },
-    algolia: {
-      appId: secrets.ALGOLIA_APP_ID,
-      adminKey: secrets.ALGOLIA_ADMIN_KEY,
-      searchKey: secrets.ALGOLIA_SEARCH_KEY,
-      indexName: secrets.ALGOLIA_INDEX_NAME,
     },
     cloudinary: {
       apiKey: secrets.CLOUDINARY_API_KEY,

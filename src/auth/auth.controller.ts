@@ -42,7 +42,6 @@ import { MagicLoginStrategy } from '../commons/strategy/magiclogin.strategy';
 import { JwtAction } from '../commons/dtos/jwt.dto';
 import { BannedUserGuard } from '../commons/guards/banned_user.guard';
 import { UserActivityService } from 'src/user_activity/user_activity.service';
-// import { AlgoliaService } from '../commons/services/Algolia/algolia.service';
 // import { omit } from 'lodash';
 
 @ApiTags('auth')
@@ -55,7 +54,6 @@ export class AuthController {
     private authService: AuthService,
     private userService: UserService,
     private emailService: EmailService,
-    // private algoliaService: AlgoliaService,
     private readonly configService: ConfigService,
     private strategy: MagicLoginStrategy,
     private readonly userActivity: UserActivityService,

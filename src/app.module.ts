@@ -19,13 +19,18 @@ import { EmailModule } from './email/email.module';
 import { UserActivityModule } from './user_activity/user_activity.module';
 import { CheckoutModule } from './checkout/checkout.module';
 import { OrderModule } from './order/order.module';
+import { AdvertModule } from './advert/advert.module';
+import { CouponModule } from './coupon/coupon.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
+console.log({ ty: process.env.NODE_ENV });
 @Module({
   imports: [
     ConfigInitModule,
     MongoModule,
     UserModule,
     AuthModule,
+    ...(process.env.NODE_ENV !== 'dev' ? [ScheduleModule.forRoot()] : []),
     ThrottlerModule.forRoot([
       {
         name: 'short',
@@ -35,7 +40,7 @@ import { OrderModule } from './order/order.module';
       {
         name: 'long',
         ttl: 60000,
-        limit: 60, //60 request per minute
+        limit: 50, //60 request per minute
       },
     ]),
     SuspendModule,
@@ -51,6 +56,8 @@ import { OrderModule } from './order/order.module';
     UserActivityModule,
     CheckoutModule,
     OrderModule,
+    AdvertModule,
+    CouponModule,
   ],
   controllers: [AppController],
   providers: [

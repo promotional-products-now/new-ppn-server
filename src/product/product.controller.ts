@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Patch,
+  Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -26,14 +27,16 @@ import {
   FilterProductByCategoryQueryDto,
   FilterProductQueryDto,
   FilterShowCaseQueryDto,
+  ProductTextSearchQueryDto,
   TopSellingProductQuery,
 } from './dto/filter-product-query.dto';
-import { FetchtQueryDto } from './dto/fetch-query.dto';
+import { FetchtQueryDto, PricingDetailsDto } from './dto/fetch-query.dto';
 import { PaginatedSupplierResponse } from './dto/paginated-response.dto';
 import {
   FilterWithCreatedAt,
   MultiUpdateProductDto,
   ProductLabelDto,
+  ProductLabelUpdateDto,
   ProductUpdateDto,
   UdpateSupplierDto,
   UpdateProductDto,
@@ -42,7 +45,6 @@ import { Product } from './schemas/product.schema';
 import { Supplier } from './schemas/supplier.schema';
 import { AuthorizationGuard } from '../commons/guards/authorization.guard';
 import { ConfigService } from '@nestjs/config';
-import { Environments } from 'src/commons/types/environments.types';
 
 @Controller('products')
 @ApiTags('product')
@@ -57,6 +59,12 @@ export class ProductController {
   @ApiQuery({ type: FilterProductQueryDto })
   async findAll(@Query() query) {
     return await this.productsService.findAll(query);
+  }
+
+  @Get('/product-search')
+  @ApiQuery({ type: ProductTextSearchQueryDto })
+  async productTextSearch(@Query() query) {
+    return await this.productsService.productTextSearch(query);
   }
 
   @Get('/updated')
@@ -93,6 +101,12 @@ export class ProductController {
   @ApiQuery({ type: FilterShowCaseQueryDto })
   async hotProducts(@Query() query) {
     return await this.productsService.hotProducts(query);
+  }
+
+  @Get('/pricing-details/:productId')
+  @ApiParam({ name: 'productId', type: 'string', required: true })
+  async productPricingDetails(@Param('productId') productId: string) {
+    return await this.productsService.productPricingDetails(productId);
   }
 
   @Get('/check-stock-levels/:productId')
@@ -137,10 +151,18 @@ export class ProductController {
     return await this.productsService.findSuppliers(query);
   }
 
-  @Get('/:id')
-  @ApiParam({ name: 'id', type: 'string', required: true })
-  async findById(@Param('id') id: string) {
-    return await this.productsService.findById(id);
+  @Get('/product-code/:productCode')
+  @ApiParam({ name: 'productCode', type: 'string', required: true })
+  async findByProductCode(@Param('productCode') productCode: string) {
+    return await this.productsService.findByProductCode(productCode);
+  }
+
+  @Get('/:slug')
+  @ApiParam({ name: 'slug', type: 'string', required: true })
+  async findBySlug(@Param('slug') slug: string) {
+    const product = await this.productsService.findBySlug(slug);
+
+    return product;
   }
 
   @UseGuards(AuthorizationGuard)
@@ -152,6 +174,19 @@ export class ProductController {
   @ApiOkResponse({ description: 'Updated product data', type: Product })
   async updateManyProduct(@Body() body) {
     return await this.productsService.updateManyProduct(body.ids, body.payload);
+  }
+
+  @UseGuards(AuthorizationGuard)
+  @ApiSecurity('uid')
+  @ApiBearerAuth()
+  @Patch('/label')
+  @ApiOperation({ summary: 'Update Label' })
+  @ApiBody({ type: ProductLabelUpdateDto })
+  async addProductField(@Body() data: ProductLabelUpdateDto) {
+    return await this.productsService.addProductLabel(
+      data.productId,
+      data.labels,
+    );
   }
 
   @UseGuards(AuthorizationGuard)
@@ -177,22 +212,6 @@ export class ProductController {
     @Body() body: UdpateSupplierDto,
   ) {
     return await this.productsService.updateSupplier(id, body);
-  }
-
-  @UseGuards(AuthorizationGuard)
-  @ApiSecurity('uid')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update Label' })
-  @ApiOkResponse({
-    description: 'Update product label',
-    type: ProductUpdateDto,
-  })
-  @Patch('/label')
-  async addProductField(@Body() data: ProductLabelDto) {
-    return await this.productsService.addProductLabel(
-      data.productId,
-      data.label,
-    );
   }
 
   @UseGuards(AuthorizationGuard)

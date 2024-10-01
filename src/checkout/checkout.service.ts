@@ -9,6 +9,7 @@ import { Order } from '../order/schemas/order.schema';
 import { User } from '../user/schemas/user.schema';
 import { STATUS_ENUM } from '../order/order.contants';
 import { CartService } from 'src/order/cart.service';
+import { CouponService } from 'src/coupon/coupon.service';
 
 @Injectable()
 export class CheckoutService {
@@ -21,6 +22,7 @@ export class CheckoutService {
     private configService: ConfigService,
     private orderService: OrderService,
     private cartService: CartService,
+    private couponService: CouponService,
   ) {
     this.stripeConfig = this.configService.get<StripeConfig>('stripe');
     this.stripe = new Stripe(this.stripeConfig.secretKey);
@@ -36,6 +38,23 @@ export class CheckoutService {
       isCheckedOut: false,
     });
 
+    let totalAmount = cartItems.reduce((acc, item) => acc + item.price, 0);
+
+    // check coupon
+    if (ppnCheckout.couponCode) {
+      const { discount, isExpired } = await this.couponService.checkCoupon(
+        ppnCheckout.couponCode,
+        totalAmount,
+        user.userType,
+      );
+
+      if (isExpired) {
+        throw new BadRequestException('coupon expired');
+      }
+
+      totalAmount = totalAmount - discount;
+    }
+
     try {
       order = await this.orderService.create({
         cartItems: cartItems.map((cartItem) => ({
@@ -49,7 +68,7 @@ export class CheckoutService {
         // @ts-expect-error
         // fix issues with userid types
         userId: user._id || user.id,
-        totalAmount: cartItems.reduce((acc, item) => acc + item.price, 0),
+        totalAmount: totalAmount,
       });
 
       if (order) {
@@ -100,6 +119,9 @@ export class CheckoutService {
         mode: 'payment',
         success_url: `${url}?status=success&orderId=${orderId}`,
         cancel_url: `${url}?status=cancelled&orderId=${orderId}`,
+        discounts: ppnCheckout.couponCode
+          ? [{ coupon: ppnCheckout.couponCode }]
+          : undefined,
         metadata: {
           // @ts-expect-error/
           // `_id` doesnt not exist on user, fix issues with userid types

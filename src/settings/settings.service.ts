@@ -4,7 +4,7 @@ import {
   BannerSetting,
   BannerSettingDocument,
 } from './schemas/banner-setting.schema';
-import { Model, UpdateQuery } from 'mongoose';
+import { Model, Types, UpdateQuery } from 'mongoose';
 import { ProfitSetting } from './schemas/profit-setting.schema';
 import { UpdateProfitSettingDto } from './dto/update-profit-setting.dto';
 import { Freight } from './schemas/freight.schema';
@@ -153,7 +153,10 @@ export class SettingsService {
   }
 
   async createFreight(paylod: CreateFreightDto) {
-    return await this.freightModel.create(paylod);
+    return await this.freightModel.create({
+      ...paylod,
+      supplier: new Types.ObjectId(paylod.supplier),
+    });
   }
 
   async updateFreights(payload: UpdateFreightDto) {

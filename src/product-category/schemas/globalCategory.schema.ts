@@ -3,7 +3,6 @@ import { Document, HydratedDocument, Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Schema({
-  timestamps: false,
   collection: 'globalproductcategories',
 })
 export class GlobalProductCategory extends Document {
@@ -22,6 +21,9 @@ export class GlobalProductCategory extends Document {
 
   @Prop({ type: Number, default: null })
   totalProduct: number;
+
+  @Prop({ type: Boolean, default: true })
+  isActive: boolean;
 }
 
 export type GlobalProductCategoryDocument =

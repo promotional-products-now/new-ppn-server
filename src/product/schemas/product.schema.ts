@@ -40,14 +40,17 @@ export class Product extends Document {
     country: string;
     dataSource: string;
     discontinued: boolean;
-    discontinuedAt: string;
+    discontinuedAt: Date;
     canCheckStock: boolean;
     firstListedAt: Date;
     lastChangedAt: Date;
     priceCurrencies: string[];
     priceChangedAt: Date;
     discontinuedReason: string;
-    sourceDateChangedAt: Date;
+    sourceSataChangedAt: Date;
+    verifiedLast3Months: boolean;
+    changedComparisonTimestamp: Date;
+    pricesChangedAt: Date;
   };
 
   @Prop({
@@ -201,11 +204,11 @@ export class Product extends Document {
   };
 
   @ApiProperty({ type: 'string', example: '666d98ab565f924157e31c54' })
-  @Prop({ type: { type: Types.ObjectId, ref: ProductCategory.name } })
+  @Prop({ type: Types.ObjectId, ref: ProductCategory.name })
   category: Types.ObjectId;
 
   @ApiProperty({ type: 'string', example: '666d98ab565f924157e31c54' })
-  @Prop({ type: { type: Types.ObjectId, ref: ProductSubCategory.name } })
+  @Prop({ type: Types.ObjectId, ref: ProductSubCategory.name })
   subCategory: Types.ObjectId;
 
   @Prop({
@@ -214,6 +217,13 @@ export class Product extends Document {
   })
   @ApiProperty({ type: 'boolean', example: true })
   isActive: boolean;
+
+  @ApiProperty({ type: 'string', example: 'product-title' })
+  @Prop({
+    type: String,
+    default: null,
+  })
+  slug: string;
 
   @Prop({
     type: Boolean,
@@ -229,6 +239,18 @@ export class Product extends Document {
     example: STATUS_ENUM.BUY_NOW,
   })
   status: string;
+
+  @Prop({ type: { min: Number, max: Number } })
+  price: {
+    min: number;
+    max: number;
+  };
+
+  @Prop({ type: { min: Number, max: Number } })
+  quantity: {
+    min: number;
+    max: number;
+  };
 
   @Prop({
     type: {
@@ -269,6 +291,51 @@ export class Product extends Document {
 
   @Prop([String])
   labels: string[];
+  @Prop({
+    type: {
+      regular: {
+        profitMarkup: {
+          type: Number,
+          default: 10,
+        },
+        markupExpiryDate: Date,
+        salesPitch: String,
+      },
+      gold: {
+        profitMarkup: {
+          type: Number,
+          default: 0,
+        },
+        markupExpiryDate: Date,
+        salesPitch: String,
+      },
+      diamond: {
+        profitMarkup: {
+          type: Number,
+          default: 0,
+        },
+        markupExpiryDate: Date,
+        salesPitch: String,
+      },
+    },
+  })
+  advancedMarkup: {
+    regular: {
+      profitMarkup: number;
+      markupExpiryDate: Date;
+      salesPitch: string;
+    };
+    gold: {
+      profitMarkup: number;
+      markupExpiryDate: Date;
+      salesPitch: string;
+    };
+    diamond: {
+      profitMarkup: number;
+      markupExpiryDate: Date;
+      salesPitch: string;
+    };
+  };
 }
 
 export type ProductDocument = HydratedDocument<Product>;
@@ -279,3 +346,4 @@ export const ProductSchema = SchemaFactory.createForClass(Product).set(
 );
 
 ProductSchema.index({ 'product.name': 'text', 'product.code': 'text' });
+ProductSchema.index({ 'product.colours.list.colours': 1 });

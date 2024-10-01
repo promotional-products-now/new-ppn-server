@@ -15,7 +15,6 @@ import { ConfigService } from '@nestjs/config';
 import { getUser } from '../../test/test.helper';
 import { AuthorizationGuard } from '../commons/guards/authorization.guard';
 import { JWTService } from '../commons/services/JWTService/JWTService.service';
-import { AlgoliaService } from '../commons/services/Algolia/algolia.service';
 
 const mockAuthService = {
   login: jest.fn(),
@@ -82,7 +81,6 @@ describe('AuthController', () => {
         { provide: AuthorizationGuard, useValue: mockAuthorizationGuard() },
         { provide: JWTService, useValue: mockJWTService() },
         { provide: ConfigService, useValue: mockConfigService() },
-        { provide: AlgoliaService, useValue: { addRecord: jest.fn() } },
       ],
     })
       .overrideGuard(AuthGuard('local'))
@@ -150,8 +148,11 @@ describe('AuthController', () => {
       const signUpDto: SignupAuthDto = {
         email: user.email.address,
         password: 'password',
-        userName: user.userName,
+        firstName: user.firstName,
         confirmPassword: 'password',
+        lastName: '',
+        phone: '',
+        location: undefined,
       };
 
       const result = await controller.signUp(signUpDto);

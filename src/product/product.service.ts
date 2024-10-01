@@ -22,6 +22,7 @@ import {
   FilterProductByCategoryQueryDto,
   FilterProductQueryDto,
   FilterShowCaseQueryDto,
+  ProductTextSearchQueryDto,
   TopSellingProductQuery,
 } from './dto/filter-product-query.dto';
 import {
@@ -41,6 +42,8 @@ import { FetchtQueryDto } from './dto/fetch-query.dto';
 import { ObjectId } from 'mongodb';
 import { Order, OrderDocument } from 'src/order/schemas/order.schema';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { cleanText, toKebabCase } from '../utils';
+import { STATUS_ENUM } from './product.interface';
 
 @Injectable()
 export class ProductService {
@@ -73,6 +76,22 @@ export class ProductService {
   ) {}
 
   private async createProduct(product: any) {
+    const slug = `${toKebabCase(product?.overview?.name)}-${product?.overview?.code}-${product?.meta?.id}`;
+
+    const categoryName = product?.product?.categorisation?.product_type
+      ?.type_group_name
+      ? cleanText(
+          product?.product?.categorisation?.product_type?.type_group_name,
+        )
+      : product?.product?.categorisation?.supplier_category
+        ? cleanText(product?.product?.categorisation?.supplier_category)
+        : 'uncategorized';
+
+    const subCategoryName =
+      product?.product?.categorisation?.product_type?.type_name ||
+      product?.product?.categorisation?.supplier_subcategory ||
+      'uncategorized';
+
     const supplier = await this.supplierModel.findOneAndUpdate(
       {
         name: product.supplier.supplier,
@@ -89,23 +108,23 @@ export class ProductService {
 
     const category = await this.productCategoryModel.findOneAndUpdate(
       {
-        name: product.product.categorisation.supplier_category,
+        name: categoryName,
         supplier: supplier._id,
       },
       {
-        name: product.product.categorisation.supplier_category,
+        name: categoryName,
         supplier: supplier._id,
       },
-      { upseert: true, new: true },
+      { upsert: true, new: true },
     );
 
     const subCategory = await this.productSubCategoryModel.findOneAndUpdate(
       {
-        name: product.product.categorisation.supplier_subcategory,
+        name: subCategoryName,
         category: category._id,
       },
       {
-        name: product.product.categorisation.supplier_subcategory,
+        name: subCategoryName,
         category: category._id,
       },
       {
@@ -116,88 +135,86 @@ export class ProductService {
 
     const payload = {
       meta: {
-        id: product.meta.id,
-        country: product.meta.country,
-        dataSource: product.meta.data_source,
-        discontinued: product.meta.discontinued,
-        discontinuedAt: product.meta.discontinued_at
-          ? new Date(product.meta.discontinued_at).toISOString()
-          : null,
-        firstListedAt: new Date(product.meta.first_listed_at).toISOString(),
-        lastChangedAt: new Date(product.meta.last_changed_at).toISOString(),
-        priceCurrencies: product.meta.price_currencies,
-        pricesChangedAt: new Date(product.meta.prices_changed_at).toISOString(),
-        discontinuedReason: product.meta.discontinued_reason,
-        canCheckStock: product.meta.can_check_stock,
-        sourceDataChangedAt: new Date(
-          product.meta.source_data_changed_at,
-        ).toISOString(),
+        id: product?.meta?.id,
+        country: product?.meta?.country,
+        dataSource: product?.meta?.data_source,
+        discontinued: product?.meta?.discontinued,
+        discontinuedAt: product?.meta?.discontinued_at || null,
+        firstListedAt: product?.meta?.first_listed_at,
+        lastChangedAt: product?.meta?.last_changed_at,
+        priceCurrencies: product?.meta?.price_currencies,
+        pricesChangedAt: product?.meta?.prices_changed_at,
+        discontinuedReason: product?.meta?.discontinued_reason,
+        canCheckStock: product?.meta?.can_check_stock,
+        sourceSataChangedAt: product?.meta?.source_data_changed_at,
+        verifiedLast3Months: product?.meta?.verified_last_3_months,
+        changedComparisonTimestamp: product?.meta?.changed_comparison_timestamp,
       },
       overview: {
-        name: product.overview.name,
-        code: product.overview.code,
+        name: product?.overview?.name,
+        code: product?.overview?.code,
         suppllier: supplier._id,
-        heroImage: product.overview.hero_image,
-        minQty: product.overview.min_qty,
-        displayPrices: product.overview.display_prices,
+        heroImage: product?.overview?.hero_image,
+        minQty: product?.overview?.min_qty,
+        displayPrices: product?.overview?.display_prices,
       },
       supplier: supplier._id,
       product: {
-        code: product.product.code,
-        name: product.product.name,
-        details: product.product.details,
-        description: product.product.description,
-        discontinued: product.product.discontinued,
-        supplierBrand: product.product.supplier_brand,
-        supplierLabel: product.product.supplier_label,
-        supplierCatalogue: product.product.supplier_catalogue,
-        supplierWebsitePage: product.product.supplier_website_page,
-        images: product.product.images ?? [],
-        videos: product.product.videos ?? [],
-        lineArt: product.product.line_art ?? [],
+        code: product?.product?.code,
+        name: product?.product?.name,
+        details: product?.product?.details,
+        description: product?.product?.description,
+        discontinued: product?.product?.discontinued,
+        supplierBrand: product?.product?.supplier_brand,
+        supplierLabel: product?.product?.supplier_label,
+        supplierCatalogue: product?.product?.supplier_catalogue,
+        supplierWebsitePage: product?.product?.supplier_website_page,
+        images: product?.product?.images ?? [],
+        videos: product?.product?.videos ?? [],
+        lineArt: product?.product?.line_art ?? [],
         colours: {
-          list: product.product.colours.list.map((v: any) => ({
-            for: v.for,
-            name: v.name,
-            image: v.image,
-            swatch: v.swatch,
-            colours: v.colours,
-            appColours: v.app_colours,
+          list: product?.product?.colours?.list?.map((v: any) => ({
+            for: v?.for,
+            name: v?.name,
+            image: v?.image,
+            swatch: v?.swatch,
+            colours: v?.colours,
+            appColours: v?.app_colours,
           })),
-          supplierText: product.product.colours.supplier_text,
+          supplierText: product?.product?.colours.supplier_text,
         },
         categorisation: {
           productType: {
-            typeId: product.product.categorisation.product_type.type_id,
-            typeName: product.product.categorisation.product_type.type_name,
+            typeId: product?.product?.categorisation?.product_type?.type_id,
+            typeName: product?.product?.categorisation?.product_type?.type_name,
             typeGroupId:
-              product.product.categorisation.product_type.type_group_id,
+              product?.product?.categorisation?.product_type?.type_group_id,
             typeNameText:
-              product.product.categorisation.product_type.type_name_text,
+              product?.product?.categorisation?.product_type?.type_name_text,
             typeGroupName:
-              product.product.categorisation.product_type.type_group_name,
+              product?.product?.categorisation?.product_type?.type_group_name,
           },
-          appaAttributes: product.product.categorisation.appa_attributes,
+          appaAttributes: product?.product?.categorisation?.appa_attributes,
           appaProductType: {
             healthAndPersonal:
-              product.product.categorisation.appa_product_type[
+              product?.product?.categorisation?.appa_product_type[
                 'Health & Personal'
               ] ?? [],
           },
-          supplierCategory: product.product.categorisation.supplier_category,
+          supplierCategory: product?.product?.categorisation?.supplier_category,
           supplierSubcategory:
-            product.product.categorisation.supplier_subcategory,
+            product?.product?.categorisation?.supplier_subcategory,
         },
         prices: {
-          addons: product.product.prices.addons ?? [],
+          addons: product?.product?.prices.addons ?? [],
           priceTags: {
-            leadTime: product.product.prices.price_tags.lead_time ?? [],
-            decoration: product.product.prices.price_tags.decoration ?? [],
+            leadTime: product?.product?.prices.price_tags?.lead_time ?? [],
+            decoration: product?.product?.prices.price_tags?.decoration ?? [],
           },
           priceGroups: await Promise.all(
-            product.product.prices.price_groups.map(async (v: any) => {
+            product?.product?.prices.price_groups.map(async (v: any) => {
               const additions = await Promise.all(
-                v.additions.map(async (addition: any) => {
+                v?.additions?.map(async (addition: any) => {
                   const data = await this.additionModel.findOneAndUpdate(
                     { key: addition.key },
                     {
@@ -216,17 +233,17 @@ export class ProductService {
                 }),
               );
               const basePriceData = await this.basePriceModel.findOneAndUpdate(
-                { key: v.base_price.key },
+                { key: v?.base_price.key },
                 {
-                  key: v.base_price.key,
-                  type: v.base_price.type,
-                  setup: v.base_price.setup,
-                  indent: v.base_price.indent,
-                  currency: v.base_price.currency,
-                  leadTime: v.base_price.lead_time,
-                  description: v.base_price.description,
-                  undecorated: v.base_price.undecorated,
-                  priceBreaks: v.base_price.price_breaks,
+                  key: v?.base_price?.key,
+                  type: v?.base_price?.type,
+                  setup: v?.base_price?.setup,
+                  indent: v?.base_price?.indent,
+                  currency: v?.base_price?.currency,
+                  leadTime: v?.base_price?.lead_time,
+                  description: v?.base_price?.description,
+                  undecorated: v?.base_price?.undecorated,
+                  priceBreaks: v?.base_price?.price_breaks,
                 },
                 { upsert: true, new: true },
               );
@@ -236,21 +253,24 @@ export class ProductService {
               };
             }),
           ),
-          currencyOptions: product.product.prices.currency_options,
+          currencyOptions: product?.product?.prices?.currency_options,
         },
       },
+      slug: slug,
       subCategory: subCategory._id,
       category: category._id,
     };
 
     const newProduct = await this.productModel.findOneAndUpdate(
       {
-        'product.code': product.product.code,
-        'product.name': product.product.name,
+        'meta.id': product?.meta.id,
+        'meta.country': product?.meta?.country,
+        'overview.code': product.overview.code,
       },
       { ...payload },
       { upsert: true, new: true },
     );
+    // console.log(payload);
 
     this.logger.log(`Product ${newProduct._id} creatd successfully`);
     return newProduct;
@@ -262,13 +282,12 @@ export class ProductService {
   async fetchAndUpsertProducts() {
     let page = 1;
     let totalPages = 1;
-
+    console.log('start:', page);
     do {
       try {
         const response = await this.fetchProductsFromApi(page);
         const { data, total_pages } = response;
         totalPages = total_pages;
-
         for (const product of data) {
           await this.createProduct(product);
         }
@@ -289,12 +308,17 @@ export class ProductService {
     const authToken =
       this.configService.getOrThrow<string>('PromoDataAuthToken');
 
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 1);
+    const sinceDate = twoDaysAgo.toISOString().split('T')[0];
+
     return firstValueFrom(
       this.httpService
         .get(`${apiUrl}?page=${page}`, {
           headers: {
             'x-auth-token': authToken,
           },
+          data: { since: sinceDate },
         })
         .pipe(
           retry({ count: 5, delay: 2000 }),
@@ -308,62 +332,50 @@ export class ProductService {
 
   async findAll(query: Partial<FilterProductQueryDto>): Promise<any> {
     const page = query.page ? Number(query.page) : 1;
-    const limit = query.limit ? Number(query.limit) : 15;
+    const limit = query.limit ? Number(query.limit) : 10;
 
+    const currentDate = new Date();
     const filterQuery: Record<string, any> = {
       ...(!query.isAdmin && { isActive: true }),
-      'supplier.isActive': true,
-      'category.isActive': true,
-      'subCategory.isActive': true,
+      // We'll handle isActive checks with a 3-step process
     };
 
-    let sort = {};
-
-    if (query.category) {
-      Object.assign(filterQuery, {
-        'category.name': { $regex: new RegExp(query.category, 'gi') },
-      });
+    if (query.colours) {
+      filterQuery['product.colours.list.colours'] = {
+        $in: Array.isArray(query.colours)
+          ? query.colours.map((colour) => new RegExp(colour, 'i'))
+          : [new RegExp(query.colours, 'i')],
+      };
     }
 
-    if (query.subCategory) {
-      Object.assign(filterQuery, {
-        'subCategory.name': { $regex: new RegExp(query.subCategory, 'gi') },
-      });
-    }
+    if (query.search || (query.minPrice && query.maxPrice)) {
+      filterQuery.$and = [];
 
-    if (query.colours && query.colours.length > 0) {
-      Object.assign(filterQuery, {
-        'product.colours.list': {
-          $elemMatch: {
-            colours: { $in: query.colours },
-          },
-        },
-      });
-    }
+      if (query.search) {
+        filterQuery.$and.push({
+          $or: [
+            { 'product.name': new RegExp(query.search, 'i') },
+            { 'product.code': new RegExp(query.search, 'i') },
+          ],
+        });
+      }
 
-    if (query.search) {
-      Object.assign(filterQuery, {
-        $or: [
-          { 'product.name': { $regex: new RegExp(query.search, 'gi') } },
-          { 'product.code': { $regex: new RegExp(query.search, 'gi') } },
-        ],
-      });
+      if (query.minPrice && query.maxPrice) {
+        filterQuery.$and.push(
+          { 'price.min': { $gte: Number(query.minPrice) } },
+          { 'price.max': { $lte: Number(query.maxPrice) } },
+        );
+      }
     }
-
-    if (query.suppliers) {
-      Object.assign(filterQuery, {
-        'supplier._id': {
-          $in: query.suppliers.map((vendor) => new ObjectId(vendor)),
-        },
-      });
-    }
-
-    if (query && query.filter && query.filter.length > 0) {
-      for (const filterValue of query.filter) {
+    // TODO: WORK ON THE REMAINING IMPLEMENTATION
+    if (query && query.filter) {
+      for (const filterValue of Array.isArray(query.filter)
+        ? query.filter
+        : [query.filter]) {
         switch (filterValue) {
-          case PRODUCT_FILTER.ITEMS_WITH_IMAGE:
+          case PRODUCT_FILTER.ITEMS_WITH_DETAILS:
             Object.assign(filterQuery, {
-              'product.images': { $exists: true, $ne: [] },
+              'product.details': { $exists: true, $ne: [] },
             });
             break;
           case PRODUCT_FILTER.ITEMS_WITH_DESCRIPTION:
@@ -371,19 +383,90 @@ export class ProductService {
               'product.description': { $exists: true, $ne: '' },
             });
             break;
-          case PRODUCT_FILTER.ITEMS_WITH_DETAILS:
+          case PRODUCT_FILTER.DISCONTINUED_PRODUCTS:
             Object.assign(filterQuery, {
-              'product.details': { $exists: true, $ne: [] },
+              'meta.discontinued': true,
             });
             break;
-          case PRODUCT_FILTER.ITEMS_FROM_API_SUPPLIERS:
+          case PRODUCT_FILTER.NON_DISCOUNTED_PRODUCTS:
+            Object.assign(filterQuery, {
+              $and: [
+                { 'discounts.diamondRule.reducedMarkup': 0 },
+                { 'discounts.goldRule.reducedMarkup': 0 },
+                { 'discounts.regularRule.reducedMarkup': 0 },
+              ],
+            });
             break;
+          case PRODUCT_FILTER.NEW_ZEALAND_REGION:
+            Object.assign(filterQuery, { 'meta.country': 'NZ' });
+            break;
+
+          case PRODUCT_FILTER.ITEMS_WITHOUT_IMAGE:
+            Object.assign(filterQuery, {
+              'overview.heroImage': null,
+            });
+            break;
+          case PRODUCT_FILTER.ITEM_WITHOUT_CATEGORIES:
+            Object.assign(filterQuery, {
+              'category.name': 'uncategorized',
+            });
+            break;
+          case PRODUCT_FILTER.ITEMS_WITH_OUT_STOCK_CHECK:
+            Object.assign(filterQuery, { 'meta.canCheckStock': false });
+            break;
+          case PRODUCT_FILTER.ITEMS_FROM_API_SUPPLIERS:
+            Object.assign(filterQuery, { 'meta.dataSource': 'API' });
+            break;
+
           case PRODUCT_FILTER.NEW_ITEMS_LAST_30_DAYS:
-            const currentDate = new Date();
             currentDate.setDate(currentDate.getDate() - 30);
             Object.assign(filterQuery, {
               'meta.firstListedAt': { $gte: currentDate },
             });
+            break;
+          case PRODUCT_FILTER.NON_DISCOUNTS_EXPIRING:
+            const start = new Date();
+            start.setUTCHours(0, 0, 0, 0);
+
+            // Create a new end date that is 3 days after the start date
+            const end = new Date(start);
+            end.setUTCDate(start.getUTCDate() + 3);
+            end.setUTCHours(23, 59, 59, 999);
+
+            Object.assign(filterQuery, {
+              $or: [
+                {
+                  'discounts.diamondRule.expiryDate': {
+                    // $gte: start,
+                    // $lte: end,
+                    $gte: end,
+                  },
+                },
+                {
+                  'discounts.goldRule.expiryDate': {
+                    $gte: end,
+                  },
+                },
+                {
+                  'discounts.regularRule.expiryDate': {
+                    $gte: end,
+                  },
+                },
+              ],
+            });
+
+            break;
+          case PRODUCT_FILTER.BUY_NOW_CANDIDATE:
+            Object.assign(filterQuery, { status: STATUS_ENUM.BUY_NOW });
+            break;
+          case PRODUCT_FILTER.ENABLE_VISIBILITY:
+            Object.assign(filterQuery, { isActive: true });
+            break;
+          case PRODUCT_FILTER.INACTIVE_ITEMS:
+            Object.assign(filterQuery, { isActive: false });
+            break;
+          case PRODUCT_FILTER.ITEM_WITHOUT_PRICES:
+            Object.assign(filterQuery, { price: { $exists: false } });
             break;
           default:
             this.logger.log('not implemented');
@@ -391,226 +474,96 @@ export class ProductService {
       }
     }
 
-    switch (query.sort) {
-      case 'A-Z':
-        sort = { 'product.name': 1 };
-        break;
-      case 'Z-A':
-        sort = { 'product.name': -1 };
-        break;
-      case 'Recently added':
-        sort = { 'meta.firstListedAt': -1 };
-        break;
-      default:
-        sort = { createdAt: -1 };
-    }
+    const sortOptions = {
+      'A-Z': { 'product.name': 1 },
+      'Z-A': { 'product.name': -1 },
+      'recently added': { 'meta.firstListedAt': -1 },
+      'lowest-price': { 'price.min': -1 },
+      'highest-price': { 'price.max': -1 },
+      default: { createdAt: -1 },
+    };
 
-    // Execute both aggregations in parallel using Promise.all
-    const [products, count] = await Promise.all([
-      this.productModel.aggregate([
-        {
-          $lookup: {
-            from: 'suppliers',
-            localField: 'supplier',
-            foreignField: '_id',
-            as: 'supplier',
-          },
-        },
-        {
-          $unwind: {
-            path: '$supplier',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $unwind: {
-            path: '$product.prices.priceGroups',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $lookup: {
-            from: 'baseprices',
-            localField: 'product.prices.priceGroups.basePrice',
-            foreignField: '_id',
-            as: 'product.prices.priceGroups.basePrice',
-          },
-        },
-        {
-          $unwind: {
-            path: '$product.prices.priceGroups.basePrice',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $lookup: {
-            from: 'additions',
-            localField: 'product.prices.priceGroups.additions',
-            foreignField: '_id',
-            as: 'product.prices.priceGroups.additions',
-          },
-        },
-        {
-          $unwind: {
-            path: '$product.prices.priceGroups.additions',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $group: {
-            _id: {
-              productId: '$_id',
-              priceGroupId: '$product.prices.priceGroups._id',
-            },
-            doc: { $first: '$$ROOT' },
-            basePrice: { $first: '$product.prices.priceGroups.basePrice' },
-            additions: { $push: '$product.prices.priceGroups.additions' },
-          },
-        },
-        {
-          $group: {
-            _id: '$_id.productId',
-            doc: { $first: '$doc' },
-            priceGroups: {
-              $push: {
-                _id: '$_id.priceGroupId',
-                basePrice: '$basePrice',
-                additions: '$additions',
-              },
-            },
-          },
-        },
-        {
-          $addFields: {
-            'doc.product.prices.priceGroups': '$priceGroups',
-          },
-        },
-        {
-          $replaceRoot: { newRoot: '$doc' },
-        },
-        {
-          $lookup: {
-            from: 'productcategories',
-            localField: 'category',
-            foreignField: '_id',
-            as: 'category',
-          },
-        },
-        {
-          $unwind: {
-            path: '$category',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $lookup: {
-            from: 'productsubcategories',
-            localField: 'subCategory',
-            foreignField: '_id',
-            as: 'subCategory',
-          },
-        },
-        {
-          $unwind: {
-            path: '$subCategory',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $match: {
-            ...filterQuery,
-          },
-        },
-        {
-          $sort: {
-            ...sort,
-          },
-        },
+    const sort = sortOptions[query.sort] || sortOptions.default;
 
-        {
-          $skip: limit * (page - 1),
-        },
-        {
-          $limit: limit,
-        },
-        {
-          $project: {
-            firstListedAt: 0,
-            pricesCurrencies: 0,
-            updatedAt: 0,
-            createdAt: 0,
-            overview: { displayPrices: 0 },
-            product: { name: 0, code: 0 },
-            videos: 0,
-            categorisation: {
-              productType: { typeId: 0, typeGroupId: 0 },
-            },
-            category: { supplier: 0, isActive: 0, status: 0, totalProducts: 0 },
-            subCategory: { supplier: 0, isActive: 0, status: 0 },
-            supplier: { isActive: 0, status: 0, updatedAt: 0, createdAt: 0 },
-          },
-        },
-      ]),
+    //  Fetch active categories
+    const activeCategories = await this.productCategoryModel
+      .find({
+        isActive: true,
+        ...(query.category && { name: new RegExp(query.category, 'i') }),
+      })
+      .lean()
+      .select('_id')
+      .exec();
 
-      this.productModel.aggregate([
-        {
-          $lookup: {
-            from: 'suppliers',
-            localField: 'supplier',
-            foreignField: '_id',
-            as: 'supplier',
+    // Fetch active subcategories
+    const activeSubCategories = await this.productSubCategoryModel
+      .find({
+        isActive: true,
+        ...(query.subCategory && { name: new RegExp(query.subCategory, 'i') }),
+      })
+      .lean()
+      .select('_id')
+      .exec();
+
+    // Step 3: Fetch active suppliers
+    const activeSuppliers = await this.supplierModel
+      .find({
+        isActive: true,
+        ...(query.suppliers && {
+          _id: {
+            $in: Array.isArray(query.suppliers)
+              ? query.suppliers.map((supplier) => new ObjectId(supplier))
+              : [new ObjectId(query.suppliers as string)],
           },
-        },
-        {
-          $unwind: {
-            path: '$supplier',
-          },
-        },
-        {
-          $lookup: {
-            from: 'productcategories',
-            localField: 'category',
-            foreignField: '_id',
-            as: 'category',
-          },
-        },
-        {
-          $unwind: {
-            path: '$category',
-          },
-        },
-        {
-          $lookup: {
-            from: 'productsubcategories',
-            localField: 'subCategory',
-            foreignField: '_id',
-            as: 'subCategory',
-          },
-        },
-        {
-          $unwind: {
-            path: '$subCategory',
-          },
-        },
-        {
-          $match: {
-            ...filterQuery,
-          },
-        },
-        {
-          $count: 'count',
-        },
-      ]),
+        }),
+      })
+      .lean()
+      .select('_id')
+      .exec();
+
+    // Modify filterQuery to include the active IDs
+    filterQuery.category = { $in: activeCategories.map((cat) => cat._id) };
+    filterQuery.subCategory = {
+      $in: activeSubCategories.map((sub) => sub._id),
+    };
+    filterQuery.supplier = { $in: activeSuppliers.map((sup) => sup._id) };
+
+    const [products, totalItems] = await Promise.all([
+      this.productModel
+        .find(filterQuery)
+        .select(
+          '-discounts -advancedMarkup -product.supplierBrand -product.supplierWebsitePage -product.supplierCatalogue -product.supplierLabel -overview.minQty -overview.displayPrices -overview.supplier',
+        )
+        .populate({
+          path: 'category',
+          model: ProductCategory.name,
+          select: 'name',
+          options: { lean: true },
+        })
+        .populate({
+          path: 'subCategory',
+          select: 'name',
+          options: { lean: true },
+        })
+        .populate({
+          path: 'supplier',
+          options: { lean: true },
+        })
+        .lean()
+        .sort(sort)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .exec(),
+      this.productModel.countDocuments(filterQuery),
     ]);
 
-    const totalPages =
-      count && count[0] ? Math.ceil(count[0].count / limit) : 0;
+    const totalPages = Math.ceil(totalItems / limit);
 
     return {
       docs: products,
-      page: page,
-      limit: limit,
-      totalItems: count && count[0] ? count[0].count : 0,
+      page,
+      limit,
+      totalItems,
       totalPages,
       nextPage: page < totalPages ? page + 1 : null,
       prevPage: page > 1 ? page - 1 : null,
@@ -619,20 +572,39 @@ export class ProductService {
     };
   }
 
-  async findById(id: string) {
-    return await this.productModel
-      .findById(id)
+  async findBySlug(slug: string) {
+    const product = await this.productModel
+      .findOne({ slug })
+      .populate('category')
       .populate('supplier')
       .populate('product.prices.priceGroups.additions')
       .populate('product.prices.priceGroups.basePrice')
-      .populate('category')
       .populate('subCategory')
-      .exec();
+      .lean();
+
+    return product;
+  }
+
+  async findByProductCode(productCode: string) {
+    const [product] = await this.productModel.aggregate([
+      { $match: { 'overview.code': productCode } },
+      {
+        $lookup: {
+          from: 'baseprices',
+          localField: 'product.prices.priceGroups.basePrice',
+          foreignField: '_id',
+          as: 'product.prices.priceGroups.basePrice',
+        },
+      },
+      { $unwind: '$product.prices.priceGroups.basePrice' },
+    ]);
+
+    return product;
   }
 
   async fetchUpdatedProducts(query: Partial<FilterWithCreatedAt>) {
     const page = query.page ? Number(query.page) : 1;
-    const limit = query.limit ? Number(query.limit) : 15;
+    const limit = query.limit ? Number(query.limit) : 10;
 
     const filterQuery: Record<string, any> = {
       'supplier.isActive': true,
@@ -646,16 +618,12 @@ export class ProductService {
       };
     }
 
-    if (query.subCategory) {
-      filterQuery['subCategory.name'] = {
-        $regex: new RegExp(query.subCategory, 'gi'),
-      };
+    if (query.category) {
+      filterQuery['category.name'] = new RegExp(query.category, 'i');
     }
 
-    if (query.suppliers) {
-      filterQuery['supplier._id'] = {
-        $in: query.suppliers.map((vendor) => new ObjectId(vendor)),
-      };
+    if (query.subCategory) {
+      filterQuery['subCategory.name'] = new RegExp(query.subCategory, 'i');
     }
 
     const from = query.startDate ? new Date(query.startDate) : null;
@@ -677,56 +645,7 @@ export class ProductService {
             preserveNullAndEmptyArrays: true,
           },
         },
-        {
-          $unwind: {
-            path: '$product.prices.priceGroups',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $lookup: {
-            from: 'baseprices',
-            localField: 'product.prices.priceGroups.basePrice',
-            foreignField: '_id',
-            as: 'product.prices.priceGroups.basePrice',
-          },
-        },
-        {
-          $unwind: {
-            path: '$product.prices.priceGroups.basePrice',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $group: {
-            _id: {
-              productId: '$_id',
-              priceGroupId: '$product.prices.priceGroups._id',
-            },
-            doc: { $first: '$$ROOT' },
-            basePrice: { $first: '$product.prices.priceGroups.basePrice' },
-          },
-        },
-        {
-          $group: {
-            _id: '$_id.productId',
-            doc: { $first: '$doc' },
-            priceGroups: {
-              $push: {
-                _id: '$_id.priceGroupId',
-                basePrice: '$basePrice',
-              },
-            },
-          },
-        },
-        {
-          $addFields: {
-            'doc.product.prices.priceGroups': '$priceGroups',
-          },
-        },
-        {
-          $replaceRoot: { newRoot: '$doc' },
-        },
+
         {
           $lookup: {
             from: 'productcategories',
@@ -829,20 +748,18 @@ export class ProductService {
     };
 
     if (query.category) {
-      filterQuery['category.name'] = {
-        $regex: new RegExp(query.category, 'gi'),
-      };
+      filterQuery['category.name'] = new RegExp(query.category, 'i');
     }
 
     if (query.subCategory) {
-      filterQuery['subCategory.name'] = {
-        $regex: new RegExp(query.subCategory, 'gi'),
-      };
+      filterQuery['subCategory.name'] = new RegExp(query.subCategory, 'i');
     }
 
     if (query.suppliers) {
       filterQuery['supplier._id'] = {
-        $in: query.suppliers.map((vendor) => new ObjectId(vendor)),
+        $in: Array.isArray(query.suppliers)
+          ? query.suppliers.map((supplier) => new ObjectId(supplier))
+          : [new ObjectId(query.suppliers as string)],
       };
     }
 
@@ -865,72 +782,7 @@ export class ProductService {
             preserveNullAndEmptyArrays: true,
           },
         },
-        {
-          $unwind: {
-            path: '$product.prices.priceGroups',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $lookup: {
-            from: 'baseprices',
-            localField: 'product.prices.priceGroups.basePrice',
-            foreignField: '_id',
-            as: 'product.prices.priceGroups.basePrice',
-          },
-        },
-        {
-          $unwind: {
-            path: '$product.prices.priceGroups.basePrice',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $lookup: {
-            from: 'additions',
-            localField: 'product.prices.priceGroups.additions',
-            foreignField: '_id',
-            as: 'product.prices.priceGroups.additions',
-          },
-        },
-        {
-          $unwind: {
-            path: '$product.prices.priceGroups.additions',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $group: {
-            _id: {
-              productId: '$_id',
-              priceGroupId: '$product.prices.priceGroups._id',
-            },
-            doc: { $first: '$$ROOT' },
-            basePrice: { $first: '$product.prices.priceGroups.basePrice' },
-            additions: { $push: '$product.prices.priceGroups.additions' },
-          },
-        },
-        {
-          $group: {
-            _id: '$_id.productId',
-            doc: { $first: '$doc' },
-            priceGroups: {
-              $push: {
-                _id: '$_id.priceGroupId',
-                basePrice: '$basePrice',
-                additions: '$additions',
-              },
-            },
-          },
-        },
-        {
-          $addFields: {
-            'doc.product.prices.priceGroups': '$priceGroups',
-          },
-        },
-        {
-          $replaceRoot: { newRoot: '$doc' },
-        },
+
         {
           $lookup: {
             from: 'productcategories',
@@ -1030,8 +882,8 @@ export class ProductService {
    * @param query
    */
   async topSellingProducts(query: TopSellingProductQuery) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 15;
+    const page = Number(query.page) ?? 1;
+    const limit = Number(query.limit) ?? 15;
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -1119,8 +971,8 @@ export class ProductService {
     const showCase: { [key: string]: any } = {};
 
     // Ensure default values for page and limit
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 15;
+    const page = Number(query.page) ?? 1;
+    const limit = Number(query.limit) ?? 15;
 
     const categoryNames = query.categories ? query.categories.split(',') : [];
 
@@ -1144,7 +996,15 @@ export class ProductService {
       const sort = sortOptions['Recently added']; // Default sort can be adjusted as needed
 
       const products = await this.productModel
-        .find({ category: category._id })
+        .find({
+          category: category._id,
+          isActive: true,
+          price: { $exists: true },
+        })
+        .select(
+          'meta.id overview.name overview.heroImage overview.code product.description product.images price quantity slug category',
+        )
+        .populate({ path: 'category', select: ['name'] })
         .skip(limit * (page - 1))
         .limit(limit)
         .sort(sort)
@@ -1159,8 +1019,8 @@ export class ProductService {
   }
 
   async latestProducts(query: FilterPage): Promise<{ [key: string]: any }> {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const page = Number(query.page) ?? 1;
+    const limit = Number(query.limit) ?? 10;
 
     const sortOptions: { [key: string]: any } = {
       'A-Z': { 'product.name': 1 },
@@ -1187,8 +1047,8 @@ export class ProductService {
   }
 
   async hotProducts(query: FilterPage): Promise<{ [key: string]: any }> {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+    const page = Number(query.page) ?? 1;
+    const limit = Number(query.limit) ?? 10;
 
     const sortOptions: { [key: string]: any } = {
       'A-Z': { 'product.name': 1 },
@@ -1198,12 +1058,9 @@ export class ProductService {
     const sort = sortOptions['default'];
 
     const products = await this.productModel
-      .find({ isHot: true })
-      .populate('supplier')
-      .populate('product.prices.priceGroups.additions')
-      .populate('product.prices.priceGroups.basePrice')
+      .find({ isHot: true, isActive: true })
+      .select('overview slug price quantity product.description')
       .populate('category')
-      .populate('subCategory')
       .skip(limit * (page - 1))
       .limit(limit)
       .sort(sort)
@@ -1246,11 +1103,23 @@ export class ProductService {
       payload.isActive = true;
     }
 
+    const sortOptions: { [key: string]: any } = {
+      'A-Z': { name: 1 },
+      'Z-A': { name: -1 },
+      default: { createdAt: -1 },
+    };
+
+    const sort = sortOptions[query.sort] || sortOptions.default;
+
     const suppliers = await this.supplierModel
       .find(payload)
+      .select(
+        'name status suppliderId totalProducts isActive country appaMemberNumber',
+      )
       .skip(limit * (page - 1))
       .limit(limit)
-      .sort({ createdAt: -1 });
+      .sort(sort)
+      .lean();
 
     const count = await this.supplierModel.countDocuments(payload);
     const totalPages = Math.ceil(count / limit);
@@ -1265,41 +1134,6 @@ export class ProductService {
       hasPrevPage: page > 1,
     };
   }
-
-  // async findAllProductCategory(): Promise<any[]> {
-  //   const category = await this.productCategoryModel.find({});
-
-  //   const res = await Promise.all(
-  //     category.map(async (obj, i) => {
-  //       let totalProducts = obj.totalProducts;
-
-  //       if (totalProducts === null) {
-  //         const count = await this.productModel.countDocuments({
-  //           category: obj._id,
-  //         });
-  //         await this.productCategoryModel.updateOne(
-  //           { _id: obj._id },
-  //           { totalProducts: count },
-  //         );
-  //         totalProducts = count;
-  //       }
-
-  //       // Convert the Mongoose document to a plain JavaScript object
-  //       const plainObj = obj.toObject();
-  //       delete plainObj.subCategory;
-
-  //       return {
-  //         name: plainObj.name,
-  //         id: plainObj.id,
-  //         _id: plainObj._id,
-  //         totalProducts,
-  //       };
-  //     }),
-  //   );
-
-  //   // console.log(res);
-  //   return res;
-  // }
 
   async findProductByCategory(
     query: FilterProductByCategoryQueryDto,
@@ -1326,8 +1160,8 @@ export class ProductService {
 
       const products = await this.productModel
         .find({ category: category._id })
-        .skip(query.limit * (query.page - 1))
-        .limit(query.limit)
+        .skip(Number(query.limit) * (Number(query.page) - 1))
+        .limit(Number(query.limit))
         .sort(sort)
         .lean();
 
@@ -1342,306 +1176,46 @@ export class ProductService {
     }
   }
 
-  async populateDatabase() {
-    const products = [
-      {
-        meta: {
-          id: 1,
-          country: 'AU',
-          data_source: 'API',
-          discontinued: true,
-          can_check_stock: false,
-          discontinued_at: '2024-05-07 02:42:35 +0000',
-          first_listed_at: '2020-07-25 09:22:30 +0000',
-          last_changed_at: '2024-05-07 02:42:35 +0000',
-          price_currencies: ['AUD'],
-          prices_changed_at: '2020-07-25 09:22:30 +0000',
-          discontinued_reason: 'No longer in API',
-          source_data_changed_at: '2020-07-25 09:22:30 +0000',
-          verified_last_3_months: true,
-          changed_comparison_timestamp: '2024-05-07 02:42:35 +0000',
-        },
-        supplier: {
-          supplier: 'PromoCollection',
-          supplier_id: 1,
-          supplier_country: 'AU',
-          supplier_appa_member_number: 'S005217',
-        },
-        overview: {
-          name: '',
-          code: '22',
-          supplier: 'PromoCollection',
-          hero_image: null,
-          min_qty: 0,
-          display_prices: {},
-        },
-        product: {
-          code: '22',
-          name: '',
-          details: [
-            {
-              name: 'additional info',
-              detail:
-                'Lead time is from confirmation of artwork approval. Lead time refers to dispatch, final delivery time will depend on location and type of courier used.  Stock availability: Order fulfillment is dependent on stock availability, and delivery timeframe, of the factories which we work with. Please confirm availability with us before placing your order.  Upon request, we can provide certification documents for the factories that we source our products from. If you have a certain requirement, please mention at the time of quoting, so we can ensure to source from the appropriate factory before commencing the order. If we are required to switch a factory that we source from, to meet a certain requirement, there may be variations in price applicable.',
-            },
-          ],
-          description: '',
-          discontinued: true,
-          supplier_brand: null,
-          supplier_label: null,
-          supplier_catalogue: null,
-          supplier_website_page: 'https://promocollection.com.au/product/',
-          images: [],
-          prices: {
-            addons: [],
-            price_tags: {},
-            price_groups: [],
-            currency_options: 'AUD|NZD',
-          },
-          videos: [],
-          line_art: [],
-          colours: {
-            list: [],
-            supplier_text: [],
-          },
-          categorisation: {
-            product_type: {
-              type_id: null,
-              type_name: null,
-              type_group_id: null,
-              type_name_text: '',
-              type_group_name: null,
-            },
-            appa_attributes: {},
-            appa_product_type: {},
-            supplier_category: null,
-            promodata_attributes: [],
-            supplier_subcategory: null,
-            promodata_product_type: {
-              type_id: null,
-              type_name: null,
-              type_group_id: null,
-              type_name_text: '',
-              type_group_name: null,
-            },
-          },
-        },
-      },
-      {
-        meta: {
-          id: 2,
-          country: 'AU',
-          data_source: 'API',
-          discontinued: false,
-          can_check_stock: false,
-          discontinued_at: null,
-          first_listed_at: '2020-07-25 09:22:30 +0000',
-          last_changed_at: '2024-05-30 13:44:57 +0000',
-          price_currencies: ['AUD'],
-          prices_changed_at: '2024-04-21 13:19:55 +0000',
-          discontinued_reason: null,
-          source_data_changed_at: '2024-05-15 13:28:59 +0000',
-          verified_last_3_months: true,
-          changed_comparison_timestamp: '2024-05-30 13:44:57 +0000',
-        },
-        supplier: {
-          supplier: 'PromoCollection',
-          supplier_id: 1,
-          supplier_country: 'AU',
-          supplier_appa_member_number: 'S005217',
-        },
-        overview: {
-          name: 'Dispenser Stand',
-          code: 'PCA041',
-          supplier: 'PromoCollection',
-          hero_image:
-            'https://res.cloudinary.com/promodata/promoc/6d14c4fe7dd9668cf1450b82e3449adf23fcad2a.jpg',
-          min_qty: 0,
-          display_prices: {},
-        },
-        product: {
-          code: 'PCA041',
-          name: 'Dispenser Stand',
-          details: [
-            {
-              name: 'product size',
-              detail: '91.4x183cm',
-            },
-            {
-              name: 'product material',
-              detail: 'Aluminium alloy and elastic cloth',
-            },
-            {
-              name: 'included packaging',
-              detail: 'Standard Box',
-            },
-            {
-              name: 'product dimensions',
-              detail:
-                'Single weight: 9kg \nG/N Weight: 10kg/9kg \nMeas: 965x280x85mm \nPacking: 1pc/ctn',
-            },
-            {
-              name: 'additional info',
-              detail:
-                'Lead time is from confirmation of artwork approval. Lead time refers to dispatch, final delivery time will depend on location and type of courier used.  Stock availability: Order fulfillment is dependent on stock availability, and delivery timeframe, of the factories which we work with. Please confirm availability with us before placing your order.  Upon request, we can provide certification documents for the factories that we source our products from. If you have a certain requirement, please mention at the time of quoting, so we can ensure to source from the appropriate factory before commencing the order. If we are required to switch a factory that we source from, to meet a certain requirement, there may be variations in price applicable.',
-            },
-          ],
-          description:
-            'The Dispenser Stand is a great way to display your branding, and keep safe. The cover of the stand is fully customisable with a full colour print design. The stand of the dispenser can fixed at a position about 1 meter above the ground, and can be placed and moved at will, without being restricted by space and layout. Made of aluminium alloy and elastic cloth, it is stable and firm and a great branding option.',
-          discontinued: false,
-          supplier_brand: null,
-          supplier_label: null,
-          supplier_catalogue: null,
-          supplier_website_page:
-            'https://promocollection.com.au/product/PCA041',
-          images: [
-            'https://res.cloudinary.com/promodata/promoc/6d14c4fe7dd9668cf1450b82e3449adf23fcad2a.jpg',
-            'https://res.cloudinary.com/promodata/promoc/a304f66ff1913acd462cb1e61ff6eeb8b5f7dfd8.jpg',
-            'https://res.cloudinary.com/promodata/promoc/55570a61c4cf2002915e7e033e0de7d17321faff.jpg',
-            'https://res.cloudinary.com/promodata/promoc/affb11e3b4d0fc4d51e76d723fe312e1dcaf3910.jpg',
-            'https://res.cloudinary.com/promodata/promoc/c8bf8477602ce9638cd713f1c5048d89f1ff6572.jpg',
-            'https://res.cloudinary.com/promodata/promoc/b5d14f62afb2feb044afae3b52f1a0974e70cac0.jpg',
-            'https://res.cloudinary.com/promodata/promoc/b7eba55038851797259eb03d92d73a4cf95bd7cb.jpg',
-          ],
-          prices: {
-            addons: [],
-            price_tags: {},
-            price_groups: [
-              {
-                additions: [],
-                base_price: {
-                  key: '859303c1fe9c92c2478a7d4febba6a77',
-                  tags: [],
-                  type: 'Digital Print',
-                  setup: 0,
-                  indent: false,
-                  currency: 'AUD',
-                  lead_time: '1 -2week',
-                  description:
-                    '1 -2week, Single Sides Print, Digital Print, 1 design',
-                  undecorated: false,
-                  price_breaks: [
-                    {
-                      qty: 1,
-                      price: 151.69,
-                    },
-                    {
-                      qty: 5,
-                      price: 149.19,
-                    },
-                    {
-                      qty: 10,
-                      price: 146.69,
-                    },
-                    {
-                      qty: 25,
-                      price: 144.49,
-                    },
-                    {
-                      qty: 50,
-                      price: 142.19,
-                    },
-                  ],
-                },
-                promodata_decoration: 'Direct Print: Digital Print',
-              },
-              {
-                additions: [],
-                base_price: {
-                  key: 'd68a38641c336c31ade84f010ae0cee4',
-                  tags: [],
-                  type: 'Digital Print',
-                  setup: 0,
-                  indent: false,
-                  currency: 'AUD',
-                  lead_time: '1 -2week',
-                  description:
-                    '1 -2week, Double Sides Print, Digital Print, 1 design',
-                  undecorated: false,
-                  price_breaks: [
-                    {
-                      qty: 1,
-                      price: 154.89,
-                    },
-                    {
-                      qty: 5,
-                      price: 152.59,
-                    },
-                    {
-                      qty: 10,
-                      price: 150.29,
-                    },
-                    {
-                      qty: 25,
-                      price: 147.59,
-                    },
-                    {
-                      qty: 50,
-                      price: 144.89,
-                    },
-                  ],
-                },
-                promodata_decoration: 'Direct Print: Digital Print',
-              },
-            ],
-            currency_options: 'AUD|NZD',
-          },
-          videos: [],
-          line_art: [],
-          colours: {
-            list: [
-              {
-                for: 'Frame',
-                name: 'silver Fabric:PMS',
-                image: null,
-                swatch: [],
-                colours: ['silver Fabric:PMS'],
-                appa_colours: [],
-              },
-            ],
-            supplier_text: [
-              {
-                name: 'colors notes',
-                detail: 'Frame:silver Fabric:PMS',
-              },
-            ],
-          },
-          categorisation: {
-            product_type: {
-              type_id: 'H-04',
-              type_name: 'Face Masks',
-              type_group_id: 'H',
-              type_name_text: 'Health & Personal > Face Masks',
-              type_group_name: 'Health & Personal',
-            },
-            appa_attributes: {},
-            appa_product_type: {
-              'Health & Personal': ['Face Masks'],
-            },
-            supplier_category: 'Health & Personal',
-            promodata_attributes: ['Features: Antibacterial'],
-            supplier_subcategory: 'Face Masks',
-            promodata_product_type: {
-              type_id: 'PL-02',
-              type_name: 'Face Masks',
-              type_group_id: 'PL',
-              type_name_text: 'Health & Personal > Face Masks',
-              type_group_name: 'Health & Personal',
-            },
-          },
-        },
-      },
-    ];
-    const docs = await Promise.all(
-      products.map(async (product) => {
-        const data: ProductDocument = await this.createProduct(product);
+  async productTextSearch(query: Partial<ProductTextSearchQueryDto>) {
+    try {
+      const filterQuery: any = {};
 
-        return await this.findById(data._id as string);
-      }),
-    );
+      if (query.search) {
+        filterQuery.$text = { $search: query.search };
+      }
 
-    return { docs };
+      if (query.colours && query.colours.length > 0) {
+        filterQuery['product.colours.list.colours'] = {
+          $in: query.colours.map((colour: string) => new RegExp(colour, 'i')),
+        };
+      }
+
+      const results = await this.productModel
+        .find(filterQuery, { score: { $meta: 'textScore' } })
+        .select('overview category slug')
+        .populate('category')
+        .limit(10)
+        .sort({ score: { $meta: 'textScore' } })
+        .lean()
+        .exec();
+
+      return results;
+    } catch (error) {
+      console.error('Error performing search:', error);
+      throw error;
+    }
   }
+
+  async productPricingDetails(productId: string) {
+    const product = await this.productModel
+      .findById(productId)
+      .populate('product.prices.priceGroups.additions')
+      .populate('product.prices.priceGroups.basePrice')
+      .select('product.prices');
+
+    return product;
+  }
+
   removeSnakeCase(str: string): string {
     return str
       .split('_')
@@ -1649,7 +1223,7 @@ export class ProductService {
       .join(' ');
   }
 
-  async addProductLabel(productId: string, label: string) {
+  async addProductLabel(productId: string, labels: string[]) {
     const product = await this.productModel.findOne({
       _id: new Types.ObjectId(productId),
     });
@@ -1658,21 +1232,13 @@ export class ProductService {
       throw new NotFoundException('This product does not exist');
     }
 
-    if (product.labels) {
-      const { modifiedCount } = await this.productModel.updateOne(
-        { _id: new Types.ObjectId(productId) },
-        { $push: { labels: label } },
-      );
-
-      return { updated: modifiedCount > 0 };
-    }
-
     const { modifiedCount } = await this.productModel.updateOne(
       { _id: new Types.ObjectId(productId) },
-      { $set: { labels: [label] } },
+      // { $push: { labels: label } },
+      { labels: labels },
     );
 
-    return { updated: modifiedCount > 0 };
+    return { updated: modifiedCount > 0, productId, labels };
   }
 
   async removeProductLabel(productId: string, label: string) {

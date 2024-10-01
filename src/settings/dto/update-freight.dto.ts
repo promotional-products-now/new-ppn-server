@@ -12,6 +12,7 @@ import { DestinationType, FreightType } from '../settings.interface';
 
 export class UpdateFreightDto {
   @ApiProperty({ type: [String] })
+  @IsArray()
   ids: string[];
 
   @ApiProperty({ enum: FreightType, default: FreightType.FIX })

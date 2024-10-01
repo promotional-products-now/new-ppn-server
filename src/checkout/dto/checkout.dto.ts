@@ -3,6 +3,7 @@ import {
   IsDate,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
   ValidateNested,
 } from 'class-validator';
@@ -75,6 +76,12 @@ export class CheckoutInput {
     description: 'payment',
   })
   paymentMethod: string;
+
+  @IsOptional()
+  @ApiProperty({
+    description: 'coupon code',
+  })
+  couponCode?: string;
 }
 
 export class CartItem {

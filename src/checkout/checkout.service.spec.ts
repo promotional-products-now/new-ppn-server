@@ -12,6 +12,7 @@ import { UserModule } from 'src/user/user.module';
 import { ObjectId } from 'mongodb';
 import { ProductModule } from 'src/product/product.module';
 import { ProductService } from 'src/product/product.service';
+import { CouponModule } from 'src/coupon/coupon.module';
 
 describe('BillingService', () => {
   let service: CheckoutService;
@@ -24,6 +25,7 @@ describe('BillingService', () => {
         OrderModule,
         AppModule,
         JWTModule,
+        CouponModule,
         forwardRef(() => UserModule),
       ],
       providers: [CheckoutService, ConfigService],
@@ -66,6 +68,7 @@ describe('BillingService', () => {
     });
 
     const items: CheckoutInput = {
+      couponCode: 'PPN-3Yif',
       cartItems: cartItems,
       orderDate: undefined,
       billingAddress: {

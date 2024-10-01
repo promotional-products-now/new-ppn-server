@@ -59,11 +59,10 @@ export class SupplierService {
       filter.isActive = true;
     }
 
-    const suppliers = await this.supplierModel.find(
-      filter,
-      {},
-      { sort, skip: limit * (page - 1), limit },
-    );
+    const suppliers = await this.supplierModel
+      .find(filter, {}, { sort, skip: limit * (page - 1), limit })
+      .select('name status supplierId isActive country appaMemberNumber');
+
     const count = await this.supplierModel.countDocuments(filter);
     const totalPages = Math.ceil(count / limit);
 

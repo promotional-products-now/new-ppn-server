@@ -8,6 +8,17 @@ import {
   IsString,
 } from 'class-validator';
 
+export class ProductTextSearchQueryDto {
+  @ApiPropertyOptional({ type: [String] })
+  @IsArray()
+  @IsOptional()
+  colours: string[];
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  search: string;
+}
 export class FilterProductQueryDto {
   @ApiPropertyOptional({ type: [String] })
   @IsArray()
@@ -62,6 +73,16 @@ export class FilterProductQueryDto {
   @IsBoolean()
   @IsOptional()
   isAdmin: boolean;
+
+  @ApiPropertyOptional({ example: '1.25' })
+  @IsString()
+  @IsOptional()
+  minPrice: number;
+
+  @ApiPropertyOptional({ example: '5.45' })
+  @IsString()
+  @IsOptional()
+  maxPrice: number;
 }
 
 export class FilterPage {
