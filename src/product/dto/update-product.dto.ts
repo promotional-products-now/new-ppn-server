@@ -9,8 +9,11 @@ import {
   IsDateString,
   IsEnum,
   IsNumber,
+  IsString,
+  Matches,
   ValidateNested,
   IsOptional,
+  IsArray,
 } from 'class-validator';
 import { STATUS_ENUM } from '../product.interface';
 import { Type } from 'class-transformer';
@@ -159,4 +162,35 @@ export class FilterWithCreatedAt extends FilterProductQueryDto {
   @IsDateString()
   @IsOptional()
   endDate: string;
+}
+
+export class ProductLabelDto {
+  @ApiProperty({ required: true, example: 'some product id' })
+  @IsString()
+  productId: string;
+
+  @ApiProperty({ required: true, example: 'best selling' })
+  @Matches('^[a-z]+( [a-z]+)*$')
+  label: string;
+}
+
+export class ProductLabelUpdateDto {
+  @ApiProperty({ example: 'some product id' })
+  @IsString({ message: 'Product ID is required' })
+  productId: string;
+
+  @ApiProperty({
+    type: [String], // Correctly specifying an array of strings
+    example: ['best selling'],
+    isArray: true,
+  })
+  @IsArray({ message: 'Labels must be an array' })
+  @IsString({ each: true, message: 'Each label must be a string' }) // Ensures each element in the array is a string
+  labels: string[];
+}
+
+export class ProductUpdateDto {
+  @ApiProperty({ example: true })
+  @IsBoolean()
+  updated: boolean;
 }

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -1220,5 +1221,47 @@ export class ProductService {
       .split('_')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
+  }
+
+  async addProductLabel(productId: string, labels: string[]) {
+    const product = await this.productModel.findOne({
+      _id: new Types.ObjectId(productId),
+    });
+
+    if (!product) {
+      throw new NotFoundException('This product does not exist');
+    }
+
+    const { modifiedCount } = await this.productModel.updateOne(
+      { _id: new Types.ObjectId(productId) },
+      // { $push: { labels: label } },
+      { labels: labels },
+    );
+
+    return { updated: modifiedCount > 0, productId, labels };
+  }
+
+  async removeProductLabel(productId: string, label: string) {
+    const product = await this.productModel.findOne({
+      _id: new Types.ObjectId(productId),
+
+      labels: { $elemMatch: { $eq: label } },
+    });
+
+    if (!product) {
+      throw new NotFoundException(
+        'This product does not exist with this label',
+      );
+    }
+
+    const labels = product.labels;
+    const labelIndex = labels.indexOf(label);
+    labels.splice(labelIndex, 1);
+
+    const { modifiedCount } = await this.productModel.updateOne(
+      { _id: new Types.ObjectId(productId) },
+      { $set: { labels } },
+    );
+    return { updated: modifiedCount > 0 };
   }
 }
