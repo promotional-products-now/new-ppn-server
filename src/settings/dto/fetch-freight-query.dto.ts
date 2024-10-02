@@ -13,8 +13,8 @@ export class FetchFreightQueryDto {
   @IsNumber()
   limit: number;
 
-  @ApiProperty({ example: 'search term', required: false })
+  @ApiProperty({ example: 'supplier id', required: false })
   @IsString()
   @IsOptional()
-  query?: string;
+  supplierId?: string;
 }

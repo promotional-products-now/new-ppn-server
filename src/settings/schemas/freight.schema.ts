@@ -14,7 +14,7 @@ export class Freight extends Document {
     ref: Supplier.name,
   })
   @ApiProperty({
-    description: 'vendor details',
+    description: 'supplier details',
   })
   supplier: Types.ObjectId;
 
@@ -58,7 +58,7 @@ export class Freight extends Document {
     type: [Number],
   })
   @ApiProperty({
-    description: 'Vendor selected destinations',
+    description: 'Supplier selected destinations',
     example: [11233, 443343],
   })
   destinations: number[];

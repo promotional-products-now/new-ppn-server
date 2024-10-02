@@ -119,23 +119,23 @@ export class SettingsService {
     const page = query.page ? Number(query.page) : 1;
     const limit = query.limit ? Number(query.limit) : 15;
 
-    const { query: search } = query;
+    const { supplierId } = query;
 
     const payload: Record<string, any> = {};
 
-    if (search) {
-      const regex = new RegExp(search, 'i');
-      payload.$or = [
-        { 'vendor.firstName': regex },
-        { 'vendor.lastName': regex },
-      ];
+    if (supplierId) {
+      payload['supplier'] = new Types.ObjectId(supplierId);
     }
 
     const freights = await this.freightModel
       .find(payload)
       .skip(limit * (page - 1))
       .limit(limit)
-      .populate(['supplier'])
+      .populate({
+        path: 'supplier',
+        select:
+          'name country supplierId appaMemberNumber isActive status removedFromPromodata',
+      })
       .sort({ createdAt: -1 });
 
     const count = await this.freightModel.countDocuments(payload);
@@ -179,10 +179,14 @@ export class SettingsService {
     }
 
     const freights = await this.supplierModel
-      .find(payload)
+      .find({ ...payload, isActive: true })
+      .select(
+        'name country supplierId appaMemberNumber isActive status removedFromPromodata',
+      )
       .skip(limit * (page - 1))
       .limit(limit)
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     const count = await this.supplierModel.countDocuments(payload);
     const totalPages = Math.ceil(count / limit);
