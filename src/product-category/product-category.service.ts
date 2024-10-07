@@ -101,9 +101,9 @@ export class ProductCategoryService {
   async updateCategories(updateCategoryDto: UpdateCategoriesDto) {
     const { ids, ...rest } = updateCategoryDto;
     const idsMap = ids.map((id) => new ObjectId(id));
-    return await this.productCategoryModel.findByIdAndUpdate(
+    return this.productCategoryModel.updateMany(
       { _id: { $in: idsMap } },
-      rest,
+      { $set: rest },
       { new: true },
     );
   }
@@ -111,9 +111,9 @@ export class ProductCategoryService {
   async updateSubCategories(updateSubCategoryDto: UpdateSubCategoriesDto) {
     const { ids, ...rest } = updateSubCategoryDto;
     const idsMap = ids.map((id) => new ObjectId(id));
-    return await this.productSubCategoryModel.updateMany(
+    return this.productSubCategoryModel.updateMany(
       { _id: { $in: idsMap } },
-      rest,
+      { $set: rest },
       { new: true },
     );
   }

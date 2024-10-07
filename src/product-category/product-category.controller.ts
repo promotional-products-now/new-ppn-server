@@ -91,6 +91,17 @@ export class ProductCategoryController {
     return await this.productCategoryService.updateSubCategory(id, body);
   }
 
+  @Patch('/subcategory')
+  @ApiOperation({ summary: 'Update SubCategories' })
+  @ApiOkResponse({
+    description: 'Updated subcategories data',
+    type: UpdateManyResponse,
+  })
+  async updateSubCategories(@Body() body: UpdateSubCategoriesDto) {
+    console.log({ body });
+
+    return await this.productCategoryService.updateSubCategories(body);
+  }
   @Patch('/:id')
   @ApiParam({ name: 'id', type: 'string', required: true })
   @ApiOperation({ summary: 'Update Categories' })
@@ -103,16 +114,6 @@ export class ProductCategoryController {
     @Body() body: UpdateCategoryDto,
   ) {
     return await this.productCategoryService.updateCategory(id, body);
-  }
-
-  @Patch('/subcategory')
-  @ApiOperation({ summary: 'Update SubCategories' })
-  @ApiOkResponse({
-    description: 'Updated subcategories data',
-    type: UpdateManyResponse,
-  })
-  async updateSubCategories(@Body() body: UpdateSubCategoriesDto) {
-    return await this.productCategoryService.updateSubCategories(body);
   }
 
   @Patch()

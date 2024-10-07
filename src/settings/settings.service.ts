@@ -178,6 +178,13 @@ export class SettingsService {
       payload.name = { $regex: regex };
     }
 
+    const sortOptions: { [key: string]: any } = {
+      'A-Z': { 'product.name': 1 },
+      'Z-A': { 'product.name': -1 },
+      default: { createdAt: -1 },
+    };
+    const sort = sortOptions[query.sort] || sortOptions.default;
+
     const freights = await this.supplierModel
       .find({ ...payload, isActive: true })
       .select(
@@ -185,7 +192,7 @@ export class SettingsService {
       )
       .skip(limit * (page - 1))
       .limit(limit)
-      .sort({ createdAt: -1 })
+      .sort(sort)
       .lean();
 
     const count = await this.supplierModel.countDocuments(payload);

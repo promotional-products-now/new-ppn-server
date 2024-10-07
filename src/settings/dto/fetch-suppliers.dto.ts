@@ -1,8 +1,13 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class FetchSupplierstQueryDto {
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  sort: string;
+
   @ApiProperty({ example: '1' })
   @Transform(({ value }) => Number(value))
   @IsNumber()

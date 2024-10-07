@@ -49,7 +49,6 @@ export class SupplierService {
     const limit = query.limit ? Number(query.limit) : 15;
 
     const filter: Record<string, any> = {};
-    const sort: Record<string, any> = { createdAt: -1 };
 
     if (query.query) {
       filter.$or = [{ name: { $regex: new RegExp(query.query, 'gi') } }];
@@ -58,6 +57,13 @@ export class SupplierService {
     if (query.isActive) {
       filter.isActive = true;
     }
+
+    const sortOptions: { [key: string]: any } = {
+      'A-Z': { 'product.name': 1 },
+      'Z-A': { 'product.name': -1 },
+      default: { createdAt: -1 },
+    };
+    const sort = sortOptions[query.sort] || sortOptions.default;
 
     const suppliers = await this.supplierModel
       .find(filter, {}, { sort, skip: limit * (page - 1), limit })
