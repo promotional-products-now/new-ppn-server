@@ -44,13 +44,13 @@ export class Freight extends Document {
   @Prop({
     type: String,
     enum: DestinationType,
-    default: DestinationType.METROPOLITAN,
+    default: DestinationType.UN_CONDITIONAL,
   })
   @ApiProperty({
     description: 'Freight destination type',
-    example: DestinationType.METROPOLITAN,
+    example: DestinationType.UN_CONDITIONAL,
     enum: DestinationType,
-    default: DestinationType.METROPOLITAN,
+    default: DestinationType.UN_CONDITIONAL,
   })
   destinationType: DestinationType;
 

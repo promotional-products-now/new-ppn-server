@@ -24,7 +24,10 @@ export class CreateFreightDto {
   @IsNotEmpty()
   freightPrice: number;
 
-  @ApiProperty({ enum: DestinationType, default: DestinationType.METROPOLITAN })
+  @ApiProperty({
+    enum: DestinationType,
+    default: DestinationType.UN_CONDITIONAL,
+  })
   @IsEnum(DestinationType)
   destinationType: DestinationType;
 

@@ -11,7 +11,8 @@ export enum FreightType {
 }
 
 export enum DestinationType {
-  METROPOLITAN = 'metropolitan',
+  CONDITIONAL = 'conditional',
+  UN_CONDITIONAL = 'unconditional',
 }
 
 export enum BuyNowCandidateStatus {
