@@ -9,6 +9,9 @@ import {
   Query,
   Post,
   UseGuards,
+  Delete,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { SettingsService } from './settings.service';
 import {
@@ -20,6 +23,7 @@ import {
   ApiCreatedResponse,
   ApiBearerAuth,
   ApiSecurity,
+  ApiResponse,
 } from '@nestjs/swagger';
 import { UpdateProfitSettingDto } from './dto/update-profit-setting.dto';
 import { UpdateBannerSettingDto } from './dto/update-banner-setting.dto';
@@ -30,7 +34,7 @@ import { BannerSetting } from './schemas/banner-setting.schema';
 import { FetchFreightQueryDto } from './dto/fetch-freight-query.dto';
 import { PaginatedFreightSettingsResponse } from './dto/paginated-freight-response';
 import { CreateFreightDto } from './dto/create-freight.dto';
-import { UpdateFreightDto } from './dto/update-freight.dto';
+import { FreightIdsDto, UpdateFreightDto } from './dto/update-freight.dto';
 import { Freight } from './schemas/freight.schema';
 import { FetchSupplierstQueryDto } from './dto/fetch-suppliers.dto';
 import { AuthorizationGuard } from '../commons/guards/authorization.guard';
@@ -161,6 +165,25 @@ export class SettingsController {
   @ApiOkResponse({ description: 'Updated freight docs ', type: [Freight] })
   async updateFreight(@Body() body: UpdateFreightDto) {
     return this.settingsService.updateFreights(body);
+  }
+
+  @Delete('/freight')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete multiple freight records by IDs' })
+  @ApiResponse({
+    status: 204,
+    description: 'The freight records have been deleted successfully.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid input, IDs must be valid.',
+  })
+  @ApiBody({
+    type: FreightIdsDto,
+    description: 'Array of freight IDs to delete',
+  })
+  async deleteFreight(@Body() deleteFreightDto: FreightIdsDto) {
+    await this.settingsService.deleteFreight(deleteFreightDto.ids);
   }
 
   @UseGuards(AuthorizationGuard)

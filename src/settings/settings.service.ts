@@ -19,6 +19,7 @@ import {
 } from './schemas/purchase-setting.schema';
 import { BuyNowCandidateStatus } from './settings.interface';
 import { UpdatePurchaseSettingDto } from './dto/update-purchase-setting.dto';
+import { DeleteResult } from 'mongodb';
 
 @Injectable()
 export class SettingsService {
@@ -166,6 +167,10 @@ export class SettingsService {
       { _id: { $in: ids } },
       { $set: rest },
     );
+  }
+
+  async deleteFreight(ids: string[]): Promise<DeleteResult> {
+    return await this.freightModel.deleteMany({ _id: { $in: ids } });
   }
 
   async getSuppliers(query: FetchSupplierstQueryDto) {

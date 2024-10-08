@@ -3,6 +3,7 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsEnum,
+  IsMongoId,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -10,11 +11,19 @@ import {
 } from 'class-validator';
 import { DestinationType, FreightType } from '../settings.interface';
 
-export class UpdateFreightDto {
-  @ApiProperty({ type: [String] })
+export class FreightIdsDto {
+  @ApiProperty({
+    description: 'Array of freight IDs to delete',
+    example: ['605c5e8f5311234567890abc', '605c5e8f5311234567890def'],
+    type: [String],
+  })
   @IsArray()
+  @ArrayNotEmpty()
+  @IsMongoId({ each: true })
   ids: string[];
+}
 
+export class UpdateFreightDto extends FreightIdsDto {
   @ApiProperty({ enum: FreightType, default: FreightType.FIX })
   @IsEnum(FreightType)
   type: FreightType;
