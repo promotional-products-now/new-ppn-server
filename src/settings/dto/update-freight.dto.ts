@@ -43,7 +43,6 @@ export class UpdateFreightDto extends FreightIdsDto {
 
   @ApiProperty({ type: [Number] })
   @IsArray()
-  @ArrayNotEmpty()
   @IsNumber({}, { each: true })
   destinations: number[];
 }

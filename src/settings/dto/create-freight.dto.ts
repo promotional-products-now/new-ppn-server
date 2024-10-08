@@ -33,7 +33,6 @@ export class CreateFreightDto {
 
   @ApiProperty({ type: [Number] })
   @IsArray()
-  @ArrayNotEmpty()
   @IsNumber({}, { each: true })
   destinations: number[];
 }
