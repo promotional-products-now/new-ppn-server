@@ -1,7 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, HydratedDocument, Schema as MongooseSchema } from 'mongoose';
+import {
+  Document,
+  HydratedDocument,
+  Schema as MongooseSchema,
+  Types,
+} from 'mongoose';
 import { STATUS_ENUM } from '../product.interface';
 import { ApiProperty } from '@nestjs/swagger';
+import { Freight } from 'src/settings/schemas/freight.schema';
 
 @Schema({
   timestamps: true,
@@ -156,6 +162,13 @@ export class Supplier extends Document {
       salesPitch: string;
     };
   };
+
+  @Prop({ type: [{ type: Types.ObjectId, ref: Freight.name }] })
+  @ApiProperty({
+    description: 'List of freights associated with this supplier',
+    type: [Types.ObjectId],
+  })
+  freights: Types.ObjectId[];
 }
 
 export type SupplierDocument = HydratedDocument<Supplier>;

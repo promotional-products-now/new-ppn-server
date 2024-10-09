@@ -2,7 +2,6 @@ import { Document, HydratedDocument, Types } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { DestinationType, FreightType } from '../settings.interface';
 import { ApiProperty } from '@nestjs/swagger';
-import { User } from '../../user/schemas/user.schema';
 import { Supplier } from '../../product/schemas/supplier.schema';
 
 @Schema({
@@ -11,10 +10,10 @@ import { Supplier } from '../../product/schemas/supplier.schema';
 export class Freight extends Document {
   @Prop({
     type: Types.ObjectId,
-    ref: Supplier.name,
+    ref: 'Supplier',
   })
   @ApiProperty({
-    description: 'supplier details',
+    description: 'Supplier details',
   })
   supplier: Types.ObjectId;
 
@@ -36,7 +35,7 @@ export class Freight extends Document {
     default: 100,
   })
   @ApiProperty({
-    description: 'fixed freight price',
+    description: 'Fixed freight price',
     example: 100,
   })
   freightPrice: number;

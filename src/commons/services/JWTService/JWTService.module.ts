@@ -20,6 +20,11 @@ import {
   UserActivity,
   UserActivitySchema,
 } from '../../../user_activity/schema/user_activity.schema';
+import {
+  Supplier,
+  SupplierSchema,
+} from '../../../product/schemas/supplier.schema';
+import { Freight, FreightSchema } from 'src/settings/schemas/freight.schema';
 
 @Module({
   imports: [
@@ -28,6 +33,8 @@ import {
       { name: User.name, schema: UserSchema },
       { name: UserActivity.name, schema: UserActivitySchema },
       { name: UserDevice.name, schema: UserDeviceSchema },
+      // { name: Supplier.name, schema: SupplierSchema },
+      { name: Freight.name, schema: FreightSchema },
     ]),
     JwtModule.registerAsync({
       useFactory: async (configService: ConfigService) => {

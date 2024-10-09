@@ -12,6 +12,7 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
 import { SettingsService } from './settings.service';
 import {
@@ -40,6 +41,7 @@ import { FetchSupplierstQueryDto } from './dto/fetch-suppliers.dto';
 import { AuthorizationGuard } from '../commons/guards/authorization.guard';
 import { PurchaseSetting } from './schemas/purchase-setting.schema';
 import { UpdatePurchaseSettingDto } from './dto/update-purchase-setting.dto';
+import { DestinationType, FreightType } from './settings.interface';
 
 @Controller('settings')
 @ApiTags('settings')
@@ -154,9 +156,30 @@ export class SettingsController {
   @ApiOperation({ summary: 'Create Vendor Freight Setting' })
   @ApiCreatedResponse({ description: 'Created freight docs', type: Freight })
   async createFreight(@Body() body: CreateFreightDto) {
+    const supplierFreight = await this.settingsService.fetchFreights({
+      supplierId: body.supplier,
+      page: 1,
+      limit: 20,
+    });
+
+    // Check if supplier already has a free unconditional freight type
+    const hasUnconditional = supplierFreight.docs.some(
+      (freight) => freight.destinationType === DestinationType.UN_CONDITIONAL,
+    );
+
+    // If the supplier already has a free unconditional freight, return an error
+    if (
+      hasUnconditional &&
+      body.destinationType === DestinationType.UN_CONDITIONAL
+    ) {
+      throw new BadRequestException(
+        `Supplier already has an unconditional freight option`,
+      );
+    }
+
+    // Proceed to create the freight
     return this.settingsService.createFreight(body);
   }
-
   @UseGuards(AuthorizationGuard)
   @ApiSecurity('uid')
   @ApiBearerAuth()

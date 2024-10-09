@@ -137,7 +137,8 @@ export class SettingsService {
         select:
           'name country supplierId appaMemberNumber isActive status removedFromPromodata',
       })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     const count = await this.freightModel.countDocuments(payload);
     const totalPages = Math.ceil(count / limit);
@@ -153,11 +154,28 @@ export class SettingsService {
     };
   }
 
-  async createFreight(paylod: CreateFreightDto) {
-    return await this.freightModel.create({
-      ...paylod,
-      supplier: new Types.ObjectId(paylod.supplier),
-    });
+  async createFreight(payload: CreateFreightDto) {
+    try {
+      // Convert supplier ID to ObjectId
+      const supplierId = new Types.ObjectId(payload.supplier);
+
+      // Create the freight document
+      const freight = await this.freightModel.create({
+        ...payload,
+        supplier: supplierId,
+      });
+
+      // After creating the freight, update the supplier's freights list
+      await this.supplierModel.findByIdAndUpdate(
+        supplierId,
+        { $push: { freights: freight._id } }, // Add the newly created freight's ID to the supplier's freights list
+        { new: true, useFindAndModify: false },
+      );
+
+      return freight;
+    } catch (error) {
+      throw new Error(`Error creating freight: ${error.message}`);
+    }
   }
 
   async updateFreights(payload: UpdateFreightDto) {
@@ -193,7 +211,7 @@ export class SettingsService {
     const freights = await this.supplierModel
       .find({ ...payload, isActive: true })
       .select(
-        'name country supplierId appaMemberNumber isActive status removedFromPromodata',
+        'name country supplierId appaMemberNumber isActive status removedFromPromodata freights',
       )
       .skip(limit * (page - 1))
       .limit(limit)

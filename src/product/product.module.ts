@@ -39,6 +39,7 @@ import { Order, OrderSchema } from 'src/order/schemas/order.schema';
       { name: ProductCategory.name, schema: ProductCategorySchema },
       { name: ProductSubCategory.name, schema: ProductSubCategorySchema },
       { name: Order.name, schema: OrderSchema },
+      // { name: Freight.name, schema: FreightSchema },
     ]),
     forwardRef(() => UserModule),
   ],
